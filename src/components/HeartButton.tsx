@@ -30,9 +30,9 @@ const HeartButton = ({ color, selected, onClick, disabled }: HeartButtonProps) =
       />
       <div
         className={cn(
-          "absolute inset-0 rounded-full opacity-20",
+          "absolute inset-0 rounded-full",
           `bg-heart-${color}`,
-          "transition-opacity duration-300",
+          "opacity-20 transition-opacity duration-300",
           "group-hover:opacity-30"
         )}
       />
