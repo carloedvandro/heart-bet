@@ -17,26 +17,29 @@ export function Header({ profile, onLogout }: HeaderProps) {
 
   const handleLogout = async () => {
     try {
+      // First clear the session from Supabase's internal storage
+      await supabase.auth.clearSession();
+      
+      // Then attempt to sign out
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error("Logout error:", error);
-        toast.error("Erro ao sair. Tente novamente.");
-        return;
+        // Even if there's an error, we'll continue with local cleanup
       }
-      
-      // Call the parent's onLogout if provided
+    } catch (error) {
+      console.error("Unexpected logout error:", error);
+    } finally {
+      // Always perform these cleanup actions
       if (onLogout) {
         onLogout();
       }
       
-      // Always navigate to login page after logout attempt
+      // Clear any local storage data
+      localStorage.removeItem('supabase.auth.token');
+      
+      // Navigate to login and show success message
       navigate("/login");
       toast.success("Desconectado com sucesso");
-    } catch (error) {
-      console.error("Unexpected logout error:", error);
-      toast.error("Erro ao sair. Tente novamente.");
-      // Still navigate to login on error
-      navigate("/login");
     }
   };
 
