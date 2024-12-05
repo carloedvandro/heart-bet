@@ -14,6 +14,10 @@ const HeartGrid = () => {
   
   const session = useSession();
 
+  // Shuffle the hearts array for display
+  const shuffledHearts = [...HEART_COLORS]
+    .sort(() => Math.random() - 0.5);
+
   const handleHeartClick = (color: string) => {
     setSelectedHearts((prev) => {
       if (prev.includes(color)) {
@@ -76,7 +80,7 @@ const HeartGrid = () => {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 animate-fade-in">
-        {HEART_COLORS.map(({ color }) => (
+        {shuffledHearts.map(({ color }) => (
           <HeartButton
             key={color}
             color={color}
