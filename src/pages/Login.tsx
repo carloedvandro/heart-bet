@@ -35,6 +35,7 @@ export default function Login() {
         console.log("User signed in successfully");
         navigate("/dashboard");
       } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
         toast.info("Você foi desconectado");
       } else if (event === 'USER_UPDATED') {
         console.log("User updated:", session?.user);
@@ -112,12 +113,6 @@ export default function Login() {
             }}
             theme="light"
             providers={[]}
-            onError={(error) => {
-              console.error("Auth error:", error);
-              if (error.message.includes("Invalid login credentials")) {
-                toast.error("Email ou senha inválidos. Se você não tem uma conta, por favor cadastre-se.");
-              }
-            }}
           />
         </CardContent>
       </Card>
