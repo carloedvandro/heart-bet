@@ -50,7 +50,7 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-center text-2xl font-bold">Bem-vindo ao Lotocoração</CardTitle>
+          <CardTitle className="text-center text-2xl font-bold">Loto Corações Premiados</CardTitle>
         </CardHeader>
         <CardContent>
           <Auth
