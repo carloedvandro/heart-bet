@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -18,18 +18,29 @@ export function useRealtimeSubscription({
   enabled?: boolean;
 }) {
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const onChangedRef = useRef(onChanged);
+
+  // Update the callback ref when onChanged changes
+  useEffect(() => {
+    onChangedRef.current = onChanged;
+  }, [onChanged]);
+
+  const cleanup = useCallback(() => {
+    if (channelRef.current) {
+      console.log('Cleaning up channel subscription');
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
     if (!enabled || !channelName) return;
 
-    // Clean up existing subscription if any
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
+    cleanup();
 
-    // Create new channel with a unique name to avoid conflicts
     const uniqueChannelName = `${channelName}_${Date.now()}`;
+    console.log(`Setting up new subscription for ${uniqueChannelName}`);
+
     const channel = supabase.channel(uniqueChannelName);
     channelRef.current = channel;
 
@@ -42,24 +53,15 @@ export function useRealtimeSubscription({
           table,
           filter,
         },
-        () => {
-          if (onChanged) {
-            onChanged();
-          }
+        (payload) => {
+          console.log(`Received change for ${table}:`, payload);
+          onChangedRef.current();
         }
       )
       .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log(`Successfully subscribed to ${uniqueChannelName}`);
-        }
+        console.log(`Subscription status for ${uniqueChannelName}:`, status);
       });
 
-    // Cleanup function
-    return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
-    };
-  }, [channelName, schema, table, filter, enabled, onChanged]);
+    return cleanup;
+  }, [channelName, schema, table, filter, enabled, cleanup]);
 }

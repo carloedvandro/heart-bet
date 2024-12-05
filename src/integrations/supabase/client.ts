@@ -11,5 +11,10 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     detectSessionInUrl: true,
     flowType: 'pkce',
     storage: window.localStorage
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 2
+    }
   }
 });
