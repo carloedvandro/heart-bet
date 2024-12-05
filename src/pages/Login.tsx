@@ -43,6 +43,13 @@ export default function Login() {
     };
   }, [navigate]);
 
+  const handleAuthErrors = (error: any) => {
+    console.error("Authentication error:", error);
+    toast.error("Erro de autenticação", {
+      description: error?.message || "Não foi possível fazer login"
+    });
+  };
+
   return (
     <div 
       className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center"
@@ -90,6 +97,7 @@ export default function Login() {
                 },
               },
             }}
+            onError={handleAuthErrors}
             theme="light"
             providers={[]}
           />
