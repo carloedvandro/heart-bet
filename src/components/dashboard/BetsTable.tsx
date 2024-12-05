@@ -1,8 +1,9 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Bet } from "@/integrations/supabase/custom-types";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 interface BetsTableProps {
   refreshTrigger?: number;
@@ -35,56 +36,41 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
   const [loading, setLoading] = useState(true);
   const session = useSession();
 
-  useEffect(() => {
+  const fetchBets = useCallback(async () => {
     if (!session?.user?.id) return;
 
-    const fetchBets = async () => {
-      try {
-        console.log("Fetching bets for user:", session.user.id);
-        const { data, error } = await supabase
-          .from("bets")
-          .select("*")
-          .eq("user_id", session.user.id)
-          .order("created_at", { ascending: false });
+    try {
+      console.log("Fetching bets for user:", session.user.id);
+      const { data, error } = await supabase
+        .from("bets")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: false });
 
-        if (error) {
-          console.error("Error fetching bets:", error);
-          throw error;
-        }
-
-        console.log("Fetched bets:", data);
-        setBets(data || []);
-      } catch (error) {
+      if (error) {
         console.error("Error fetching bets:", error);
-      } finally {
-        setLoading(false);
+        throw error;
       }
-    };
 
+      console.log("Fetched bets:", data);
+      setBets(data || []);
+    } catch (error) {
+      console.error("Error fetching bets:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [session?.user?.id]);
+
+  useEffect(() => {
     fetchBets();
+  }, [fetchBets, refreshTrigger]);
 
-    // Set up real-time subscription with a unique channel name
-    const channelId = `bets_${session.user.id}`;
-    const channel = supabase.channel(channelId);
-
-    channel
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'bets',
-          filter: `user_id=eq.${session.user.id}`
-        }, 
-        () => {
-          fetchBets();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, [session?.user?.id, refreshTrigger]);
+  useRealtimeSubscription({
+    channel: `bets_${session?.user?.id || 'anonymous'}`,
+    table: 'bets',
+    filter: session?.user?.id ? `user_id=eq.${session.user.id}` : undefined,
+    onChanged: fetchBets
+  });
 
   if (loading) return <p className="text-center p-4">Carregando suas apostas...</p>;
   if (bets.length === 0) return <p className="text-center p-4">Você ainda não fez nenhuma aposta.</p>;

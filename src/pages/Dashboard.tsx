@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Header } from "@/components/dashboard/Header";
 import { BetsTable } from "@/components/dashboard/BetsTable";
 import { useSession } from "@supabase/auth-helpers-react";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -18,54 +19,41 @@ export default function Dashboard() {
   const session = useSession();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
+  const fetchProfile = useCallback(async () => {
+    if (!session?.user?.id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", session.user.id)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      toast.error("Erro ao carregar perfil");
+    } finally {
+      setLoading(false);
+    }
+  }, [session?.user?.id]);
+
   useEffect(() => {
     if (!session) {
       navigate("/login");
       return;
     }
 
-    const fetchProfile = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .single();
-
-        if (error) throw error;
-        setProfile(data);
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-        toast.error("Erro ao carregar perfil");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProfile();
+  }, [session, navigate, fetchProfile]);
 
-    // Set up real-time subscription for profile updates with a unique channel name
-    const channelId = `profile_${session.user.id}`;
-    const channel = supabase.channel(channelId);
-
-    channel
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'profiles',
-          filter: `id=eq.${session.user.id}`
-        }, 
-        () => {
-          fetchProfile();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, [session, navigate]);
+  useRealtimeSubscription({
+    channel: `profile_${session?.user?.id || 'anonymous'}`,
+    table: 'profiles',
+    filter: session?.user?.id ? `id=eq.${session.user.id}` : undefined,
+    onChanged: fetchProfile
+  });
 
   if (!session) return null;
 
