@@ -18,23 +18,27 @@ export function useRealtimeSubscription({
   enabled?: boolean;
 }) {
   const channelRef = useRef<RealtimeChannel | null>(null);
+  const onChangedRef = useRef(onChanged);
+
+  // Update the callback ref when onChanged changes
+  useEffect(() => {
+    onChangedRef.current = onChanged;
+  }, [onChanged]);
 
   useEffect(() => {
-    let isMounted = true;
+    if (!enabled || !channelName) return;
+
+    let isSubscribed = true;
 
     const setupSubscription = async () => {
-      if (!enabled || !channelName) return;
-
       try {
-        // Cleanup any existing subscription
+        // Clean up existing subscription if any
         if (channelRef.current) {
-          console.log(`Cleaning up existing subscription for ${channelName}`);
           await channelRef.current.unsubscribe();
           channelRef.current = null;
         }
 
-        // Create a new channel
-        console.log(`Setting up new subscription for ${channelName}`);
+        // Create new channel
         const channel = supabase.channel(channelName);
         channelRef.current = channel;
 
@@ -48,29 +52,31 @@ export function useRealtimeSubscription({
               filter,
             },
             () => {
-              if (isMounted) {
-                console.log(`Received change event on ${channelName}`);
-                onChanged();
+              if (isSubscribed && onChangedRef.current) {
+                onChangedRef.current();
               }
             }
           )
           .subscribe((status) => {
-            console.log(`Subscription status for ${channelName}:`, status);
+            if (status === 'SUBSCRIBED') {
+              console.log(`Successfully subscribed to ${channelName}`);
+            }
           });
+
       } catch (error) {
-        console.error(`Error setting up subscription for ${channelName}:`, error);
+        console.error(`Error in subscription for ${channelName}:`, error);
       }
     };
 
     setupSubscription();
 
+    // Cleanup function
     return () => {
-      isMounted = false;
+      isSubscribed = false;
       if (channelRef.current) {
-        console.log(`Cleaning up subscription for ${channelName}`);
         channelRef.current.unsubscribe();
         channelRef.current = null;
       }
     };
-  }, [channelName, schema, table, filter, onChanged, enabled]);
+  }, [channelName, schema, table, filter, enabled]); // Remove onChanged from deps
 }
