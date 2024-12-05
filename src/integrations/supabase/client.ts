@@ -21,9 +21,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   }
 });
 
-// Add debug logging for auth state changes
-supabase.auth.onAuthStateChange((event, session) => {
+// Only log auth state changes, remove any additional processing
+supabase.auth.onAuthStateChange((event) => {
   console.log('Auth state changed:', event);
-  console.log('Session details:', session);
-  console.log('Current user ID:', session?.user?.id);
 });
