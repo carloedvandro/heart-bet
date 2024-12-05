@@ -98,7 +98,8 @@ export default function Login() {
                   social_provider_text: "Entrar com {{provider}}",
                   link_text: "Já tem uma conta? Entre",
                   email_input_placeholder: "Seu email",
-                  password_input_placeholder: "Sua senha"
+                  password_input_placeholder: "Sua senha",
+                  error_message: "Email ou senha inválidos"
                 },
                 forgotten_password: {
                   link_text: "Esqueceu sua senha?",
@@ -112,6 +113,12 @@ export default function Login() {
             }}
             theme="light"
             providers={[]}
+            onError={(error) => {
+              console.error("Auth error:", error);
+              if (error.message.includes("Invalid login credentials")) {
+                toast.error("Email ou senha inválidos. Se você não tem uma conta, por favor cadastre-se.");
+              }
+            }}
           />
         </CardContent>
       </Card>
