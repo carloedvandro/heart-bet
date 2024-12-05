@@ -39,6 +39,8 @@ const HeartGrid = () => {
   };
 
   const handleSubmit = async () => {
+    console.log("Current session:", session); // Debug log
+
     if (!session?.user?.id) {
       toast.error("Você precisa estar logado para fazer uma aposta");
       return;
@@ -54,6 +56,8 @@ const HeartGrid = () => {
     );
 
     try {
+      console.log("Attempting to place bet with user ID:", session.user.id); // Debug log
+
       const { error } = await supabase
         .from('bets')
         .insert({
@@ -67,6 +71,7 @@ const HeartGrid = () => {
         });
 
       if (error) {
+        console.error("Supabase error:", error); // Debug log
         if (error.message.includes('Saldo insuficiente')) {
           toast.error("Saldo insuficiente para realizar esta aposta");
         } else {
