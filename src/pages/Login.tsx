@@ -86,10 +86,7 @@ export default function Login() {
                   link_text: "Não tem uma conta? Cadastre-se",
                   email_input_placeholder: "Seu email",
                   password_input_placeholder: "Sua senha",
-                  confirmation_text: "Verifique seu email",
-                  invalid_credentials: "Email ou senha incorretos",
-                  email_already_exists: "Email já cadastrado",
-                  password_mismatch: "As senhas não conferem"
+                  confirmation_text: "Verifique seu email"
                 },
                 sign_in: {
                   email_label: "Email",
@@ -99,9 +96,7 @@ export default function Login() {
                   social_provider_text: "Entrar com {{provider}}",
                   link_text: "Já tem uma conta? Entre",
                   email_input_placeholder: "Seu email",
-                  password_input_placeholder: "Sua senha",
-                  invalid_credentials: "Email ou senha incorretos",
-                  email_not_confirmed: "Por favor, confirme seu email antes de entrar"
+                  password_input_placeholder: "Sua senha"
                 },
                 forgotten_password: {
                   link_text: "Esqueceu sua senha?",
