@@ -17,6 +17,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   const [drawPeriod, setDrawPeriod] = useState<DrawPeriod>("morning");
   const [betAmount, setBetAmount] = useState<number>(1);
   const [position, setPosition] = useState<Position>(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const session = useSession();
   const navigate = useNavigate();
@@ -46,7 +47,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
 
   const handleBetTypeChange = (newBetType: BetType) => {
     setBetType(newBetType);
-    setSelectedHearts([]); // Reset selected hearts when bet type changes
+    setSelectedHearts([]);
     toast.info(`Seleção de corações resetada para ${newBetType === 'simple_group' ? 'grupo simples' : 'nova aposta'}`);
   };
 
@@ -77,10 +78,13 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
       return;
     }
 
+    setIsSubmitting(true);
+
     // Check balance before attempting to place bet
     const hasBalance = await checkBalance(session.user.id);
     if (!hasBalance) {
       toast.error("Saldo insuficiente para realizar esta aposta. Por favor, faça uma recarga.");
+      setIsSubmitting(false);
       return;
     }
 
@@ -108,15 +112,22 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
         } else {
           toast.error("Erro ao registrar aposta. Tente novamente.");
         }
+        setIsSubmitting(false);
         return;
       }
 
       toast.success("Aposta registrada com sucesso!");
       setSelectedHearts([]);
       onBetPlaced?.();
+      
+      // Aguarda 2 segundos e recarrega a página
+      setTimeout(() => {
+        window.location.reload();
+      }, 2000);
     } catch (error) {
       console.error("Erro ao registrar aposta:", error);
       toast.error("Erro ao registrar aposta. Tente novamente.");
+      setIsSubmitting(false);
     }
   };
 
@@ -146,13 +157,13 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
 
       <button
         onClick={handleSubmit}
-        disabled={!session || selectedHearts.length !== MAX_SELECTIONS[betType]}
+        disabled={!session || selectedHearts.length !== MAX_SELECTIONS[betType] || isSubmitting}
         className="mt-8 px-8 py-3 bg-gradient-to-r from-heart-pink to-heart-purple
                  text-white rounded-full shadow-lg hover:shadow-xl
                  transition-all duration-300 transform hover:scale-105
                  disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {session ? "Confirmar Aposta" : "Faça login para apostar"}
+        {isSubmitting ? "Processando..." : session ? "Confirmar Aposta" : "Faça login para apostar"}
       </button>
     </div>
   );
