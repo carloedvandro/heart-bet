@@ -1,27 +1,12 @@
 import { Profile } from "@/integrations/supabase/custom-types";
 import { useState } from "react";
-import { useSession } from "@supabase/auth-helpers-react";
-import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 interface BalanceDisplayProps {
   profile: Profile | null;
 }
 
 export function BalanceDisplay({ profile: initialProfile }: BalanceDisplayProps) {
-  const [profile, setProfile] = useState<Profile | null>(initialProfile);
-  const session = useSession();
-
-  useRealtimeSubscription({
-    table: 'profiles',
-    filter: session?.user?.id ? `id=eq.${session.user.id}` : undefined,
-    onChanged: (payload) => {
-      console.log('Profile update received:', payload);
-      if (payload.new) {
-        setProfile(payload.new as Profile);
-      }
-    },
-    enabled: !!session?.user?.id
-  });
+  const [profile] = useState<Profile | null>(initialProfile);
 
   return (
     <div className="bg-white/90 backdrop-blur px-4 py-2 rounded-full flex items-center space-x-2 min-w-[150px]">

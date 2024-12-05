@@ -3,7 +3,6 @@ import { Bet } from "@/integrations/supabase/custom-types";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
-import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 interface BetsTableProps {
   refreshTrigger?: number;
@@ -62,14 +61,6 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
   useEffect(() => {
     fetchBets();
   }, [fetchBets, refreshTrigger]);
-
-  // Subscribe to bets changes
-  useRealtimeSubscription({
-    table: 'bets',
-    filter: `user_id=eq.${session?.user?.id}`,
-    onChanged: fetchBets,
-    enabled: !!session?.user?.id
-  });
 
   if (loading) return <p className="text-center p-4">Carregando suas apostas...</p>;
   if (!session?.user?.id) return <p className="text-center p-4">Você precisa estar logado para ver suas apostas.</p>;
