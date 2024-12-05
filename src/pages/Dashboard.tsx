@@ -9,15 +9,14 @@ import { Header } from "@/components/dashboard/Header";
 import { BetsTable } from "@/components/dashboard/BetsTable";
 import { useSession } from "@supabase/auth-helpers-react";
 
-type Bet = Database['public']['Tables']['bets']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
 export default function Dashboard() {
   const navigate = useNavigate();
-  const [bets, setBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
   const session = useSession();
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   useEffect(() => {
     if (!session) {
@@ -41,31 +40,30 @@ export default function Dashboard() {
       }
     };
 
-    const fetchBets = async () => {
-      try {
-        const { data, error } = await supabase
-          .from("bets")
-          .select("*")
-          .order("created_at", { ascending: false });
-
-        if (error) throw error;
-        setBets(data || []);
-      } catch (error) {
-        console.error("Error fetching bets:", error);
-        toast.error("Erro ao carregar apostas");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchProfile();
-    fetchBets();
-  }, [session, navigate]);
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    navigate("/login");
-  };
+    // Subscribe to changes in the bets table
+    const betsSubscription = supabase
+      .channel('bets_channel')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'bets',
+          filter: `user_id=eq.${session.user.id}`
+        }, 
+        () => {
+          console.log("Bet change detected, refreshing...");
+          setRefreshTrigger(prev => prev + 1);
+          fetchProfile(); // Refresh profile to get updated balance
+        }
+      )
+      .subscribe();
+
+    return () => {
+      betsSubscription.unsubscribe();
+    };
+  }, [session, navigate]);
 
   if (!session) {
     return null;
@@ -80,14 +78,17 @@ export default function Dashboard() {
     >
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
       <div className="max-w-7xl mx-auto space-y-6 relative z-10">
-        <Header profile={profile} onLogout={handleLogout} />
+        <Header profile={profile} onLogout={async () => {
+          await supabase.auth.signOut();
+          navigate("/login");
+        }} />
 
         <Card className="bg-white/90 backdrop-blur">
           <CardHeader>
             <CardTitle>Nova Aposta</CardTitle>
           </CardHeader>
           <CardContent>
-            <HeartGrid />
+            <HeartGrid onBetPlaced={() => setRefreshTrigger(prev => prev + 1)} />
           </CardContent>
         </Card>
 
@@ -96,7 +97,7 @@ export default function Dashboard() {
             <CardTitle>Suas Apostas</CardTitle>
           </CardHeader>
           <CardContent>
-            <BetsTable bets={bets} loading={loading} />
+            <BetsTable refreshTrigger={refreshTrigger} />
           </CardContent>
         </Card>
       </div>

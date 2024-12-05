@@ -7,7 +7,11 @@ import BetForm from "./BetForm";
 import { BetType, DrawPeriod, HEART_COLORS, MAX_SELECTIONS, Position } from "@/types/betting";
 import { useNavigate } from "react-router-dom";
 
-const HeartGrid = () => {
+interface HeartGridProps {
+  onBetPlaced?: () => void;
+}
+
+const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   const [selectedHearts, setSelectedHearts] = useState<string[]>([]);
   const [betType, setBetType] = useState<BetType>("simple_group");
   const [drawPeriod, setDrawPeriod] = useState<DrawPeriod>("morning");
@@ -109,6 +113,7 @@ const HeartGrid = () => {
 
       toast.success("Aposta registrada com sucesso!");
       setSelectedHearts([]);
+      onBetPlaced?.();
     } catch (error) {
       console.error("Erro ao registrar aposta:", error);
       toast.error("Erro ao registrar aposta. Tente novamente.");

@@ -1,9 +1,11 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Bet } from "@/integrations/supabase/custom-types";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface BetsTableProps {
-  bets: Bet[];
-  loading: boolean;
+  refreshTrigger?: number;
 }
 
 const getBetTypeName = (type: string): string => {
@@ -28,9 +30,42 @@ const getDrawPeriodName = (period: string): string => {
   return names[period] || period;
 };
 
-export function BetsTable({ bets, loading }: BetsTableProps) {
-  if (loading) return <p>Carregando...</p>;
-  if (bets.length === 0) return <p>Você ainda não fez nenhuma aposta.</p>;
+export function BetsTable({ refreshTrigger }: BetsTableProps) {
+  const [bets, setBets] = useState<Bet[]>([]);
+  const [loading, setLoading] = useState(true);
+  const session = useSession();
+
+  useEffect(() => {
+    const fetchBets = async () => {
+      if (!session?.user?.id) return;
+
+      try {
+        console.log("Fetching bets for user:", session.user.id);
+        const { data, error } = await supabase
+          .from("bets")
+          .select("*")
+          .eq("user_id", session.user.id)
+          .order("created_at", { ascending: false });
+
+        if (error) {
+          console.error("Error fetching bets:", error);
+          throw error;
+        }
+
+        console.log("Fetched bets:", data);
+        setBets(data || []);
+      } catch (error) {
+        console.error("Error fetching bets:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBets();
+  }, [session?.user?.id, refreshTrigger]);
+
+  if (loading) return <p className="text-center p-4">Carregando suas apostas...</p>;
+  if (bets.length === 0) return <p className="text-center p-4">Você ainda não fez nenhuma aposta.</p>;
 
   return (
     <Table>
