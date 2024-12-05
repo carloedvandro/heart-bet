@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Header } from "@/components/dashboard/Header";
 import { BetsTable } from "@/components/dashboard/BetsTable";
 import { useSession } from "@supabase/auth-helpers-react";
+import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -51,28 +52,13 @@ export default function Dashboard() {
   }, [session, navigate, fetchProfile]);
 
   // Subscribe to profile changes
-  useEffect(() => {
-    if (!session?.user?.id) return;
-
-    const channel = supabase.channel('profile_changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${session.user.id}`,
-        },
-        () => {
-          fetchProfile();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [session?.user?.id]); // Removed fetchProfile from dependencies
+  useRealtimeSubscription({
+    channel: 'profile_changes',
+    table: 'profiles',
+    filter: `id=eq.${session?.user?.id}`,
+    onChanged: fetchProfile,
+    enabled: !!session?.user?.id
+  });
 
   if (!session) return null;
 
