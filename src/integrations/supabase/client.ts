@@ -9,12 +9,15 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce',
-    storage: window.localStorage
   },
   realtime: {
     params: {
       eventsPerSecond: 1
     }
   }
+});
+
+// Add debug logging for auth state changes
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth state changed:', event, session?.user?.id);
 });

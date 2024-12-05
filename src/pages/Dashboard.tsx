@@ -51,9 +51,8 @@ export default function Dashboard() {
     fetchProfile();
   }, [session, navigate, fetchProfile]);
 
-  // Subscribe to profile changes with a stable channel name
+  // Subscribe to profile changes
   useRealtimeSubscription({
-    channel: `profile_${session?.user?.id || 'anonymous'}`,
     table: 'profiles',
     filter: `id=eq.${session?.user?.id}`,
     onChanged: fetchProfile,

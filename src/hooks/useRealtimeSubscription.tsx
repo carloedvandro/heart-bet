@@ -1,73 +1,47 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
 export function useRealtimeSubscription({
-  channel: channelName,
-  schema = 'public',
   table,
+  schema = 'public',
   filter,
   onChanged,
   enabled = true
 }: {
-  channel: string;
-  schema?: string;
   table: string;
+  schema?: string;
   filter?: string;
-  onChanged: () => void;
+  onChanged: (payload?: any) => void;
   enabled?: boolean;
 }) {
-  const channelRef = useRef<RealtimeChannel | null>(null);
-  const onChangedRef = useRef(onChanged);
-
-  // Update the callback ref when onChanged changes
   useEffect(() => {
-    onChangedRef.current = onChanged;
-  }, [onChanged]);
+    if (!enabled) return;
 
-  const cleanup = useCallback(() => {
-    if (channelRef.current) {
-      console.log('Cleaning up existing channel:', channelName);
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
-  }, [channelName]);
+    console.log(`Setting up subscription for ${table} with filter:`, filter);
+    
+    const channel = supabase
+      .channel('db_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema,
+          table,
+          filter,
+        },
+        (payload) => {
+          console.log(`Change detected in ${table}:`, payload);
+          onChanged(payload);
+        }
+      )
+      .subscribe((status) => {
+        console.log(`Channel status for ${table}:`, status);
+      });
 
-  useEffect(() => {
-    if (!enabled || !channelName) return;
-
-    cleanup();
-
-    try {
-      // Add timestamp to channel name to ensure uniqueness
-      const uniqueChannelName = `${channelName}_${Date.now()}`;
-      console.log(`Setting up subscription for ${table} on channel ${uniqueChannelName}`);
-      
-      const channel = supabase.channel(uniqueChannelName);
-      channelRef.current = channel;
-
-      channel
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema,
-            table,
-            filter,
-          },
-          (payload) => {
-            console.log(`Change detected in ${table}:`, payload);
-            onChangedRef.current();
-          }
-        )
-        .subscribe((status) => {
-          console.log(`Channel ${uniqueChannelName} status:`, status);
-        });
-
-      return cleanup;
-    } catch (error) {
-      console.error('Error in realtime subscription:', error);
-      cleanup();
-    }
-  }, [channelName, schema, table, filter, enabled, cleanup]);
+    return () => {
+      console.log(`Cleaning up subscription for ${table}`);
+      supabase.removeChannel(channel);
+    };
+  }, [table, schema, filter, onChanged, enabled]);
 }
