@@ -98,8 +98,7 @@ export default function Login() {
                   social_provider_text: "Entrar com {{provider}}",
                   link_text: "Já tem uma conta? Entre",
                   email_input_placeholder: "Seu email",
-                  password_input_placeholder: "Sua senha",
-                  error_message: "Email ou senha inválidos"
+                  password_input_placeholder: "Sua senha"
                 },
                 forgotten_password: {
                   link_text: "Esqueceu sua senha?",
