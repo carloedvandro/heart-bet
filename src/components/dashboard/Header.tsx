@@ -17,14 +17,10 @@ export function Header({ profile, onLogout }: HeaderProps) {
 
   const handleLogout = async () => {
     try {
-      // First clear the session from Supabase's internal storage
-      await supabase.auth.clearSession();
-      
-      // Then attempt to sign out
+      // First try to sign out
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error("Logout error:", error);
-        // Even if there's an error, we'll continue with local cleanup
       }
     } catch (error) {
       console.error("Unexpected logout error:", error);
@@ -34,8 +30,8 @@ export function Header({ profile, onLogout }: HeaderProps) {
         onLogout();
       }
       
-      // Clear any local storage data
-      localStorage.removeItem('supabase.auth.token');
+      // Clear any local storage items related to auth
+      localStorage.clear();
       
       // Navigate to login and show success message
       navigate("/login");
