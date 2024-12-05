@@ -62,6 +62,26 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
     };
 
     fetchBets();
+
+    // Set up real-time subscription
+    const channel = supabase
+      .channel('bets_changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'bets',
+          filter: `user_id=eq.${session?.user?.id}`
+        }, 
+        () => {
+          fetchBets();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [session?.user?.id, refreshTrigger]);
 
   if (loading) return <p className="text-center p-4">Carregando suas apostas...</p>;

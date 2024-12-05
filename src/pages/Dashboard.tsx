@@ -37,37 +37,35 @@ export default function Dashboard() {
       } catch (error) {
         console.error("Error fetching profile:", error);
         toast.error("Erro ao carregar perfil");
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchProfile();
 
-    // Subscribe to changes in the bets table
-    const betsSubscription = supabase
-      .channel('bets_channel')
+    // Set up real-time subscription for profile updates
+    const channel = supabase
+      .channel('profile_changes')
       .on('postgres_changes', 
         { 
           event: '*', 
           schema: 'public', 
-          table: 'bets',
-          filter: `user_id=eq.${session.user.id}`
+          table: 'profiles',
+          filter: `id=eq.${session.user.id}`
         }, 
         () => {
-          console.log("Bet change detected, refreshing...");
-          setRefreshTrigger(prev => prev + 1);
-          fetchProfile(); // Refresh profile to get updated balance
+          fetchProfile();
         }
       )
       .subscribe();
 
     return () => {
-      betsSubscription.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, [session, navigate]);
 
-  if (!session) {
-    return null;
-  }
+  if (!session) return null;
 
   return (
     <div 
