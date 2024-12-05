@@ -54,11 +54,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    const channelName = `profile_${session.user.id}`;
-    const channel = supabase.channel(channelName);
-    let mounted = true;
-
-    channel
+    const channel = supabase.channel('profile_changes')
       .on(
         'postgres_changes',
         {
@@ -68,18 +64,15 @@ export default function Dashboard() {
           filter: `id=eq.${session.user.id}`,
         },
         () => {
-          if (mounted) {
-            fetchProfile();
-          }
+          fetchProfile();
         }
       )
       .subscribe();
 
     return () => {
-      mounted = false;
       supabase.removeChannel(channel);
     };
-  }, [session?.user?.id, fetchProfile]);
+  }, [session?.user?.id]); // Removed fetchProfile from dependencies
 
   if (!session) return null;
 

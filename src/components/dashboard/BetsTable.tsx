@@ -66,11 +66,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    const channelName = `bets_${session.user.id}`;
-    const channel = supabase.channel(channelName);
-    let mounted = true;
-
-    channel
+    const channel = supabase.channel('bets_changes')
       .on(
         'postgres_changes',
         {
@@ -80,18 +76,15 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
           filter: `user_id=eq.${session.user.id}`,
         },
         () => {
-          if (mounted) {
-            fetchBets();
-          }
+          fetchBets();
         }
       )
       .subscribe();
 
     return () => {
-      mounted = false;
       supabase.removeChannel(channel);
     };
-  }, [session?.user?.id, fetchBets]);
+  }, [session?.user?.id]); // Removed fetchBets from dependencies
 
   if (loading) return <p className="text-center p-4">Carregando suas apostas...</p>;
   if (!session?.user?.id) return <p className="text-center p-4">Você precisa estar logado para ver suas apostas.</p>;
