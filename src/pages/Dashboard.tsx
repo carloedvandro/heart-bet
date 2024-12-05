@@ -19,12 +19,12 @@ export default function Dashboard() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchProfile = useCallback(async () => {
-    if (!session?.user?.id) {
-      setLoading(false);
-      return;
-    }
-
     try {
+      if (!session?.user?.id) {
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -41,6 +41,7 @@ export default function Dashboard() {
     }
   }, [session?.user?.id]);
 
+  // Initial profile fetch
   useEffect(() => {
     if (!session) {
       navigate("/login");
@@ -49,13 +50,15 @@ export default function Dashboard() {
     fetchProfile();
   }, [session, navigate, fetchProfile]);
 
-  // Subscribe to profile changes with stable channel name
+  // Subscribe to profile changes with stable channel name and better cleanup
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    console.log(`Setting up profile subscription for user ${session.user.id}`);
+    let isSubscribed = true;
     const channelName = `profile_${session.user.id}`;
-    const channel = supabase.channel(channelName)
+    const channel = supabase.channel(channelName);
+
+    channel
       .on(
         'postgres_changes',
         {
@@ -64,20 +67,23 @@ export default function Dashboard() {
           table: 'profiles',
           filter: `id=eq.${session.user.id}`,
         },
-        (payload) => {
-          console.log('Profile change detected:', payload);
-          fetchProfile();
+        () => {
+          if (isSubscribed) {
+            fetchProfile();
+          }
         }
       )
       .subscribe((status) => {
-        console.log(`Profile subscription status for ${channelName}:`, status);
+        if (status === 'SUBSCRIBED') {
+          console.log(`Successfully subscribed to ${channelName}`);
+        }
       });
 
     return () => {
-      console.log(`Cleaning up profile subscription for ${channelName}`);
+      isSubscribed = false;
       channel.unsubscribe();
     };
-  }, [session?.user?.id]);
+  }, [session?.user?.id]); // Removed fetchProfile from dependencies
 
   if (!session) return null;
 

@@ -36,12 +36,12 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
   const session = useSession();
 
   const fetchBets = useCallback(async () => {
-    if (!session?.user?.id) {
-      setLoading(false);
-      return;
-    }
-
     try {
+      if (!session?.user?.id) {
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("bets")
         .select("*")
@@ -57,17 +57,20 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
     }
   }, [session?.user?.id]);
 
+  // Initial bets fetch
   useEffect(() => {
     fetchBets();
   }, [fetchBets, refreshTrigger]);
 
-  // Subscribe to bets changes with stable channel name
+  // Subscribe to bets changes with stable channel name and better cleanup
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    console.log(`Setting up bets subscription for user ${session.user.id}`);
+    let isSubscribed = true;
     const channelName = `bets_${session.user.id}`;
-    const channel = supabase.channel(channelName)
+    const channel = supabase.channel(channelName);
+
+    channel
       .on(
         'postgres_changes',
         {
@@ -76,20 +79,23 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
           table: 'bets',
           filter: `user_id=eq.${session.user.id}`,
         },
-        (payload) => {
-          console.log('Bets change detected:', payload);
-          fetchBets();
+        () => {
+          if (isSubscribed) {
+            fetchBets();
+          }
         }
       )
       .subscribe((status) => {
-        console.log(`Bets subscription status for ${channelName}:`, status);
+        if (status === 'SUBSCRIBED') {
+          console.log(`Successfully subscribed to ${channelName}`);
+        }
       });
 
     return () => {
-      console.log(`Cleaning up bets subscription for ${channelName}`);
+      isSubscribed = false;
       channel.unsubscribe();
     };
-  }, [session?.user?.id]);
+  }, [session?.user?.id]); // Removed fetchBets from dependencies
 
   if (loading) return <p className="text-center p-4">Carregando suas apostas...</p>;
   if (!session?.user?.id) return <p className="text-center p-4">Você precisa estar logado para ver suas apostas.</p>;
