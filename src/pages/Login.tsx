@@ -106,7 +106,7 @@ export default function Login() {
                   confirmation_text: "Verifique seu email para redefinir sua senha",
                 },
               },
-              messages: {
+              translations: {
                 sign_in: {
                   invalid_credentials: "Email ou senha incorretos",
                   email_not_confirmed: "Por favor, confirme seu email antes de entrar",
