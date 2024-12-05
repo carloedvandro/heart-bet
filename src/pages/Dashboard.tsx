@@ -20,7 +20,10 @@ export default function Dashboard() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchProfile = useCallback(async () => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -48,12 +51,15 @@ export default function Dashboard() {
     fetchProfile();
   }, [session, navigate, fetchProfile]);
 
-  useRealtimeSubscription({
-    channel: `profile_${session?.user?.id || 'anonymous'}`,
-    table: 'profiles',
-    filter: session?.user?.id ? `id=eq.${session.user.id}` : undefined,
-    onChanged: fetchProfile
-  });
+  // Only subscribe if we have a session
+  if (session?.user?.id) {
+    useRealtimeSubscription({
+      channel: `profile_${session.user.id}`,
+      table: 'profiles',
+      filter: `id=eq.${session.user.id}`,
+      onChanged: fetchProfile
+    });
+  }
 
   if (!session) return null;
 

@@ -37,7 +37,10 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
   const session = useSession();
 
   const fetchBets = useCallback(async () => {
-    if (!session?.user?.id) return;
+    if (!session?.user?.id) {
+      setLoading(false);
+      return;
+    }
 
     try {
       console.log("Fetching bets for user:", session.user.id);
@@ -65,14 +68,18 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
     fetchBets();
   }, [fetchBets, refreshTrigger]);
 
-  useRealtimeSubscription({
-    channel: `bets_${session?.user?.id || 'anonymous'}`,
-    table: 'bets',
-    filter: session?.user?.id ? `user_id=eq.${session.user.id}` : undefined,
-    onChanged: fetchBets
-  });
+  // Only subscribe if we have a session
+  if (session?.user?.id) {
+    useRealtimeSubscription({
+      channel: `bets_${session.user.id}`,
+      table: 'bets',
+      filter: `user_id=eq.${session.user.id}`,
+      onChanged: fetchBets
+    });
+  }
 
   if (loading) return <p className="text-center p-4">Carregando suas apostas...</p>;
+  if (!session?.user?.id) return <p className="text-center p-4">Você precisa estar logado para ver suas apostas.</p>;
   if (bets.length === 0) return <p className="text-center p-4">Você ainda não fez nenhuma aposta.</p>;
 
   return (
