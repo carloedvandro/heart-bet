@@ -50,13 +50,13 @@ export default function Dashboard() {
     fetchProfile();
   }, [session, navigate, fetchProfile]);
 
-  // Subscribe to profile changes with stable channel name and better cleanup
+  // Subscribe to profile changes
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    let isSubscribed = true;
     const channelName = `profile_${session.user.id}`;
     const channel = supabase.channel(channelName);
+    let mounted = true;
 
     channel
       .on(
@@ -68,22 +68,18 @@ export default function Dashboard() {
           filter: `id=eq.${session.user.id}`,
         },
         () => {
-          if (isSubscribed) {
+          if (mounted) {
             fetchProfile();
           }
         }
       )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log(`Successfully subscribed to ${channelName}`);
-        }
-      });
+      .subscribe();
 
     return () => {
-      isSubscribed = false;
-      channel.unsubscribe();
+      mounted = false;
+      supabase.removeChannel(channel);
     };
-  }, [session?.user?.id]); // Removed fetchProfile from dependencies
+  }, [session?.user?.id, fetchProfile]);
 
   if (!session) return null;
 
