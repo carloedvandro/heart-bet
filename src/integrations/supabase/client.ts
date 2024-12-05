@@ -12,7 +12,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   },
   realtime: {
     params: {
-      eventsPerSecond: 1
+      eventsPerSecond: 1,
+      accessToken: null // Disable custom token handling
     }
   }
 });

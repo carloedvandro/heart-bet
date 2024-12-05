@@ -65,7 +65,6 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
 
   // Subscribe to bets changes
   useRealtimeSubscription({
-    channel: 'bets_changes',
     table: 'bets',
     filter: `user_id=eq.${session?.user?.id}`,
     onChanged: fetchBets,
