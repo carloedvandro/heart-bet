@@ -31,6 +31,12 @@ const HeartGrid = () => {
     });
   };
 
+  const handleBetTypeChange = (newBetType: BetType) => {
+    setBetType(newBetType);
+    setSelectedHearts([]); // Reset selected hearts when bet type changes
+    toast.info(`Seleção de corações resetada para ${newBetType === 'simple_group' ? 'grupo simples' : 'nova aposta'}`);
+  };
+
   const handleSubmit = async () => {
     if (!session?.user?.id) {
       toast.error("Você precisa estar logado para fazer uma aposta");
@@ -72,7 +78,7 @@ const HeartGrid = () => {
     <div className="flex flex-col items-center space-y-8 p-8">
       <BetForm
         betType={betType}
-        setBetType={setBetType}
+        setBetType={handleBetTypeChange}
         drawPeriod={drawPeriod}
         setDrawPeriod={setDrawPeriod}
         betAmount={betAmount}
