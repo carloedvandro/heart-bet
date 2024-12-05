@@ -26,6 +26,7 @@ export default function Dashboard() {
     }
 
     try {
+      console.log("Fetching profile for user:", session.user.id);
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -33,6 +34,7 @@ export default function Dashboard() {
         .single();
 
       if (error) throw error;
+      console.log("Fetched profile:", data);
       setProfile(data);
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -44,10 +46,12 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!session) {
+      console.log("No session detected, redirecting to login");
       navigate("/login");
       return;
     }
 
+    console.log("Session detected, fetching profile");
     fetchProfile();
   }, [session, navigate, fetchProfile]);
 

@@ -50,10 +50,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("Error fetching bets:", error);
-        throw error;
-      }
+      if (error) throw error;
 
       console.log("Fetched bets:", data);
       setBets(data || []);
