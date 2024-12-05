@@ -26,10 +26,18 @@ export function RechargeDialog() {
 
     setIsLoading(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("Usuário não autenticado");
+        return;
+      }
+
       const { error } = await supabase
         .from("recharges")
         .insert({
           amount: amount,
+          user_id: user.id
         });
 
       if (error) throw error;
