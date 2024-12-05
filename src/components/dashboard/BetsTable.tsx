@@ -3,7 +3,6 @@ import { Bet } from "@/integrations/supabase/custom-types";
 import { useCallback, useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
-import { useRealtimeSubscription } from "@/hooks/useRealtimeSubscription";
 
 interface BetsTableProps {
   refreshTrigger?: number;
@@ -64,12 +63,28 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
   }, [fetchBets, refreshTrigger]);
 
   // Subscribe to bets changes
-  useRealtimeSubscription({
-    table: 'bets',
-    filter: `user_id=eq.${session?.user?.id}`,
-    onChanged: fetchBets,
-    enabled: !!session?.user?.id
-  });
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const channel = supabase.channel(`bets_${session.user.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bets',
+          filter: `user_id=eq.${session.user.id}`,
+        },
+        () => {
+          fetchBets();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id, fetchBets]);
 
   if (loading) return <p className="text-center p-4">Carregando suas apostas...</p>;
   if (!session?.user?.id) return <p className="text-center p-4">Você precisa estar logado para ver suas apostas.</p>;
