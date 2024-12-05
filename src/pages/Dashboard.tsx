@@ -49,11 +49,13 @@ export default function Dashboard() {
     fetchProfile();
   }, [session, navigate, fetchProfile]);
 
-  // Subscribe to profile changes
+  // Subscribe to profile changes with stable channel name
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    const channel = supabase.channel(`profile_${session.user.id}`)
+    console.log(`Setting up profile subscription for user ${session.user.id}`);
+    const channelName = `profile_${session.user.id}`;
+    const channel = supabase.channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -62,16 +64,20 @@ export default function Dashboard() {
           table: 'profiles',
           filter: `id=eq.${session.user.id}`,
         },
-        () => {
+        (payload) => {
+          console.log('Profile change detected:', payload);
           fetchProfile();
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log(`Profile subscription status for ${channelName}:`, status);
+      });
 
     return () => {
+      console.log(`Cleaning up profile subscription for ${channelName}`);
       channel.unsubscribe();
     };
-  }, [session?.user?.id, fetchProfile]);
+  }, [session?.user?.id]);
 
   if (!session) return null;
 
