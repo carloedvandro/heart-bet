@@ -5,14 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LogOut } from "lucide-react";
+import { Database } from "@/integrations/supabase/types";
 
-interface Bet {
-  id: string;
-  created_at: string;
-  hearts: string[];
-  result: string | null;
-  is_winner: boolean | null;
-}
+type Bet = Database['public']['Tables']['bets']['Row'];
 
 export default function Dashboard() {
   const navigate = useNavigate();

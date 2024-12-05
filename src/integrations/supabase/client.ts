@@ -10,6 +10,6 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce',
-    redirectTo: window.location.origin // Isso garante que o redirecionamento seja feito para o domínio correto
+    storage: window.localStorage
   }
 });
