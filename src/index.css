@@ -56,4 +56,10 @@
   button:focus {
     @apply outline-none ring-2 ring-offset-2 ring-heart-pink;
   }
+  
+  /* Heart button styles */
+  button[data-color="white"] {
+    @apply shadow-lg;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), inset 0 0 0 2px rgba(0, 0, 0, 0.1);
+  }
 }

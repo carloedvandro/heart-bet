@@ -13,24 +13,29 @@ const HeartButton = ({ color, selected, onClick, disabled }: HeartButtonProps) =
     <button
       onClick={onClick}
       disabled={disabled}
+      data-color={color}
       className={cn(
         "relative group transition-all duration-300 ease-in-out",
         "p-4 rounded-full hover:scale-110",
         "focus:outline-none focus:ring-2 focus:ring-offset-2",
         "disabled:opacity-50 disabled:cursor-not-allowed",
+        "shadow-md border-2 border-black/50",
         selected && "animate-heart-beat"
       )}
       style={{ 
-        backgroundColor: selected ? `var(--heart-${color})` : 'transparent',
-        opacity: selected ? 1 : 0.7
+        backgroundColor: `var(--heart-${color})`,
+        opacity: selected ? 1 : 0.85
       }}
     >
       <Heart
         className={cn(
           "w-12 h-12 transition-colors duration-300",
+          "stroke-black stroke-2",
           selected ? "fill-current" : "hover:fill-current"
         )}
-        style={{ color: `var(--heart-${color})` }}
+        style={{ 
+          color: color === 'white' ? 'black' : `var(--heart-${color})`
+        }}
       />
     </button>
   );
