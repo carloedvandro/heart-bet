@@ -1,5 +1,6 @@
 export type BetType = 'simple_group' | 'dozen' | 'hundred' | 'thousand' | 'group_double' | 'group_triple';
 export type DrawPeriod = 'morning' | 'afternoon' | 'evening' | 'night';
+export type Position = 1 | 2 | 3 | 4 | 5;
 
 // Ordered by number for reference, but UI will display randomly
 export const HEART_COLORS = [
@@ -31,7 +32,8 @@ export const PERIOD_LIMITS = {
   night: "22:00",
 } as const;
 
-export const BET_MULTIPLIERS: Record<BetType, number> = {
+// Base multipliers (for position 1)
+export const BASE_MULTIPLIERS: Record<BetType, number> = {
   simple_group: 9,
   dozen: 30,
   hundred: 300,
@@ -40,9 +42,24 @@ export const BET_MULTIPLIERS: Record<BetType, number> = {
   group_triple: 250,
 };
 
+// Position multiplier factors (percentage of base multiplier)
+export const POSITION_FACTORS: Record<Position, number> = {
+  1: 1.0,    // 100% - Cabeça (primeiro)
+  2: 0.8,    // 80% - Segundo
+  3: 0.6,    // 60% - Terceiro
+  4: 0.4,    // 40% - Quarto
+  5: 0.2,    // 20% - Quinto
+};
+
 export const DRAW_PERIODS = {
   morning: "Manhã (até 11h)",
   afternoon: "Tarde (até 15h)",
   evening: "Noite (até 19h)",
   night: "Corujinha (até 22h)",
 } as const;
+
+export const calculatePrize = (betType: BetType, position: Position, amount: number): number => {
+  const baseMultiplier = BASE_MULTIPLIERS[betType];
+  const positionFactor = POSITION_FACTORS[position];
+  return amount * baseMultiplier * positionFactor;
+};

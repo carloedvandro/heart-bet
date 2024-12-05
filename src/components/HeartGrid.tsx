@@ -4,13 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { useSession } from "@supabase/auth-helpers-react";
 import HeartButton from "./HeartButton";
 import BetForm from "./BetForm";
-import { BetType, DrawPeriod, HEART_COLORS, MAX_SELECTIONS } from "@/types/betting";
+import { BetType, DrawPeriod, HEART_COLORS, MAX_SELECTIONS, Position } from "@/types/betting";
 
 const HeartGrid = () => {
   const [selectedHearts, setSelectedHearts] = useState<string[]>([]);
   const [betType, setBetType] = useState<BetType>("simple_group");
   const [drawPeriod, setDrawPeriod] = useState<DrawPeriod>("morning");
   const [betAmount, setBetAmount] = useState<number>(1);
+  const [position, setPosition] = useState<Position>(1);
   
   const session = useSession();
 
@@ -62,6 +63,7 @@ const HeartGrid = () => {
           bet_type: betType,
           draw_period: drawPeriod,
           amount: betAmount,
+          position: position,
         });
 
       if (error) throw error;
@@ -83,6 +85,8 @@ const HeartGrid = () => {
         setDrawPeriod={setDrawPeriod}
         betAmount={betAmount}
         setBetAmount={setBetAmount}
+        position={position}
+        setPosition={setPosition}
       />
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 animate-fade-in">
