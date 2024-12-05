@@ -10,7 +10,7 @@ const HeartGrid = () => {
   const [selectedHearts, setSelectedHearts] = useState<string[]>([]);
   const [betType, setBetType] = useState<BetType>("simple_group");
   const [drawPeriod, setDrawPeriod] = useState<DrawPeriod>("morning");
-  const [betAmount, setBetAmount] = useState<number>(10);
+  const [betAmount, setBetAmount] = useState<number>(1);
   
   const session = useSession();
 

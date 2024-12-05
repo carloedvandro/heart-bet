@@ -1,6 +1,7 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { BetType, DrawPeriod, BET_MULTIPLIERS } from "@/types/betting";
 
 interface BetFormProps {
@@ -71,10 +72,15 @@ const BetForm = ({
           onValueChange={(value) => setDrawPeriod(value as DrawPeriod)}
           className="grid grid-cols-2 gap-4"
         >
-          {Object.keys(BET_MULTIPLIERS).map((period) => (
+          {Object.entries({
+            morning: "Manhã (até 11h)",
+            afternoon: "Tarde (até 15h)",
+            evening: "Noite (até 19h)",
+            night: "Corujinha (até 22h)",
+          }).map(([period, label]) => (
             <div key={period} className="flex items-center space-x-2">
               <RadioGroupItem value={period} id={period} />
-              <Label htmlFor={period}>{getDrawPeriodName(period as DrawPeriod)}</Label>
+              <Label htmlFor={period}>{label}</Label>
             </div>
           ))}
         </RadioGroup>
@@ -82,13 +88,13 @@ const BetForm = ({
 
       <div className="space-y-4">
         <Label>Valor da Aposta (R$)</Label>
-        <input
+        <Input
           type="number"
-          min="10"
-          step="10"
+          min="1"
+          step="1"
           value={betAmount}
           onChange={(e) => setBetAmount(Number(e.target.value))}
-          className="w-full px-3 py-2 border rounded-md"
+          className="w-full"
         />
         <p className="text-sm text-muted-foreground">
           Prêmio potencial: R$ {calculatePotentialPrize().toFixed(2)}
