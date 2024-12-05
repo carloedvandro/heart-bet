@@ -10,47 +10,28 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check for URL hash parameters
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const error = hashParams.get("error");
-    const errorDescription = hashParams.get("error_description");
-
-    if (error) {
-      if (error === "invalid_credentials") {
-        toast.error("Email ou senha incorretos. Por favor, verifique suas credenciais.");
-      } else {
-        toast.error(errorDescription || "Erro na autenticação");
-      }
-    }
-
     const checkUser = async () => {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        console.log("Current session:", session);
         
         if (sessionError) {
           console.error("Session error:", sessionError);
-          toast.error("Erro ao verificar sessão: " + sessionError.message);
           return;
         }
         
         if (session) {
-          console.log("User is logged in, redirecting to dashboard");
           navigate("/dashboard");
         }
       } catch (error) {
         console.error("Error checking session:", error);
-        toast.error("Erro ao verificar sessão");
       }
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth event:", event, "Session:", session);
       if (session) {
-        console.log("Session detected, redirecting to dashboard");
         navigate("/dashboard");
       } else if (event === 'SIGNED_OUT') {
-        console.log("User signed out");
         toast.info("Você foi desconectado");
       }
     });
