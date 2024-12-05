@@ -27,10 +27,10 @@ const BetForm = ({
 
   return (
     <div className="w-full max-w-md space-y-6">
-      <div className="space-y-4">
-        <Label>Tipo de Aposta</Label>
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Tipo de Aposta</Label>
         <Select value={betType} onValueChange={(value) => setBetType(value as BetType)}>
-          <SelectTrigger>
+          <SelectTrigger className="w-full border-2 border-gray-200 rounded-md shadow-sm hover:border-gray-300 focus:border-heart-pink focus:ring-heart-pink">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -44,8 +44,8 @@ const BetForm = ({
         </Select>
       </div>
 
-      <div className="space-y-4">
-        <Label>Período do Sorteio</Label>
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Período do Sorteio</Label>
         <RadioGroup
           value={drawPeriod}
           onValueChange={(value) => setDrawPeriod(value as DrawPeriod)}
@@ -60,15 +60,15 @@ const BetForm = ({
         </RadioGroup>
       </div>
 
-      <div className="space-y-4">
-        <Label>Valor da Aposta (R$)</Label>
+      <div className="space-y-2">
+        <Label className="text-sm font-medium">Valor da Aposta (R$)</Label>
         <Input
           type="number"
           min="1"
           step="1"
           value={betAmount}
           onChange={(e) => setBetAmount(Number(e.target.value))}
-          className="w-full"
+          className="w-full border-2 border-gray-200 rounded-md shadow-sm hover:border-gray-300 focus:border-heart-pink focus:ring-heart-pink"
         />
         <p className="text-sm text-muted-foreground">
           Prêmio potencial: R$ {calculatePotentialPrize().toFixed(2)}
