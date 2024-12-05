@@ -94,16 +94,19 @@ export type Database = {
       }
       profiles: {
         Row: {
+          balance: number
           created_at: string
           email: string | null
           id: string
         }
         Insert: {
+          balance?: number
           created_at?: string
           email?: string | null
           id: string
         }
         Update: {
+          balance?: number
           created_at?: string
           email?: string | null
           id?: string

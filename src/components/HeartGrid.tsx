@@ -66,7 +66,14 @@ const HeartGrid = () => {
           position: position,
         });
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('Saldo insuficiente')) {
+          toast.error("Saldo insuficiente para realizar esta aposta");
+        } else {
+          throw error;
+        }
+        return;
+      }
 
       toast.success("Aposta registrada com sucesso!");
       setSelectedHearts([]);

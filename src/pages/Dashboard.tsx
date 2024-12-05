@@ -7,8 +7,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { LogOut } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
 import HeartGrid from "@/components/HeartGrid";
+import { toast } from "sonner";
 
 type Bet = Database['public']['Tables']['bets']['Row'];
+type Profile = Database['public']['Tables']['profiles']['Row'];
 
 const getBetTypeName = (type: string): string => {
   const names: Record<string, string> = {
@@ -36,6 +38,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [bets, setBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -44,6 +47,7 @@ export default function Dashboard() {
         navigate("/login");
         return;
       }
+      fetchProfile(session.user.id);
       fetchBets();
     };
 
@@ -60,6 +64,22 @@ export default function Dashboard() {
     };
   }, [navigate]);
 
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+
+      if (error) throw error;
+      setProfile(data);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      toast.error("Erro ao carregar perfil");
+    }
+  };
+
   const fetchBets = async () => {
     try {
       const { data, error } = await supabase
@@ -71,6 +91,7 @@ export default function Dashboard() {
       setBets(data || []);
     } catch (error) {
       console.error("Error fetching bets:", error);
+      toast.error("Erro ao carregar apostas");
     } finally {
       setLoading(false);
     }
@@ -90,7 +111,15 @@ export default function Dashboard() {
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
       <div className="max-w-7xl mx-auto space-y-6 relative z-10">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold text-white">Corações Premiados</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-3xl font-bold text-white">Corações Premiados</h1>
+            <div className="bg-white/90 backdrop-blur px-4 py-2 rounded-full">
+              <span className="text-sm font-medium text-gray-600">Saldo:</span>
+              <span className="ml-2 font-bold text-green-600">
+                R$ {profile?.balance?.toFixed(2) || '0.00'}
+              </span>
+            </div>
+          </div>
           <Button variant="outline" onClick={handleLogout} className="bg-white/90 hover:bg-white">
             <LogOut className="mr-2 h-4 w-4" />
             Sair
