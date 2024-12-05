@@ -7,6 +7,7 @@ import HeartGrid from "@/components/HeartGrid";
 import { toast } from "sonner";
 import { Header } from "@/components/dashboard/Header";
 import { BetsTable } from "@/components/dashboard/BetsTable";
+import { useSession } from "@supabase/auth-helpers-react";
 
 type Bet = Database['public']['Tables']['bets']['Row'];
 type Profile = Database['public']['Tables']['profiles']['Row'];
@@ -16,67 +17,59 @@ export default function Dashboard() {
   const [bets, setBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
   const [profile, setProfile] = useState<Profile | null>(null);
+  const session = useSession();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate("/login");
-        return;
+    if (!session) {
+      navigate("/login");
+      return;
+    }
+
+    const fetchProfile = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
+
+        if (error) throw error;
+        setProfile(data);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+        toast.error("Erro ao carregar perfil");
       }
-      fetchProfile(session.user.id);
-      fetchBets();
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!session) {
-        navigate("/login");
+    const fetchBets = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("bets")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        setBets(data || []);
+      } catch (error) {
+        console.error("Error fetching bets:", error);
+        toast.error("Erro ao carregar apostas");
+      } finally {
+        setLoading(false);
       }
-    });
-
-    checkUser();
-
-    return () => {
-      subscription.unsubscribe();
     };
-  }, [navigate]);
 
-  const fetchProfile = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) throw error;
-      setProfile(data);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      toast.error("Erro ao carregar perfil");
-    }
-  };
-
-  const fetchBets = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("bets")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-      setBets(data || []);
-    } catch (error) {
-      console.error("Error fetching bets:", error);
-      toast.error("Erro ao carregar apostas");
-    } finally {
-      setLoading(false);
-    }
-  };
+    fetchProfile();
+    fetchBets();
+  }, [session, navigate]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    navigate("/login");
   };
+
+  if (!session) {
+    return null;
+  }
 
   return (
     <div 

@@ -5,6 +5,7 @@ import { useSession } from "@supabase/auth-helpers-react";
 import HeartButton from "./HeartButton";
 import BetForm from "./BetForm";
 import { BetType, DrawPeriod, HEART_COLORS, MAX_SELECTIONS, Position } from "@/types/betting";
+import { useNavigate } from "react-router-dom";
 
 const HeartGrid = () => {
   const [selectedHearts, setSelectedHearts] = useState<string[]>([]);
@@ -14,12 +15,19 @@ const HeartGrid = () => {
   const [position, setPosition] = useState<Position>(1);
   
   const session = useSession();
+  const navigate = useNavigate();
 
   // Shuffle the hearts array for display
   const shuffledHearts = [...HEART_COLORS]
     .sort(() => Math.random() - 0.5);
 
   const handleHeartClick = (color: string) => {
+    if (!session) {
+      toast.error("Você precisa estar logado para fazer uma aposta");
+      navigate("/login");
+      return;
+    }
+
     setSelectedHearts((prev) => {
       if (prev.includes(color)) {
         return prev.filter((c) => c !== color);
@@ -39,10 +47,9 @@ const HeartGrid = () => {
   };
 
   const handleSubmit = async () => {
-    console.log("Current session:", session); // Debug log
-
-    if (!session?.user?.id) {
+    if (!session?.user) {
       toast.error("Você precisa estar logado para fazer uma aposta");
+      navigate("/login");
       return;
     }
 
@@ -56,8 +63,6 @@ const HeartGrid = () => {
     );
 
     try {
-      console.log("Attempting to place bet with user ID:", session.user.id); // Debug log
-
       const { error } = await supabase
         .from('bets')
         .insert({
@@ -71,11 +76,11 @@ const HeartGrid = () => {
         });
 
       if (error) {
-        console.error("Supabase error:", error); // Debug log
+        console.error("Supabase error:", error);
         if (error.message.includes('Saldo insuficiente')) {
           toast.error("Saldo insuficiente para realizar esta aposta");
         } else {
-          throw error;
+          toast.error("Erro ao registrar aposta. Tente novamente.");
         }
         return;
       }
@@ -114,13 +119,13 @@ const HeartGrid = () => {
 
       <button
         onClick={handleSubmit}
-        disabled={selectedHearts.length !== MAX_SELECTIONS[betType]}
+        disabled={!session || selectedHearts.length !== MAX_SELECTIONS[betType]}
         className="mt-8 px-8 py-3 bg-gradient-to-r from-heart-pink to-heart-purple
                  text-white rounded-full shadow-lg hover:shadow-xl
                  transition-all duration-300 transform hover:scale-105
                  disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Confirmar Aposta
+        {session ? "Confirmar Aposta" : "Faça login para apostar"}
       </button>
     </div>
   );
