@@ -81,8 +81,6 @@ export default function Login() {
                   link_text: "Não tem uma conta? Cadastre-se",
                   email_input_placeholder: "Seu email",
                   password_input_placeholder: "Sua senha",
-                  email_input_label: "Email",
-                  password_input_label: "Senha",
                 },
                 sign_in: {
                   email_label: "Email",
@@ -93,8 +91,6 @@ export default function Login() {
                   link_text: "Já tem uma conta? Entre",
                   email_input_placeholder: "Seu email",
                   password_input_placeholder: "Sua senha",
-                  email_input_label: "Email",
-                  password_input_label: "Senha",
                 },
               },
             }}
