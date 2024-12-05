@@ -38,6 +38,10 @@ export default function Login() {
         toast.info("Você foi desconectado");
       } else if (event === 'USER_UPDATED') {
         console.log("User updated:", session?.user);
+      } else if (event === 'USER_DELETED') {
+        toast.error("Sua conta foi removida");
+      } else if (event === 'PASSWORD_RECOVERY') {
+        toast.info("Verifique seu email para redefinir sua senha");
       }
     });
 
