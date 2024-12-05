@@ -24,17 +24,25 @@ export default function Login() {
     }
 
     const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      console.log("Current session:", session);
+      if (sessionError) {
+        console.error("Session error:", sessionError);
+        return;
+      }
       if (session) {
+        console.log("User is logged in, redirecting to dashboard");
         navigate("/dashboard");
       }
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth event:", event);
+      console.log("Auth event:", event, "Session:", session);
       if (session) {
+        console.log("Session detected, redirecting to dashboard");
         navigate("/dashboard");
       } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
         toast.info("Você foi desconectado");
       }
     });
