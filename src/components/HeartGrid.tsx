@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@supabase/auth-helpers-react";
+import { useSession } from "@supabase/auth-helpers-react";
 import HeartButton from "./HeartButton";
 import BetForm from "./BetForm";
 import { BetType, DrawPeriod, HEART_COLORS, MAX_SELECTIONS } from "@/types/betting";
@@ -12,7 +12,7 @@ const HeartGrid = () => {
   const [drawPeriod, setDrawPeriod] = useState<DrawPeriod>("morning");
   const [betAmount, setBetAmount] = useState<number>(10);
   
-  const auth = useAuth();
+  const session = useSession();
 
   const handleHeartClick = (color: string) => {
     setSelectedHearts((prev) => {
@@ -28,7 +28,7 @@ const HeartGrid = () => {
   };
 
   const handleSubmit = async () => {
-    if (!auth?.user?.id) {
+    if (!session?.user?.id) {
       toast.error("Você precisa estar logado para fazer uma aposta");
       return;
     }
@@ -46,7 +46,7 @@ const HeartGrid = () => {
       const { error } = await supabase
         .from('bets')
         .insert({
-          user_id: auth.user.id,
+          user_id: session.user.id,
           hearts: selectedHearts,
           numbers: numbers,
           bet_type: betType,
