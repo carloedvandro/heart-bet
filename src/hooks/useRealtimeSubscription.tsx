@@ -20,36 +20,45 @@ export function useRealtimeSubscription({
   useEffect(() => {
     if (!enabled) return;
 
-    console.log(`Setting up subscription for ${table} with filter:`, filter);
-    
-    // Create a unique channel name based on table and filter
-    const channelName = `${table}_${filter || 'all'}`;
-    
-    channelRef.current = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema,
-          table,
-          filter,
-        },
-        (payload) => {
-          console.log(`Change detected in ${table}:`, payload);
-          onChanged(payload);
-        }
-      )
-      .subscribe((status) => {
-        console.log(`Channel status for ${table}:`, status);
-      });
-
-    return () => {
-      console.log(`Cleaning up subscription for ${table}`);
+    try {
+      console.log(`Setting up subscription for ${table} with filter:`, filter);
+      
+      // Create a unique channel name based on table and filter
+      const channelName = `${table}_${filter || 'all'}_${Date.now()}`;
+      
+      // Clean up any existing subscription first
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
       }
-    };
+
+      channelRef.current = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema,
+            table,
+            filter,
+          },
+          (payload) => {
+            console.log(`Change detected in ${table}:`, payload);
+            onChanged(payload);
+          }
+        )
+        .subscribe((status) => {
+          console.log(`Channel status for ${table}:`, status);
+        });
+
+      return () => {
+        console.log(`Cleaning up subscription for ${table}`);
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
+      };
+    } catch (error) {
+      console.error(`Error in realtime subscription for ${table}:`, error);
+    }
   }, [table, schema, filter, onChanged, enabled]);
 }
