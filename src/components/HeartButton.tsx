@@ -20,21 +20,17 @@ const HeartButton = ({ color, selected, onClick, disabled }: HeartButtonProps) =
         "disabled:opacity-50 disabled:cursor-not-allowed",
         selected && "animate-heart-beat"
       )}
+      style={{ 
+        backgroundColor: selected ? `var(--heart-${color})` : 'transparent',
+        opacity: selected ? 1 : 0.7
+      }}
     >
       <Heart
         className={cn(
           "w-12 h-12 transition-colors duration-300",
-          selected ? "fill-current" : "hover:fill-current",
-          `text-heart-${color}`
+          selected ? "fill-current" : "hover:fill-current"
         )}
-      />
-      <div
-        className={cn(
-          "absolute inset-0 rounded-full",
-          `bg-heart-${color}`,
-          "opacity-20 transition-opacity duration-300",
-          "group-hover:opacity-30"
-        )}
+        style={{ color: `var(--heart-${color})` }}
       />
     </button>
   );

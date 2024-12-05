@@ -26,16 +26,16 @@
     --radius: 0.5rem;
     
     /* Heart colors */
+    --heart-red: #FF0000;
+    --heart-blue: #0000FF;
+    --heart-black: #000000;
+    --heart-yellow: #FFD700;
+    --heart-green: #00FF00;
+    --heart-purple: #800080;
     --heart-pink: #FF69B4;
-    --heart-red: #FF4136;
-    --heart-orange: #FF851B;
-    --heart-yellow: #FFDC00;
-    --heart-green: #2ECC40;
-    --heart-blue: #7FDBFF;
-    --heart-purple: #B10DC9;
-    --heart-coral: #FF6B6B;
-    --heart-indigo: #5856D6;
-    --heart-crimson: #DC143C;
+    --heart-brown: #8B4513;
+    --heart-gray: #808080;
+    --heart-white: #FFFFFF;
   }
 }
 
