@@ -57,14 +57,21 @@
     @apply outline-none ring-2 ring-offset-2 ring-heart-pink;
   }
   
-  /* Heart button styles */
-  button[data-color="white"] {
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2);
-    border: 1px solid black;
+  /* Remove button styles */
+  button {
+    padding: 0;
+    border: none;
+    background: none;
   }
   
-  button {
-    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
-    padding: 0;
+  /* Heart icon transitions */
+  svg {
+    transition: transform 0.3s ease, filter 0.3s ease;
+  }
+  
+  /* White heart specific styles */
+  button[data-color="white"] svg {
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.2));
+    stroke: black;
   }
 }

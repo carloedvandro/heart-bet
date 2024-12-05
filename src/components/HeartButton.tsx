@@ -15,22 +15,27 @@ const HeartButton = ({ color, selected, onClick, disabled }: HeartButtonProps) =
       disabled={disabled}
       data-color={color}
       className={cn(
-        "relative group transition-all duration-300 ease-in-out",
-        "rounded-full hover:scale-110",
+        "group transition-all duration-300 ease-in-out",
         "focus:outline-none focus:ring-2 focus:ring-offset-2",
         "disabled:opacity-50 disabled:cursor-not-allowed",
-        "shadow-md border border-black/50",
         selected && "animate-heart-beat"
       )}
+      style={{
+        border: "none",
+        background: "none",
+        padding: 0,
+      }}
     >
       <Heart
         className={cn(
-          "w-16 h-16 transition-colors duration-300",
+          "w-16 h-16 transition-all duration-300",
           "fill-current",
-          "stroke-black stroke-1"
+          "stroke-black stroke-1 group-hover:scale-105",
+          selected ? "scale-110" : ""
         )}
         style={{
           color: `var(--heart-${color})`,
+          filter: "drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.2))",
         }}
       />
     </button>
