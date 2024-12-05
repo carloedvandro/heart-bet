@@ -43,13 +43,6 @@ export default function Login() {
     };
   }, [navigate]);
 
-  const handleAuthErrors = (error: any) => {
-    console.error("Authentication error:", error);
-    toast.error("Erro de autenticação", {
-      description: error?.message || "Não foi possível fazer login"
-    });
-  };
-
   return (
     <div 
       className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center"
@@ -86,6 +79,10 @@ export default function Login() {
                   loading_button_label: "Cadastrando...",
                   social_provider_text: "Entrar com {{provider}}",
                   link_text: "Não tem uma conta? Cadastre-se",
+                  email_input_placeholder: "Seu email",
+                  password_input_placeholder: "Sua senha",
+                  email_input_label: "Email",
+                  password_input_label: "Senha",
                 },
                 sign_in: {
                   email_label: "Email",
@@ -94,10 +91,13 @@ export default function Login() {
                   loading_button_label: "Entrando...",
                   social_provider_text: "Entrar com {{provider}}",
                   link_text: "Já tem uma conta? Entre",
+                  email_input_placeholder: "Seu email",
+                  password_input_placeholder: "Sua senha",
+                  email_input_label: "Email",
+                  password_input_label: "Senha",
                 },
               },
             }}
-            onError={handleAuthErrors}
             theme="light"
             providers={[]}
           />
