@@ -18,8 +18,6 @@ export function BalanceDisplay({ profile: initialProfile }: BalanceDisplayProps)
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    console.log('Setting up realtime subscription for profile updates');
-    
     const channel = supabase.channel('profile_changes')
       .on(
         'postgres_changes',
@@ -36,12 +34,9 @@ export function BalanceDisplay({ profile: initialProfile }: BalanceDisplayProps)
           }
         }
       )
-      .subscribe((status) => {
-        console.log('Subscription status:', status);
-      });
+      .subscribe();
 
     return () => {
-      console.log('Cleaning up realtime subscription');
       supabase.removeChannel(channel);
     };
   }, [session?.user?.id]);
