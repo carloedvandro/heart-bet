@@ -7,18 +7,20 @@ export function useRealtimeSubscription({
   schema = 'public',
   table,
   filter,
-  onChanged
+  onChanged,
+  enabled = true
 }: {
   channel: string;
   schema?: string;
   table: string;
   filter?: string;
   onChanged: () => void;
+  enabled?: boolean;
 }) {
   const channelRef = useRef<RealtimeChannel | null>(null);
 
   useEffect(() => {
-    if (!channelName) return;
+    if (!enabled || !channelName) return;
 
     // Cleanup any existing subscription
     if (channelRef.current) {
@@ -51,5 +53,5 @@ export function useRealtimeSubscription({
       channel.unsubscribe();
       channelRef.current = null;
     };
-  }, [channelName, schema, table, filter, onChanged]);
+  }, [channelName, schema, table, filter, onChanged, enabled]);
 }

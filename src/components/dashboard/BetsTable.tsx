@@ -68,15 +68,13 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
     fetchBets();
   }, [fetchBets, refreshTrigger]);
 
-  // Only subscribe if we have a session
-  if (session?.user?.id) {
-    useRealtimeSubscription({
-      channel: `bets_${session.user.id}`,
-      table: 'bets',
-      filter: `user_id=eq.${session.user.id}`,
-      onChanged: fetchBets
-    });
-  }
+  useRealtimeSubscription({
+    channel: `bets_${session?.user?.id || 'anonymous'}`,
+    table: 'bets',
+    filter: session?.user?.id ? `user_id=eq.${session.user.id}` : undefined,
+    onChanged: fetchBets,
+    enabled: !!session?.user?.id
+  });
 
   if (loading) return <p className="text-center p-4">Carregando suas apostas...</p>;
   if (!session?.user?.id) return <p className="text-center p-4">Você precisa estar logado para ver suas apostas.</p>;

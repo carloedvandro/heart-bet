@@ -51,15 +51,13 @@ export default function Dashboard() {
     fetchProfile();
   }, [session, navigate, fetchProfile]);
 
-  // Only subscribe if we have a session
-  if (session?.user?.id) {
-    useRealtimeSubscription({
-      channel: `profile_${session.user.id}`,
-      table: 'profiles',
-      filter: `id=eq.${session.user.id}`,
-      onChanged: fetchProfile
-    });
-  }
+  useRealtimeSubscription({
+    channel: `profile_${session?.user?.id || 'anonymous'}`,
+    table: 'profiles',
+    filter: session?.user?.id ? `id=eq.${session.user.id}` : undefined,
+    onChanged: fetchProfile,
+    enabled: !!session?.user?.id
+  });
 
   if (!session) return null;
 
