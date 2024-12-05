@@ -8,7 +8,9 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: false // Disable URL detection to prevent token recursion
+    detectSessionInUrl: false, // Disable URL detection to prevent token recursion
+    storage: localStorage, // Explicitly set storage to localStorage
+    storageKey: 'supabase.auth.token' // Set a specific storage key
   },
   realtime: {
     params: {
@@ -19,5 +21,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
 
 // Add debug logging for auth state changes
 supabase.auth.onAuthStateChange((event, session) => {
-  console.log('Auth state changed:', event, session?.user?.id);
+  console.log('Auth state changed:', event);
+  console.log('Session details:', session);
+  console.log('Current user ID:', session?.user?.id);
 });
