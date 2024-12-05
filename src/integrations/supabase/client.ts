@@ -8,13 +8,14 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
-    detectSessionInUrl: false, // Disable URL detection to prevent token recursion
-    storage: localStorage, // Explicitly set storage to localStorage
-    storageKey: 'supabase.auth.token' // Set a specific storage key
+    detectSessionInUrl: false,
+    storage: localStorage,
+    storageKey: 'supabase.auth.token',
+    flowType: 'pkce'
   },
   realtime: {
     params: {
-      eventsPerSecond: 1 // Rate limit realtime events
+      eventsPerSecond: 1
     }
   }
 });
