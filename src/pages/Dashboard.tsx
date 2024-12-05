@@ -50,50 +50,16 @@ export default function Dashboard() {
     fetchProfile();
   }, [session, navigate, fetchProfile]);
 
-  // Set up realtime subscription
+  // Refresh profile periodically
   useEffect(() => {
     if (!session?.user?.id) return;
+    
+    const interval = setInterval(() => {
+      fetchProfile();
+    }, 10000); // Refresh every 10 seconds
 
-    // Create a channel for both profile and bets updates
-    const channel = supabase
-      .channel('dashboard_updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles',
-          filter: `id=eq.${session.user.id}`,
-        },
-        (payload) => {
-          console.log('Profile update received:', payload);
-          if (payload.new) {
-            setProfile(payload.new as Profile);
-          }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'bets',
-          filter: `user_id=eq.${session.user.id}`,
-        },
-        () => {
-          console.log('Bet update received, refreshing...');
-          setRefreshTrigger(prev => prev + 1);
-        }
-      )
-      .subscribe((status) => {
-        console.log('Subscription status:', status);
-      });
-
-    return () => {
-      console.log('Cleaning up subscription...');
-      supabase.removeChannel(channel);
-    };
-  }, [session?.user?.id]);
+    return () => clearInterval(interval);
+  }, [session?.user?.id, fetchProfile]);
 
   if (!session) return null;
 
