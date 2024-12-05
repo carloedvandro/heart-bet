@@ -2,7 +2,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { BetType, DrawPeriod, Position, calculatePrize } from "@/types/betting";
+import { BetType, DrawPeriod, Position, calculatePrize, DRAW_PERIODS } from "@/types/betting";
 
 interface BetFormProps {
   betType: BetType;
@@ -71,12 +71,7 @@ const BetForm = ({
           onValueChange={(value) => setDrawPeriod(value as DrawPeriod)}
           className="grid grid-cols-2 gap-4"
         >
-          {Object.entries({
-            morning: "Manhã (até 11h)",
-            afternoon: "Tarde (até 15h)",
-            evening: "Noite (até 19h)",
-            night: "Corujinha (até 22h)",
-          }).map(([period, label]) => (
+          {Object.entries(DRAW_PERIODS).map(([period, label]) => (
             <div key={period} className="flex items-center space-x-2">
               <RadioGroupItem value={period} id={period} />
               <Label htmlFor={period}>{label}</Label>
