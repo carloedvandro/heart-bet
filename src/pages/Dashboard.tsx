@@ -53,7 +53,7 @@ export default function Dashboard() {
 
   // Subscribe to profile changes
   useRealtimeSubscription({
-    channel: 'profile_changes',
+    channel: `profile_${session?.user?.id}`,
     table: 'profiles',
     filter: `id=eq.${session?.user?.id}`,
     onChanged: fetchProfile,

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 
@@ -18,50 +18,49 @@ export function useRealtimeSubscription({
   enabled?: boolean;
 }) {
   const channelRef = useRef<RealtimeChannel | null>(null);
-  const onChangedRef = useRef(onChanged);
-
-  // Update the callback ref when onChanged changes
-  useEffect(() => {
-    onChangedRef.current = onChanged;
-  }, [onChanged]);
-
-  const cleanup = useCallback(() => {
-    if (channelRef.current) {
-      console.log('Cleaning up channel subscription');
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-    }
-  }, []);
 
   useEffect(() => {
     if (!enabled || !channelName) return;
 
-    cleanup();
+    // Clean up existing subscription
+    if (channelRef.current) {
+      console.log('Cleaning up existing channel');
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
 
-    const uniqueChannelName = `${channelName}_${Date.now()}`;
-    console.log(`Setting up new subscription for ${uniqueChannelName}`);
+    try {
+      console.log(`Setting up subscription for ${table}`);
+      const channel = supabase.channel(channelName);
+      channelRef.current = channel;
 
-    const channel = supabase.channel(uniqueChannelName);
-    channelRef.current = channel;
+      channel
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema,
+            table,
+            filter,
+          },
+          () => {
+            console.log(`Change detected in ${table}`);
+            onChanged();
+          }
+        )
+        .subscribe((status) => {
+          console.log(`Channel ${channelName} status:`, status);
+        });
 
-    channel
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema,
-          table,
-          filter,
-        },
-        (payload) => {
-          console.log(`Received change for ${table}:`, payload);
-          onChangedRef.current();
+      return () => {
+        console.log(`Cleaning up subscription for ${table}`);
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
         }
-      )
-      .subscribe((status) => {
-        console.log(`Subscription status for ${uniqueChannelName}:`, status);
-      });
-
-    return cleanup;
-  }, [channelName, schema, table, filter, enabled, cleanup]);
+      };
+    } catch (error) {
+      console.error('Error in realtime subscription:', error);
+    }
+  }, [channelName, schema, table, filter, enabled]);
 }
