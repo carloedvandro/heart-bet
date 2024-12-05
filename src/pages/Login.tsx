@@ -20,6 +20,7 @@ export default function Login() {
         }
         
         if (session) {
+          console.log("User already logged in, redirecting to dashboard");
           navigate("/dashboard");
         }
       } catch (error) {
@@ -29,10 +30,14 @@ export default function Login() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth event:", event, "Session:", session);
-      if (session) {
+      
+      if (event === 'SIGNED_IN') {
+        console.log("User signed in successfully");
         navigate("/dashboard");
       } else if (event === 'SIGNED_OUT') {
         toast.info("Você foi desconectado");
+      } else if (event === 'USER_UPDATED') {
+        console.log("User updated:", session?.user);
       }
     });
 
