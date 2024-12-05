@@ -50,7 +50,7 @@ export default function Login() {
     <div 
       className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center"
       style={{
-        backgroundImage: 'url("/lovable-uploads/cc8ca6b5-f893-4c37-ba56-0296ff945bf5.png")',
+        backgroundImage: 'url("/lovable-uploads/5a0e0336-aecf-49bc-961c-013d9aee3443.png")',
       }}
     >
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
