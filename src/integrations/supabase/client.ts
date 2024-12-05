@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 const supabaseUrl = "https://mwdaxgwuztccxfgbusuj.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im13ZGF4Z3d1enRjY3hmZ2J1c3VqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzM0MDAzMjUsImV4cCI6MjA0ODk3NjMyNX0.UGchGQoLkRq2fCULNsOdJAXVwNWrK97PurzflQ2heMk";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsImtpZCI6IkxRUmZQWmJsanJKVzZxOEIiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL213ZGF4Z3d1enRjY3hmZ2J1c3VqLnN1cGFiYXNlLmNvL2F1dGgvdjEiLCJyZWYiOiJtd2RheGd3dXp0Y2N4ZmdidXN1aiIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzMzNDAwMzI1LCJleHAiOjIwNDg5NzYzMjV9.UGchGQoLkRq2fCULNsOdJAXVwNWrK97PurzflQ2heMk";
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   auth: {
@@ -12,7 +12,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   },
   realtime: {
     params: {
-      eventsPerSecond: 1
+      eventsPerSecond: 1 // Rate limit realtime events
     }
   }
 });
