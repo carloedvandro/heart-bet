@@ -36,9 +36,9 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
   const session = useSession();
 
   useEffect(() => {
-    const fetchBets = async () => {
-      if (!session?.user?.id) return;
+    if (!session?.user?.id) return;
 
+    const fetchBets = async () => {
       try {
         console.log("Fetching bets for user:", session.user.id);
         const { data, error } = await supabase
@@ -63,15 +63,17 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
 
     fetchBets();
 
-    // Set up real-time subscription
-    const channel = supabase
-      .channel('bets_changes')
+    // Set up real-time subscription with a unique channel name
+    const channelId = `bets_${session.user.id}`;
+    const channel = supabase.channel(channelId);
+
+    channel
       .on('postgres_changes', 
         { 
           event: '*', 
           schema: 'public', 
           table: 'bets',
-          filter: `user_id=eq.${session?.user?.id}`
+          filter: `user_id=eq.${session.user.id}`
         }, 
         () => {
           fetchBets();
@@ -80,7 +82,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      channel.unsubscribe();
     };
   }, [session?.user?.id, refreshTrigger]);
 

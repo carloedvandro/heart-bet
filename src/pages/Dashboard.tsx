@@ -44,9 +44,11 @@ export default function Dashboard() {
 
     fetchProfile();
 
-    // Set up real-time subscription for profile updates
-    const channel = supabase
-      .channel('profile_changes')
+    // Set up real-time subscription for profile updates with a unique channel name
+    const channelId = `profile_${session.user.id}`;
+    const channel = supabase.channel(channelId);
+
+    channel
       .on('postgres_changes', 
         { 
           event: '*', 
@@ -61,7 +63,7 @@ export default function Dashboard() {
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      channel.unsubscribe();
     };
   }, [session, navigate]);
 
