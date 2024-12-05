@@ -47,8 +47,14 @@ export default function Login() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
-      <Card className="w-full max-w-md">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center"
+      style={{
+        backgroundImage: 'url("/lovable-uploads/cc8ca6b5-f893-4c37-ba56-0296ff945bf5.png")',
+      }}
+    >
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
+      <Card className="w-full max-w-md relative z-10 bg-white/95">
         <CardHeader className="space-y-2">
           <h2 className="text-center text-lg text-gray-600">Bem-vindo</h2>
           <CardTitle className="text-center text-2xl font-bold">Loto Corações Premiados</CardTitle>
