@@ -8,12 +8,11 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,
+    detectSessionInUrl: true
   },
   realtime: {
     params: {
-      eventsPerSecond: 1,
-      accessToken: null // Disable custom token handling
+      eventsPerSecond: 1
     }
   }
 });

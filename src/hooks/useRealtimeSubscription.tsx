@@ -1,5 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { RealtimeChannel } from '@supabase/supabase-js';
 
 export function useRealtimeSubscription({
   table,
@@ -14,13 +15,18 @@ export function useRealtimeSubscription({
   onChanged: (payload?: any) => void;
   enabled?: boolean;
 }) {
+  const channelRef = useRef<RealtimeChannel | null>(null);
+
   useEffect(() => {
     if (!enabled) return;
 
     console.log(`Setting up subscription for ${table} with filter:`, filter);
     
-    const channel = supabase
-      .channel('db_changes')
+    // Create a unique channel name based on table and filter
+    const channelName = `${table}_${filter || 'all'}`;
+    
+    channelRef.current = supabase
+      .channel(channelName)
       .on(
         'postgres_changes',
         {
@@ -40,7 +46,10 @@ export function useRealtimeSubscription({
 
     return () => {
       console.log(`Cleaning up subscription for ${table}`);
-      supabase.removeChannel(channel);
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
     };
   }, [table, schema, filter, onChanged, enabled]);
 }
