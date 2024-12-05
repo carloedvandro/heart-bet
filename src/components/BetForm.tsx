@@ -71,7 +71,12 @@ const BetForm = ({
           onValueChange={(value) => setDrawPeriod(value as DrawPeriod)}
           className="grid grid-cols-2 gap-4"
         >
-          {Object.entries(DRAW_PERIODS).map(([period, label]) => (
+          {Object.entries({
+            morning: "Manhã (até 11h)",
+            afternoon: "Tarde (até 15h)",
+            evening: "Noite (até 19h)",
+            night: "Corujinha (até 22h)",
+          }).map(([period, label]) => (
             <div key={period} className="flex items-center space-x-2">
               <RadioGroupItem value={period} id={period} />
               <Label htmlFor={period}>{label}</Label>
