@@ -81,17 +81,23 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div 
+      className="min-h-screen bg-gray-50 p-4 bg-cover bg-center relative"
+      style={{
+        backgroundImage: 'url("/lovable-uploads/5a0e0336-aecf-49bc-961c-013d9aee3443.png")',
+      }}
+    >
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
+      <div className="max-w-7xl mx-auto space-y-6 relative z-10">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Corações Premiados</h1>
-          <Button variant="outline" onClick={handleLogout}>
+          <h1 className="text-3xl font-bold text-white">Corações Premiados</h1>
+          <Button variant="outline" onClick={handleLogout} className="bg-white/90 hover:bg-white">
             <LogOut className="mr-2 h-4 w-4" />
             Sair
           </Button>
         </div>
 
-        <Card>
+        <Card className="bg-white/90 backdrop-blur">
           <CardHeader>
             <CardTitle>Nova Aposta</CardTitle>
           </CardHeader>
@@ -100,7 +106,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="bg-white/90 backdrop-blur">
           <CardHeader>
             <CardTitle>Suas Apostas</CardTitle>
           </CardHeader>
