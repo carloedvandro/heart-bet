@@ -54,9 +54,9 @@ export default function Dashboard() {
   useEffect(() => {
     if (!session?.user?.id) return;
 
-    // Create a channel for profile updates
+    // Create a channel for both profile and bets updates
     const channel = supabase
-      .channel(`profile:${session.user.id}`)
+      .channel('dashboard_updates')
       .on(
         'postgres_changes',
         {
@@ -65,16 +65,35 @@ export default function Dashboard() {
           table: 'profiles',
           filter: `id=eq.${session.user.id}`,
         },
-        () => {
-          fetchProfile();
+        (payload) => {
+          console.log('Profile update received:', payload);
+          if (payload.new) {
+            setProfile(payload.new as Profile);
+          }
         }
       )
-      .subscribe();
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'bets',
+          filter: `user_id=eq.${session.user.id}`,
+        },
+        () => {
+          console.log('Bet update received, refreshing...');
+          setRefreshTrigger(prev => prev + 1);
+        }
+      )
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+      });
 
     return () => {
+      console.log('Cleaning up subscription...');
       supabase.removeChannel(channel);
     };
-  }, [session?.user?.id, fetchProfile]);
+  }, [session?.user?.id]);
 
   if (!session) return null;
 

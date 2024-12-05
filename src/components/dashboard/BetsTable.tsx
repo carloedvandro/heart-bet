@@ -57,7 +57,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
     }
   }, [session?.user?.id]);
 
-  // Initial bets fetch
+  // Initial bets fetch and refresh on trigger change
   useEffect(() => {
     fetchBets();
   }, [fetchBets, refreshTrigger]);
