@@ -24,12 +24,12 @@ export const MAX_SELECTIONS: Record<BetType, number> = {
   group_triple: 3,
 };
 
-export const PERIOD_LIMITS: Record<DrawPeriod, string> = {
+export const PERIOD_LIMITS = {
   morning: "11:00",
   afternoon: "15:00",
   evening: "19:00",
   night: "22:00",
-};
+} as const;
 
 export const BET_MULTIPLIERS: Record<BetType, number> = {
   simple_group: 9,
@@ -39,3 +39,10 @@ export const BET_MULTIPLIERS: Record<BetType, number> = {
   group_double: 150,
   group_triple: 250,
 };
+
+export const DRAW_PERIODS = {
+  morning: "Manhã (até 11h)",
+  afternoon: "Tarde (até 15h)",
+  evening: "Noite (até 19h)",
+  night: "Corujinha (até 22h)",
+} as const;

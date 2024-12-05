@@ -2,7 +2,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { BetType, DrawPeriod, BET_MULTIPLIERS } from "@/types/betting";
+import { BetType, DrawPeriod, BET_MULTIPLIERS, DRAW_PERIODS } from "@/types/betting";
 
 interface BetFormProps {
   betType: BetType;
@@ -21,29 +21,7 @@ const BetForm = ({
   betAmount,
   setBetAmount,
 }: BetFormProps) => {
-  const getBetTypeName = (type: BetType): string => {
-    const names: Record<BetType, string> = {
-      simple_group: "Grupo Simples",
-      dozen: "Dezena",
-      hundred: "Centena",
-      thousand: "Milhar",
-      group_double: "Duque de Grupo",
-      group_triple: "Terno de Grupo",
-    };
-    return names[type];
-  };
-
-  const getDrawPeriodName = (period: DrawPeriod): string => {
-    const names: Record<DrawPeriod, string> = {
-      morning: "Manhã (até 11h)",
-      afternoon: "Tarde (até 15h)",
-      evening: "Noite (até 19h)",
-      night: "Corujinha (até 22h)",
-    };
-    return names[period];
-  };
-
-  const calculatePotentialPrize = (): number => {
+  const calculatePotentialPrize = () => {
     return betAmount * BET_MULTIPLIERS[betType];
   };
 
@@ -53,14 +31,15 @@ const BetForm = ({
         <Label>Tipo de Aposta</Label>
         <Select value={betType} onValueChange={(value) => setBetType(value as BetType)}>
           <SelectTrigger>
-            <SelectValue placeholder="Selecione o tipo de aposta" />
+            <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {Object.keys(BET_MULTIPLIERS).map((type) => (
-              <SelectItem key={type} value={type}>
-                {getBetTypeName(type as BetType)}
-              </SelectItem>
-            ))}
+            <SelectItem value="simple_group">Grupo Simples</SelectItem>
+            <SelectItem value="dozen">Dezena</SelectItem>
+            <SelectItem value="hundred">Centena</SelectItem>
+            <SelectItem value="thousand">Milhar</SelectItem>
+            <SelectItem value="group_double">Duque de Grupo</SelectItem>
+            <SelectItem value="group_triple">Terno de Grupo</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -72,12 +51,7 @@ const BetForm = ({
           onValueChange={(value) => setDrawPeriod(value as DrawPeriod)}
           className="grid grid-cols-2 gap-4"
         >
-          {Object.entries({
-            morning: "Manhã (até 11h)",
-            afternoon: "Tarde (até 15h)",
-            evening: "Noite (até 19h)",
-            night: "Corujinha (até 22h)",
-          }).map(([period, label]) => (
+          {Object.entries(DRAW_PERIODS).map(([period, label]) => (
             <div key={period} className="flex items-center space-x-2">
               <RadioGroupItem value={period} id={period} />
               <Label htmlFor={period}>{label}</Label>

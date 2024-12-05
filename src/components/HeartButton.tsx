@@ -35,9 +35,6 @@ const HeartButton = ({ color, selected, onClick, disabled }: HeartButtonProps) =
           "transition-opacity duration-300",
           "group-hover:opacity-30"
         )}
-        style={{
-          background: `radial-gradient(circle, var(--heart-${color}) 0%, transparent 100%)`,
-        }}
       />
     </button>
   );
