@@ -1,4 +1,4 @@
-import { Profile } from "@/integrations/supabase/types";
+import { Profile } from "@/integrations/supabase/custom-types";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { BalanceDisplay } from "./BalanceDisplay";

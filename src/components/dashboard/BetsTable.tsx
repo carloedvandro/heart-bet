@@ -1,5 +1,5 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Bet } from "@/integrations/supabase/types";
+import { Bet } from "@/integrations/supabase/custom-types";
 
 interface BetsTableProps {
   bets: Bet[];

@@ -1,4 +1,4 @@
-import { Profile } from "@/integrations/supabase/types";
+import { Profile } from "@/integrations/supabase/custom-types";
 
 interface BalanceDisplayProps {
   profile: Profile | null;
