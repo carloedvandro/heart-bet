@@ -6,8 +6,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LogOut } from "lucide-react";
 import { Database } from "@/integrations/supabase/types";
+import HeartGrid from "@/components/HeartGrid";
 
 type Bet = Database['public']['Tables']['bets']['Row'];
+
+const getBetTypeName = (type: string): string => {
+  const names: Record<string, string> = {
+    simple_group: "Grupo Simples",
+    dozen: "Dezena",
+    hundred: "Centena",
+    thousand: "Milhar",
+    group_double: "Duque de Grupo",
+    group_triple: "Terno de Grupo",
+  };
+  return names[type] || type;
+};
+
+const getDrawPeriodName = (period: string): string => {
+  const names: Record<string, string> = {
+    morning: "Manhã",
+    afternoon: "Tarde",
+    evening: "Noite",
+    night: "Corujinha",
+  };
+  return names[period] || period;
+};
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -61,12 +84,21 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
-          <h1 className="text-3xl font-bold">Painel do Usuário</h1>
+          <h1 className="text-3xl font-bold">Corações Premiados</h1>
           <Button variant="outline" onClick={handleLogout}>
             <LogOut className="mr-2 h-4 w-4" />
             Sair
           </Button>
         </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Nova Aposta</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <HeartGrid />
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
@@ -82,9 +114,12 @@ export default function Dashboard() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Data</TableHead>
-                    <TableHead>Corações Escolhidos</TableHead>
+                    <TableHead>Período</TableHead>
+                    <TableHead>Tipo</TableHead>
+                    <TableHead>Números</TableHead>
+                    <TableHead>Valor</TableHead>
                     <TableHead>Resultado</TableHead>
-                    <TableHead>Status</TableHead>
+                    <TableHead>Prêmio</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -94,18 +129,29 @@ export default function Dashboard() {
                         {new Date(bet.created_at).toLocaleDateString('pt-BR')}
                       </TableCell>
                       <TableCell>
-                        {bet.hearts.join(", ")}
+                        {getDrawPeriodName(bet.draw_period)}
                       </TableCell>
                       <TableCell>
-                        {bet.result || "Aguardando sorteio"}
+                        {getBetTypeName(bet.bet_type)}
                       </TableCell>
                       <TableCell>
-                        {bet.is_winner === null ? (
-                          "Pendente"
-                        ) : bet.is_winner ? (
-                          <span className="text-green-600 font-medium">Vencedor!</span>
+                        {bet.numbers?.join(", ") || "N/A"}
+                      </TableCell>
+                      <TableCell>
+                        R$ {Number(bet.amount).toFixed(2)}
+                      </TableCell>
+                      <TableCell>
+                        {bet.drawn_numbers ? bet.drawn_numbers.join(", ") : "Aguardando sorteio"}
+                      </TableCell>
+                      <TableCell>
+                        {bet.prize_amount ? (
+                          <span className="text-green-600 font-medium">
+                            R$ {Number(bet.prize_amount).toFixed(2)}
+                          </span>
+                        ) : bet.is_winner === false ? (
+                          <span className="text-red-600 font-medium">Não premiado</span>
                         ) : (
-                          <span className="text-red-600 font-medium">Não ganhou</span>
+                          "Pendente"
                         )}
                       </TableCell>
                     </TableRow>

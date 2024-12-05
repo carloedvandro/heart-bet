@@ -11,26 +11,47 @@ export type Database = {
     Tables: {
       bets: {
         Row: {
+          amount: number
+          bet_type: Database["public"]["Enums"]["bet_type"]
           created_at: string
+          draw_date: string
+          draw_period: Database["public"]["Enums"]["draw_period"]
+          drawn_numbers: number[] | null
           hearts: string[]
           id: string
           is_winner: boolean | null
+          numbers: number[]
+          prize_amount: number | null
           result: string | null
           user_id: string
         }
         Insert: {
+          amount?: number
+          bet_type: Database["public"]["Enums"]["bet_type"]
           created_at?: string
+          draw_date?: string
+          draw_period: Database["public"]["Enums"]["draw_period"]
+          drawn_numbers?: number[] | null
           hearts: string[]
           id?: string
           is_winner?: boolean | null
+          numbers: number[]
+          prize_amount?: number | null
           result?: string | null
           user_id: string
         }
         Update: {
+          amount?: number
+          bet_type?: Database["public"]["Enums"]["bet_type"]
           created_at?: string
+          draw_date?: string
+          draw_period?: Database["public"]["Enums"]["draw_period"]
+          drawn_numbers?: number[] | null
           hearts?: string[]
           id?: string
           is_winner?: boolean | null
+          numbers?: number[]
+          prize_amount?: number | null
           result?: string | null
           user_id?: string
         }
@@ -43,6 +64,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      draws: {
+        Row: {
+          created_at: string
+          draw_date: string
+          draw_period: Database["public"]["Enums"]["draw_period"]
+          drawn_numbers: number[]
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          draw_date: string
+          draw_period: Database["public"]["Enums"]["draw_period"]
+          drawn_numbers: number[]
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          draw_date?: string
+          draw_period?: Database["public"]["Enums"]["draw_period"]
+          drawn_numbers?: number[]
+          id?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
@@ -70,7 +115,14 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      bet_type:
+        | "simple_group"
+        | "dozen"
+        | "hundred"
+        | "thousand"
+        | "group_double"
+        | "group_triple"
+      draw_period: "morning" | "afternoon" | "evening" | "night"
     }
     CompositeTypes: {
       [_ in never]: never
