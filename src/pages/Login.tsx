@@ -86,6 +86,10 @@ export default function Login() {
                   link_text: "Não tem uma conta? Cadastre-se",
                   email_input_placeholder: "Seu email",
                   password_input_placeholder: "Sua senha",
+                  confirmation_text: "Verifique seu email",
+                  invalid_credentials: "Email ou senha incorretos",
+                  email_already_exists: "Email já cadastrado",
+                  password_mismatch: "As senhas não conferem"
                 },
                 sign_in: {
                   email_label: "Email",
@@ -96,6 +100,8 @@ export default function Login() {
                   link_text: "Já tem uma conta? Entre",
                   email_input_placeholder: "Seu email",
                   password_input_placeholder: "Sua senha",
+                  invalid_credentials: "Email ou senha incorretos",
+                  email_not_confirmed: "Por favor, confirme seu email antes de entrar"
                 },
                 forgotten_password: {
                   link_text: "Esqueceu sua senha?",
@@ -103,21 +109,9 @@ export default function Login() {
                   password_label: "Senha",
                   button_label: "Enviar instruções",
                   loading_button_label: "Enviando instruções...",
-                  confirmation_text: "Verifique seu email para redefinir sua senha",
-                },
-              },
-              translations: {
-                sign_in: {
-                  invalid_credentials: "Email ou senha incorretos",
-                  email_not_confirmed: "Por favor, confirme seu email antes de entrar",
-                  password_recovery_email_sent: "Email de recuperação de senha enviado",
-                },
-                sign_up: {
-                  email_already_exists: "Email já cadastrado",
-                  invalid_email: "Email inválido",
-                  weak_password: "Senha muito fraca",
-                },
-              },
+                  confirmation_text: "Verifique seu email para redefinir sua senha"
+                }
+              }
             }}
             theme="light"
             providers={[]}
