@@ -1,17 +1,18 @@
 export type BetType = 'simple_group' | 'dozen' | 'hundred' | 'thousand' | 'group_double' | 'group_triple';
 export type DrawPeriod = 'morning' | 'afternoon' | 'evening' | 'night';
 
+// Shuffled order for visual display, but maintaining number associations
 export const HEART_COLORS = [
-  { color: "pink", number: 0 },
-  { color: "red", number: 1 },
-  { color: "orange", number: 2 },
-  { color: "yellow", number: 3 },
-  { color: "green", number: 4 },
-  { color: "blue", number: 5 },
-  { color: "purple", number: 6 },
-  { color: "coral", number: 7 },
-  { color: "indigo", number: 8 },
-  { color: "crimson", number: 9 },
+  { color: "blue", number: 2 },      // Azul
+  { color: "brown", number: 8 },     // Marrom
+  { color: "white", number: 0 },     // Branco
+  { color: "purple", number: 6 },    // Roxo
+  { color: "yellow", number: 4 },    // Amarelo
+  { color: "red", number: 1 },       // Vermelho
+  { color: "black", number: 3 },     // Preto
+  { color: "pink", number: 7 },      // Rosa
+  { color: "gray", number: 9 },      // Cinza
+  { color: "green", number: 5 },     // Verde
 ] as const;
 
 export const MAX_SELECTIONS: Record<BetType, number> = {

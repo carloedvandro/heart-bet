@@ -20,16 +20,16 @@ export default {
     extend: {
       colors: {
         heart: {
-          pink: "#FF69B4",
-          red: "#FF4136",
-          orange: "#FF851B",
-          yellow: "#FFDC00",
-          green: "#2ECC40",
-          blue: "#7FDBFF",
-          purple: "#B10DC9",
-          coral: "#FF6B6B",
-          indigo: "#5856D6",
-          crimson: "#DC143C",
+          red: "#FF0000",      // Vermelho (1)
+          blue: "#0000FF",     // Azul (2)
+          black: "#000000",    // Preto (3)
+          yellow: "#FFD700",   // Amarelo (4)
+          green: "#00FF00",    // Verde (5)
+          purple: "#800080",   // Roxo (6)
+          pink: "#FF69B4",     // Rosa (7)
+          brown: "#8B4513",    // Marrom (8)
+          gray: "#808080",     // Cinza (9)
+          white: "#FFFFFF",    // Branco (0)
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
