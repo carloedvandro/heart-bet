@@ -16,7 +16,11 @@ export default function Login() {
     const errorDescription = hashParams.get("error_description");
 
     if (error) {
-      toast.error(errorDescription || "Erro na autenticação");
+      if (error === "invalid_credentials") {
+        toast.error("Email ou senha incorretos. Por favor, verifique suas credenciais.");
+      } else {
+        toast.error(errorDescription || "Erro na autenticação");
+      }
     }
 
     const checkUser = async () => {
@@ -26,9 +30,12 @@ export default function Login() {
       }
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth event:", event);
       if (session) {
         navigate("/dashboard");
+      } else if (event === 'SIGNED_OUT') {
+        toast.info("Você foi desconectado");
       }
     });
 
@@ -80,6 +87,7 @@ export default function Login() {
               },
             }}
             theme="light"
+            providers={[]}
           />
         </CardContent>
       </Card>
