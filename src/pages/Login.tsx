@@ -49,7 +49,8 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
       <Card className="w-full max-w-md">
-        <CardHeader>
+        <CardHeader className="space-y-2">
+          <h2 className="text-center text-lg text-gray-600">Bem-vindo</h2>
           <CardTitle className="text-center text-2xl font-bold">Loto Corações Premiados</CardTitle>
         </CardHeader>
         <CardContent>
