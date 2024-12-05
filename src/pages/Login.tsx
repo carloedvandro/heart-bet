@@ -4,11 +4,21 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { toast } from "sonner";
 
 export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Verificar se há um hash de confirmação na URL
+    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+    const error = hashParams.get("error");
+    const errorDescription = hashParams.get("error_description");
+
+    if (error) {
+      toast.error(errorDescription || "Erro na autenticação");
+    }
+
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
