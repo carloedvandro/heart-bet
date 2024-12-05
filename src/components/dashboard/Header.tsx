@@ -2,6 +2,7 @@ import { Profile } from "@/integrations/supabase/custom-types";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { BalanceDisplay } from "./BalanceDisplay";
+import { RechargeDialog } from "./RechargeDialog";
 
 interface HeaderProps {
   profile: Profile | null;
@@ -15,10 +16,13 @@ export function Header({ profile, onLogout }: HeaderProps) {
         <h1 className="text-3xl font-bold text-white">Corações Premiados</h1>
         <BalanceDisplay profile={profile} />
       </div>
-      <Button variant="outline" onClick={onLogout} className="bg-white/90 hover:bg-white">
-        <LogOut className="mr-2 h-4 w-4" />
-        Sair
-      </Button>
+      <div className="flex items-center gap-4">
+        <RechargeDialog />
+        <Button variant="outline" onClick={onLogout} className="bg-white/90 hover:bg-white">
+          <LogOut className="mr-2 h-4 w-4" />
+          Sair
+        </Button>
+      </div>
     </div>
   );
 }
