@@ -46,6 +46,21 @@ const HeartGrid = () => {
     toast.info(`Seleção de corações resetada para ${newBetType === 'simple_group' ? 'grupo simples' : 'nova aposta'}`);
   };
 
+  const checkBalance = async (userId: string) => {
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('balance')
+      .eq('id', userId)
+      .single();
+
+    if (error) {
+      console.error("Error checking balance:", error);
+      return false;
+    }
+
+    return profile?.balance >= betAmount;
+  };
+
   const handleSubmit = async () => {
     if (!session?.user) {
       toast.error("Você precisa estar logado para fazer uma aposta");
@@ -55,6 +70,13 @@ const HeartGrid = () => {
 
     if (selectedHearts.length !== MAX_SELECTIONS[betType]) {
       toast.error(`Selecione exatamente ${MAX_SELECTIONS[betType]} ${betType === 'simple_group' ? 'coração' : 'corações'}`);
+      return;
+    }
+
+    // Check balance before attempting to place bet
+    const hasBalance = await checkBalance(session.user.id);
+    if (!hasBalance) {
+      toast.error("Saldo insuficiente para realizar esta aposta. Por favor, faça uma recarga.");
       return;
     }
 
@@ -78,7 +100,7 @@ const HeartGrid = () => {
       if (error) {
         console.error("Supabase error:", error);
         if (error.message.includes('Saldo insuficiente')) {
-          toast.error("Saldo insuficiente para realizar esta aposta");
+          toast.error("Saldo insuficiente para realizar esta aposta. Por favor, faça uma recarga.");
         } else {
           toast.error("Erro ao registrar aposta. Tente novamente.");
         }
