@@ -10,7 +10,7 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Verificar se há um hash de confirmação na URL
+    // Check for URL hash parameters
     const hashParams = new URLSearchParams(window.location.hash.substring(1));
     const error = hashParams.get("error");
     const errorDescription = hashParams.get("error_description");
@@ -24,15 +24,23 @@ export default function Login() {
     }
 
     const checkUser = async () => {
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log("Current session:", session);
-      if (sessionError) {
-        console.error("Session error:", sessionError);
-        return;
-      }
-      if (session) {
-        console.log("User is logged in, redirecting to dashboard");
-        navigate("/dashboard");
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        console.log("Current session:", session);
+        
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          toast.error("Erro ao verificar sessão: " + sessionError.message);
+          return;
+        }
+        
+        if (session) {
+          console.log("User is logged in, redirecting to dashboard");
+          navigate("/dashboard");
+        }
+      } catch (error) {
+        console.error("Error checking session:", error);
+        toast.error("Erro ao verificar sessão");
       }
     };
 
