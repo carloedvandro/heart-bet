@@ -12,14 +12,9 @@ const Index = () => {
   useEffect(() => {
     const fetchAudioUrl = async () => {
       try {
-        const { data, error } = await supabase.storage
+        const { data } = await supabase.storage
           .from('sounds')
           .getPublicUrl('background.mp3');
-
-        if (error) {
-          console.error('Error fetching audio URL:', error);
-          return;
-        }
 
         setAudioUrl(data.publicUrl);
       } catch (err) {
@@ -34,7 +29,7 @@ const Index = () => {
     if (audioUrl) {
       audioRef.current = new Audio(audioUrl);
       audioRef.current.loop = true;
-      audioRef.current.volume = 0.1; // Volume inicial em 10%
+      audioRef.current.volume = 0.1;
       
       return () => {
         if (audioRef.current) {
