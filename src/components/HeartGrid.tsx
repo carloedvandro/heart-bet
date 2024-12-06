@@ -29,6 +29,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   };
 
   const handleBetPlaced = (bet: Bet) => {
+    console.log("New bet placed:", bet);
     setPendingBet(bet);
     setShowConfirmDialog(true);
     if (onBetPlaced) {
@@ -37,8 +38,11 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   };
 
   const handleViewReceipt = () => {
-    setLastBet(pendingBet);
-    setShowConfirmDialog(false);
+    console.log("Viewing receipt for bet:", pendingBet);
+    if (pendingBet) {
+      setLastBet(pendingBet);
+      setShowConfirmDialog(false);
+    }
   };
 
   const handleSkipReceipt = () => {
