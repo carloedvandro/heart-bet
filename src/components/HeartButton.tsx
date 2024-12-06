@@ -30,6 +30,7 @@ const HeartButton = ({ color, selected, onClick, disabled }: HeartButtonProps) =
         border: "none",
         background: "none",
         padding: 0,
+        transition: "transform 0.3s ease-in-out",
       }}
     >
       <Heart
@@ -37,7 +38,8 @@ const HeartButton = ({ color, selected, onClick, disabled }: HeartButtonProps) =
           "w-16 h-16 transition-all duration-300",
           "fill-current",
           "stroke-black stroke-1 group-hover:scale-105",
-          selected ? "scale-110" : ""
+          selected ? "scale-110" : "",
+          "animate-heart-float"
         )}
         style={{
           color: `var(--heart-${color})`,
