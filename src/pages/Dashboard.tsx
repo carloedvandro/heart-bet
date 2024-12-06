@@ -63,18 +63,18 @@ export default function Dashboard() {
       .on(
         'postgres_changes',
         {
-          event: 'UPDATE',
+          event: '*',
           schema: 'public',
           table: 'recharges',
           filter: `user_id=eq.${session.user.id}`,
         },
-        (payload) => {
+        async (payload) => {
           console.log('Received recharge update:', payload);
           if (payload.new.status === 'completed' && payload.old.status === 'pending') {
             console.log('Playing recharge sound');
-            playSounds.recharge();
+            await playSounds.recharge();
             toast.success(`Recarga de R$ ${payload.new.amount} completada!`);
-            fetchProfile();
+            await fetchProfile();
           }
         }
       )
