@@ -6,6 +6,7 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { BetType, DrawPeriod, HEART_COLORS, MAX_SELECTIONS, Position } from "@/types/betting";
 import { playSounds } from "@/utils/soundEffects";
 import { Bet } from "@/integrations/supabase/custom-types";
+import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
 export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
   const [selectedHearts, setSelectedHearts] = useState<string[]>([]);
@@ -84,9 +85,7 @@ export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
       return;
     }
 
-    const numbers = selectedHearts.map(color => 
-      HEART_COLORS.find(h => h.color === color)?.number ?? 0
-    );
+    const numbers = selectedHearts.map(color => getNumberForHeart(color));
 
     try {
       const { data: bet, error } = await supabase
@@ -119,7 +118,6 @@ export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
       playSounds.bet();
       toast.success("Aposta registrada com sucesso!");
       
-      // Chama o callback com a aposta criada
       onBetPlaced(bet);
 
       setSelectedHearts([]);
