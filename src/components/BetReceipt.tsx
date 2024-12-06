@@ -15,11 +15,12 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
 
   useEffect(() => {
     // Log para debug
-    console.log("Bet data:", bet);
+    console.log("BetReceipt - Rendering with bet data:", bet);
+    console.log("BetReceipt - Receipt ref exists:", !!receiptRef.current);
   }, [bet]);
 
   if (!bet) {
-    console.error("No bet data provided to BetReceipt");
+    console.error("BetReceipt - No bet data provided");
     return null;
   }
 
