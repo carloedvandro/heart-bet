@@ -2,29 +2,54 @@ import { useEffect, useRef, useState } from "react";
 import HeartGrid from "@/components/HeartGrid";
 import { Button } from "@/components/ui/button";
 import { Volume2, VolumeX } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const [isMuted, setIsMuted] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
 
   useEffect(() => {
-    audioRef.current = new Audio("/sounds/background.mp3");
-    audioRef.current.loop = true;
-    audioRef.current.volume = 0.1; // Volume inicial em 10%
-    
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
+    const fetchAudioUrl = async () => {
+      const { data, error } = await supabase.storage
+        .from('sounds')
+        .getPublicUrl('background.mp3');
+
+      if (error) {
+        console.error('Error fetching audio URL:', error);
+        return;
+      }
+
+      if (data) {
+        setAudioUrl(data.publicUrl);
       }
     };
+
+    fetchAudioUrl();
   }, []);
+
+  useEffect(() => {
+    if (audioUrl) {
+      audioRef.current = new Audio(audioUrl);
+      audioRef.current.loop = true;
+      audioRef.current.volume = 0.1; // Volume inicial em 10%
+      
+      return () => {
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
+        }
+      };
+    }
+  }, [audioUrl]);
 
   const toggleSound = () => {
     if (!audioRef.current) return;
     
     if (isMuted) {
-      audioRef.current.play();
+      audioRef.current.play().catch(error => {
+        console.error('Error playing audio:', error);
+      });
     } else {
       audioRef.current.pause();
     }
