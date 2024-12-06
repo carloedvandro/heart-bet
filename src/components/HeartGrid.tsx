@@ -108,7 +108,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
           amount: betAmount,
           position: position,
         })
-        .select()
+        .select('*, profiles:profiles(balance)')
         .single();
 
       if (error) {
@@ -127,7 +127,6 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
       setLastBet(bet);
       playSounds.bet();
       toast.success("Aposta registrada com sucesso!");
-      setSelectedHearts([]);
       onBetPlaced?.();
     } catch (error) {
       console.error("Erro ao registrar aposta:", error);
@@ -138,10 +137,15 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
     }
   };
 
+  const handleReset = () => {
+    setLastBet(null);
+    setSelectedHearts([]);
+  };
+
   return (
     <div className="flex flex-col items-center space-y-8 p-8">
       {lastBet ? (
-        <BetReceipt bet={lastBet} />
+        <BetReceipt bet={lastBet} onReset={handleReset} />
       ) : (
         <>
           <BetForm

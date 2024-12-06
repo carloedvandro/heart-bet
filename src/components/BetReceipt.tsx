@@ -1,14 +1,60 @@
 import { Bet } from "@/integrations/supabase/custom-types";
 import { getBetTypeName, getDrawPeriodName } from "@/utils/betFormatters";
 import { format } from "date-fns";
-import { Receipt } from "lucide-react";
+import { Download, Receipt, Share2, RotateCcw } from "lucide-react";
 import { Card, CardContent, CardHeader } from "./ui/card";
+import { Button } from "./ui/button";
+import { generateBetsPDF } from "@/utils/pdfGenerator";
+import { toast } from "sonner";
+import { calculatePrize, Position } from "@/types/betting";
 
 interface BetReceiptProps {
   bet: Bet;
+  onReset?: () => void;
 }
 
-const BetReceipt = ({ bet }: BetReceiptProps) => {
+const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
+  const handleDownloadPDF = () => {
+    const doc = generateBetsPDF([bet]);
+    if (doc) {
+      doc.save(`comprovante-${bet.bet_number}.pdf`);
+      toast.success("PDF baixado com sucesso!");
+    } else {
+      toast.error("Erro ao gerar PDF");
+    }
+  };
+
+  const handleSharePDF = async () => {
+    try {
+      const doc = generateBetsPDF([bet]);
+      if (!doc) return;
+
+      const pdfBlob = doc.output('blob');
+      const file = new File([pdfBlob], `comprovante-${bet.bet_number}.pdf`, { type: "application/pdf" });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Comprovante de Aposta',
+          text: 'Confira meu comprovante de aposta!'
+        });
+        toast.success("PDF compartilhado com sucesso!");
+      } else {
+        handleDownloadPDF();
+        toast.info("Seu dispositivo não suporta compartilhamento direto. O PDF foi baixado.");
+      }
+    } catch (error) {
+      console.error("Erro ao compartilhar PDF:", error);
+      if (error instanceof Error && error.name === "NotAllowedError") {
+        toast.error("Permissão negada para compartilhar. Tente baixar o PDF.");
+      } else {
+        toast.error("Erro ao compartilhar PDF");
+      }
+    }
+  };
+
+  const potentialPrize = calculatePrize(bet.bet_type, bet.position as Position, Number(bet.amount));
+
   return (
     <Card className="w-full max-w-md mx-auto bg-white shadow-lg animate-fade-in">
       <CardHeader className="flex flex-row items-center justify-between border-b pb-4">
@@ -52,9 +98,36 @@ const BetReceipt = ({ bet }: BetReceiptProps) => {
           <div className="flex justify-between items-center">
             <span className="text-muted-foreground">Prêmio Potencial:</span>
             <span className="text-xl font-bold text-green-600">
-              R$ {bet.prize_amount ? Number(bet.prize_amount).toFixed(2) : "0.00"}
+              R$ {potentialPrize.toFixed(2)}
             </span>
           </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2 justify-center mt-6 pt-4 border-t">
+          <Button
+            variant="outline"
+            onClick={handleDownloadPDF}
+            className="flex items-center gap-2"
+          >
+            <Download className="w-4 h-4" />
+            Baixar PDF
+          </Button>
+          <Button
+            variant="outline"
+            onClick={handleSharePDF}
+            className="flex items-center gap-2"
+          >
+            <Share2 className="w-4 h-4" />
+            Compartilhar
+          </Button>
+          <Button
+            variant="outline"
+            onClick={onReset}
+            className="flex items-center gap-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Nova Aposta
+          </Button>
         </div>
       </CardContent>
     </Card>

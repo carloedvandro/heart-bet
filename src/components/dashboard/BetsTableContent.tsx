@@ -17,6 +17,7 @@ export function BetsTableContent({ bets }: BetsTableContentProps) {
     <Table>
       <TableHeader>
         <TableRow>
+          <TableHead>Comprovante</TableHead>
           <TableHead>Data</TableHead>
           <TableHead>Período</TableHead>
           <TableHead>Tipo</TableHead>
@@ -31,6 +32,9 @@ export function BetsTableContent({ bets }: BetsTableContentProps) {
       <TableBody>
         {bets.map((bet) => (
           <TableRow key={bet.id}>
+            <TableCell>
+              #{bet.bet_number || "N/A"}
+            </TableCell>
             <TableCell>
               {format(new Date(bet.created_at), "dd/MM/yyyy HH:mm:ss")}
             </TableCell>
