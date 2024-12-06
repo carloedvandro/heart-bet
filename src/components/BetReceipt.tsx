@@ -64,13 +64,11 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
             toast.success("Comprovante compartilhado com sucesso!");
           } catch (error) {
             console.error("Erro ao compartilhar:", error);
-            // Se o usuário cancelar o compartilhamento, não mostrar erro
             if (error instanceof Error && error.name !== "AbortError") {
               toast.error("Erro ao compartilhar comprovante");
             }
           }
         } else {
-          // Fallback para download se compartilhamento não for suportado
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
@@ -92,71 +90,71 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
   const potentialPrize = calculatePrize(bet.bet_type, bet.position as Position, Number(bet.amount));
 
   return (
-    <Card className="w-full max-w-md mx-auto bg-white shadow-lg animate-fade-in font-mono py-4 my-4" ref={receiptRef} data-receipt>
-      <div className="text-center py-6 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-t-lg">
-        <h1 className="text-3xl font-bold text-white font-sans tracking-wider animate-pulse">
+    <Card className="w-full max-w-[320px] mx-auto bg-white shadow-lg animate-fade-in font-mono" ref={receiptRef} data-receipt>
+      <div className="text-center py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-t-lg">
+        <h1 className="text-2xl font-bold text-white font-sans tracking-wider animate-pulse">
           Corações Premiados
         </h1>
       </div>
       
-      <CardContent className="space-y-4 pt-6 border-x-2 border-dashed border-gray-200">
-        <div className="text-center border-b-2 border-dashed border-gray-200 pb-4">
-          <Receipt className="w-8 h-8 mx-auto mb-2" />
-          <p className="text-sm text-gray-500">Comprovante de Aposta</p>
-          <p className="text-lg font-bold">#{bet.bet_number}</p>
+      <CardContent className="space-y-3 px-3 py-4">
+        <div className="text-center border-b border-dashed border-gray-200 pb-3">
+          <Receipt className="w-6 h-6 mx-auto mb-1" />
+          <p className="text-xs text-gray-500">Comprovante de Aposta</p>
+          <p className="text-base font-bold">#{bet.bet_number}</p>
         </div>
 
-        <div className="space-y-3 px-4">
-          <div className="flex justify-between text-sm break-words">
-            <span className="text-gray-600 min-w-[100px]">Data/Hora:</span>
-            <span className="font-medium text-right flex-1 pl-2">
+        <div className="space-y-2">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-600 w-24">Data/Hora:</span>
+            <span className="font-medium text-right flex-1">
               {format(new Date(bet.created_at), "dd/MM/yyyy HH:mm:ss")}
             </span>
           </div>
-          <div className="flex justify-between text-sm break-words">
-            <span className="text-gray-600 min-w-[100px]">Período:</span>
-            <span className="font-medium text-right flex-1 pl-2">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-600 w-24">Período:</span>
+            <span className="font-medium text-right flex-1">
               {getDrawPeriodName(bet.draw_period)}
             </span>
           </div>
-          <div className="flex justify-between text-sm break-words">
-            <span className="text-gray-600 min-w-[100px]">Tipo de Aposta:</span>
-            <span className="font-medium text-right flex-1 pl-2">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-600 w-24">Tipo de Aposta:</span>
+            <span className="font-medium text-right flex-1">
               {getBetTypeName(bet.bet_type)}
             </span>
           </div>
-          <div className="flex justify-between text-sm break-words">
-            <span className="text-gray-600 min-w-[100px]">Posição:</span>
-            <span className="font-medium text-right flex-1 pl-2">{bet.position}º</span>
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-600 w-24">Posição:</span>
+            <span className="font-medium text-right flex-1">{bet.position}º</span>
           </div>
-          <div className="flex justify-between text-sm break-words">
-            <span className="text-gray-600 min-w-[100px]">Números:</span>
-            <span className="font-medium text-right flex-1 pl-2 break-all">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-600 w-24">Números:</span>
+            <span className="font-medium text-right flex-1 break-all">
               {bet.numbers.join(", ")}
             </span>
           </div>
-          <div className="flex justify-between text-sm break-words">
-            <span className="text-gray-600 min-w-[100px]">Valor:</span>
-            <span className="font-medium text-right flex-1 pl-2">
+          <div className="flex justify-between text-xs">
+            <span className="text-gray-600 w-24">Valor:</span>
+            <span className="font-medium text-right flex-1">
               R$ {Number(bet.amount).toFixed(2)}
             </span>
           </div>
         </div>
 
-        <div className="mt-6 pt-4 border-t-2 border-dashed border-gray-200">
-          <div className="flex justify-between items-center px-4">
-            <span className="text-gray-600">Prêmio Potencial:</span>
-            <span className="text-xl font-bold text-green-600">
+        <div className="pt-3 border-t border-dashed border-gray-200">
+          <div className="flex justify-between items-center">
+            <span className="text-xs text-gray-600">Prêmio Potencial:</span>
+            <span className="text-lg font-bold text-green-600">
               R$ {potentialPrize.toFixed(2)}
             </span>
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2 justify-center mt-6 pt-4 border-t-2 border-dashed border-gray-200">
+        <div className="flex flex-col gap-2 pt-3 border-t border-dashed border-gray-200">
           <Button
             variant="outline"
             onClick={handleDownloadPDF}
-            className="flex items-center gap-2 hover:bg-gray-100"
+            className="flex items-center justify-center gap-2 text-xs h-8"
           >
             <Download className="w-4 h-4" />
             Baixar PDF
@@ -164,7 +162,7 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
           <Button
             variant="outline"
             onClick={handleShareReceipt}
-            className="flex items-center gap-2 hover:bg-gray-100"
+            className="flex items-center justify-center gap-2 text-xs h-8"
           >
             <Share2 className="w-4 h-4" />
             Compartilhar
@@ -173,7 +171,7 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
             <Button
               variant="outline"
               onClick={onReset}
-              className="flex items-center gap-2 hover:bg-gray-100"
+              className="flex items-center justify-center gap-2 text-xs h-8"
             >
               <RotateCcw className="w-4 h-4" />
               Nova Aposta
@@ -181,7 +179,7 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
           )}
         </div>
 
-        <div className="text-center text-xs text-gray-500 pt-4 border-t-2 border-dashed border-gray-200">
+        <div className="text-center text-[10px] text-gray-500 pt-2 border-t border-dashed border-gray-200">
           * Guarde este comprovante
         </div>
       </CardContent>
