@@ -41,33 +41,37 @@ export const captureReceipt = async (receiptRef: React.RefObject<HTMLDivElement>
     onclone: (doc, element) => {
       console.log("Cloning document for canvas");
       
+      const htmlElement = element as HTMLElement; // Type assertion to HTMLElement
+      
       // Force immediate rendering
-      element.style.willChange = 'transform';
-      element.style.opacity = '1';
-      element.style.visibility = 'visible';
-      element.style.position = 'relative';
-      element.style.transform = 'none';
-      element.style.backgroundColor = '#ffffff';
+      htmlElement.style.willChange = 'transform';
+      htmlElement.style.opacity = '1';
+      htmlElement.style.visibility = 'visible';
+      htmlElement.style.position = 'relative';
+      htmlElement.style.transform = 'none';
+      htmlElement.style.backgroundColor = '#ffffff';
       
       // Enhanced iOS optimizations
       if (isIOS) {
-        element.style.webkitTransform = 'translateZ(0)';
-        element.style.webkitPerspective = '1000';
-        element.style.backfaceVisibility = 'hidden';
-        element.style.webkitBackfaceVisibility = 'hidden';
-        element.style.webkitOverflowScrolling = 'touch';
+        htmlElement.style.webkitTransform = 'translateZ(0)';
+        htmlElement.style.webkitPerspective = '1000';
+        htmlElement.style.backfaceVisibility = 'hidden';
+        htmlElement.style.webkitBackfaceVisibility = 'hidden';
+        // Using type assertion for webkit prefix
+        (htmlElement.style as any).webkitOverflowScrolling = 'touch';
         
         // Force GPU acceleration
-        element.style.transform = 'translate3d(0,0,0)';
+        htmlElement.style.transform = 'translate3d(0,0,0)';
       }
       
       // Ensure all images and fonts are loaded
       const images = element.getElementsByTagName('img');
       for (let i = 0; i < images.length; i++) {
-        images[i].style.maxWidth = '100%';
-        images[i].style.height = 'auto';
+        const img = images[i] as HTMLImageElement;
+        img.style.maxWidth = '100%';
+        img.style.height = 'auto';
         // Force image loading
-        if (images[i].complete) {
+        if (img.complete) {
           console.log(`Image ${i} already loaded`);
         } else {
           console.log(`Waiting for image ${i} to load`);
@@ -77,8 +81,9 @@ export const captureReceipt = async (receiptRef: React.RefObject<HTMLDivElement>
       // Force text rendering
       const textElements = element.getElementsByTagName('*');
       for (let i = 0; i < textElements.length; i++) {
-        if (textElements[i].textContent) {
-          textElements[i].style.textRendering = 'optimizeLegibility';
+        const el = textElements[i] as HTMLElement;
+        if (el.textContent) {
+          el.style.textRendering = 'optimizeLegibility';
         }
       }
     }
