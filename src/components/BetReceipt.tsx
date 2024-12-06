@@ -15,7 +15,12 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <Card className="w-full bg-white shadow-lg animate-fade-in font-mono" ref={receiptRef} data-receipt>
+      <Card 
+        className="w-full bg-white shadow-lg animate-fade-in font-mono relative" 
+        ref={receiptRef} 
+        data-receipt
+        style={{ maxWidth: '100%', width: '100%' }}
+      >
         <ReceiptHeader betNumber={bet.bet_number || ''} />
         
         <CardContent className="space-y-3 p-0">

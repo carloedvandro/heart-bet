@@ -24,16 +24,31 @@ const ReceiptActions = ({ bet, receiptRef, onReset }: ReceiptActionsProps) => {
 
   const handleShareReceipt = async () => {
     try {
-      if (!receiptRef.current) return;
+      if (!receiptRef.current) {
+        toast.error("Erro ao gerar imagem do comprovante");
+        return;
+      }
+
+      // Aguardar um momento para garantir que o DOM está totalmente renderizado
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       const canvas = await html2canvas(receiptRef.current, {
         scale: 2,
-        backgroundColor: 'white',
+        backgroundColor: '#ffffff',
         useCORS: true,
         allowTaint: true,
-        scrollY: -window.scrollY,
-        windowWidth: document.documentElement.clientWidth,
-        windowHeight: receiptRef.current.offsetHeight
+        logging: true,
+        width: receiptRef.current.offsetWidth,
+        height: receiptRef.current.offsetHeight,
+        windowWidth: receiptRef.current.offsetWidth,
+        windowHeight: receiptRef.current.offsetHeight,
+        onclone: (document, element) => {
+          // Garantir que o elemento clonado mantenha o estilo
+          element.style.width = `${receiptRef.current?.offsetWidth}px`;
+          element.style.height = `${receiptRef.current?.offsetHeight}px`;
+          element.style.position = 'relative';
+          element.style.transform = 'none';
+        }
       });
 
       canvas.toBlob(async (blob) => {
