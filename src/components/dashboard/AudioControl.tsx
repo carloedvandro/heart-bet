@@ -9,16 +9,24 @@ export function AudioControl() {
 
   useEffect(() => {
     audio.loop = true;
-    audio.volume = 0.05; // Ajustado para 5%
+    
+    // Força o volume inicial para 5%
+    const setInitialVolume = () => {
+      audio.volume = 0.05;
+      console.log("Volume inicial definido:", audio.volume);
+    };
+
+    // Configura o volume inicial antes de qualquer interação
+    setInitialVolume();
 
     const playAudio = async () => {
       try {
-        // Força o volume para 5% antes de iniciar a reprodução
-        audio.volume = 0.05;
+        // Garante que o volume está em 5% antes de iniciar
+        setInitialVolume();
         await audio.play();
-        console.log("Background music started playing with volume:", audio.volume);
+        console.log("Música de fundo iniciada com volume:", audio.volume);
       } catch (error) {
-        console.error("Error playing background audio:", error);
+        console.error("Erro ao reproduzir áudio de fundo:", error);
         setIsMuted(true);
         toast.error("Erro ao reproduzir música de fundo");
       }
@@ -26,18 +34,29 @@ export function AudioControl() {
 
     playAudio();
 
-    // Adiciona um listener para garantir que o volume permaneça em 5%
+    // Monitora e corrige alterações no volume
     const handleVolumeChange = () => {
-      if (audio.volume !== 0.05 && !isMuted) {
+      if (!isMuted && Math.abs(audio.volume - 0.05) > 0.001) {
+        console.log("Corrigindo volume para 5%. Volume atual:", audio.volume);
         audio.volume = 0.05;
-        console.log("Volume adjusted back to 5%");
+      }
+    };
+
+    // Monitora interações do usuário que podem afetar o volume
+    const handleUserInteraction = () => {
+      if (!isMuted) {
+        setInitialVolume();
       }
     };
 
     audio.addEventListener('volumechange', handleVolumeChange);
+    document.addEventListener('touchstart', handleUserInteraction);
+    document.addEventListener('mousedown', handleUserInteraction);
 
     return () => {
       audio.removeEventListener('volumechange', handleVolumeChange);
+      document.removeEventListener('touchstart', handleUserInteraction);
+      document.removeEventListener('mousedown', handleUserInteraction);
       audio.pause();
       audio.currentTime = 0;
     };
@@ -54,7 +73,7 @@ export function AudioControl() {
         setIsMuted(true);
       }
     } catch (error) {
-      console.error("Error toggling audio:", error);
+      console.error("Erro ao controlar o áudio:", error);
       toast.error("Erro ao controlar o áudio");
     }
   };
