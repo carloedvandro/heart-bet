@@ -9,7 +9,7 @@ export function AudioControl() {
 
   useEffect(() => {
     audio.loop = true;
-    audio.volume = 0.1; // Mantido em 10%
+    audio.volume = 0.05; // Ajustado para 5%
 
     const playAudio = async () => {
       try {
