@@ -12,7 +12,7 @@ interface HeartButtonProps {
 const HeartButton = ({ color, selected, onClick, disabled }: HeartButtonProps) => {
   const playClickSound = async () => {
     try {
-      const audio = new Audio("/sounds/click.mp3");
+      const audio = new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/click.mp3");
       audio.volume = 0.3;
       const playPromise = audio.play();
       

@@ -2,72 +2,48 @@ import { useEffect, useRef, useState } from "react";
 import HeartGrid from "@/components/HeartGrid";
 import { Button } from "@/components/ui/button";
 import { Volume2, VolumeX } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 const Index = () => {
   const [isMuted, setIsMuted] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [audioLoaded, setAudioLoaded] = useState(false);
 
   useEffect(() => {
-    const fetchAudioUrl = async () => {
-      try {
-        const { data } = await supabase.storage
-          .from('sounds')
-          .getPublicUrl('background.mp3');
+    try {
+      const audio = new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/background.mp3");
+      audio.loop = true;
+      audio.volume = 0.1;
+      audio.preload = "auto";
+      
+      const handleCanPlay = () => {
+        console.log("Audio can play now");
+        setAudioLoaded(true);
+      };
 
-        if (data?.publicUrl) {
-          setAudioUrl(data.publicUrl);
-          console.log("Audio URL set:", data.publicUrl);
+      const handleError = (e: ErrorEvent) => {
+        console.error("Error loading background audio:", e);
+        toast.error('Erro ao carregar música de fundo');
+      };
+
+      audio.addEventListener('canplay', handleCanPlay);
+      audio.addEventListener('error', handleError);
+
+      audioRef.current = audio;
+      
+      return () => {
+        audio.removeEventListener('canplay', handleCanPlay);
+        audio.removeEventListener('error', handleError);
+        if (audioRef.current) {
+          audioRef.current.pause();
+          audioRef.current = null;
         }
-      } catch (err) {
-        console.error('Unexpected error fetching audio URL:', err);
-        toast.error('Erro ao carregar o áudio de fundo');
-      }
-    };
-
-    fetchAudioUrl();
-  }, []);
-
-  useEffect(() => {
-    if (audioUrl) {
-      try {
-        const audio = new Audio(audioUrl);
-        audio.loop = true;
-        audio.volume = 0.1;
-        audio.preload = "auto";
-        
-        const handleCanPlay = () => {
-          console.log("Audio can play now");
-          setAudioLoaded(true);
-        };
-
-        const handleError = (e: ErrorEvent) => {
-          console.error("Error loading background audio:", e);
-          toast.error('Erro ao carregar música de fundo');
-        };
-
-        audio.addEventListener('canplay', handleCanPlay);
-        audio.addEventListener('error', handleError);
-
-        audioRef.current = audio;
-        
-        return () => {
-          audio.removeEventListener('canplay', handleCanPlay);
-          audio.removeEventListener('error', handleError);
-          if (audioRef.current) {
-            audioRef.current.pause();
-            audioRef.current = null;
-          }
-        };
-      } catch (error) {
-        console.error("Error setting up audio:", error);
-        toast.error('Erro ao configurar áudio');
-      }
+      };
+    } catch (error) {
+      console.error("Error setting up audio:", error);
+      toast.error('Erro ao configurar áudio');
     }
-  }, [audioUrl]);
+  }, []);
 
   const toggleSound = async () => {
     if (!audioRef.current || !audioLoaded) {
