@@ -16,26 +16,45 @@ export const captureReceipt = async (receiptRef: React.RefObject<HTMLDivElement>
     height: receipt.offsetHeight
   });
 
+  // Longer wait time for iOS devices
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  const waitTime = isIOS ? 2000 : 1000;
+  
   // Wait for animations and rendering to complete
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  await new Promise(resolve => setTimeout(resolve, waitTime));
 
   const canvas = await html2canvas(receipt, {
-    scale: 3, // Increased from 2 to 3 for better quality
+    scale: 4, // Increased scale for better quality on mobile
     backgroundColor: '#ffffff',
     useCORS: true,
     allowTaint: true,
     logging: true,
-    windowWidth: receipt.offsetWidth * 2, // Ensure proper scaling
+    windowWidth: receipt.offsetWidth * 2,
     windowHeight: receipt.offsetHeight * 2,
-    onclone: (_, element) => {
+    onclone: (doc, element) => {
       console.log("Cloning document for canvas");
       element.style.opacity = '1';
       element.style.visibility = 'visible';
       element.style.position = 'relative';
       element.style.transform = 'none';
       element.style.backgroundColor = '#ffffff';
-      // Force a repaint to ensure all elements are rendered
+      
+      // Force better rendering on iOS
+      if (isIOS) {
+        element.style.webkitTransform = 'translateZ(0)';
+        element.style.webkitPerspective = '1000';
+        element.style.backfaceVisibility = 'hidden';
+      }
+      
+      // Force a repaint
       element.style.transform = 'translateZ(0)';
+      
+      // Ensure all images are loaded
+      const images = element.getElementsByTagName('img');
+      for (let i = 0; i < images.length; i++) {
+        images[i].style.maxWidth = '100%';
+        images[i].style.height = 'auto';
+      }
     }
   });
 
@@ -47,7 +66,7 @@ export const shareReceipt = async (
   betNumber: string,
   fallbackToDownload = true
 ) => {
-  // Compress the image less to maintain quality
+  // Create high quality PNG
   const file = new File([blob], `comprovante-${betNumber}.png`, { 
     type: 'image/png'
   });
