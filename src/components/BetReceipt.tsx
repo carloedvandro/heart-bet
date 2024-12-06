@@ -7,6 +7,8 @@ import { Button } from "./ui/button";
 import { generateBetsPDF } from "@/utils/pdfGenerator";
 import { toast } from "sonner";
 import { calculatePrize, Position } from "@/types/betting";
+import html2canvas from "html2canvas";
+import { useRef } from "react";
 
 interface BetReceiptProps {
   bet: Bet;
@@ -14,6 +16,8 @@ interface BetReceiptProps {
 }
 
 const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
+  const receiptRef = useRef<HTMLDivElement>(null);
+
   const handleDownloadPDF = () => {
     const doc = generateBetsPDF([bet]);
     if (doc) {
@@ -24,13 +28,22 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
     }
   };
 
-  const handleSharePDF = async () => {
+  const handleShareReceipt = async () => {
     try {
-      const doc = generateBetsPDF([bet]);
-      if (!doc) return;
+      if (!receiptRef.current) return;
 
-      const pdfBlob = doc.output('blob');
-      const file = new File([pdfBlob], `comprovante-${bet.bet_number}.pdf`, { type: "application/pdf" });
+      const canvas = await html2canvas(receiptRef.current, {
+        scale: 2,
+        backgroundColor: 'white',
+      });
+
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob);
+        }, 'image/png', 1.0);
+      });
+
+      const file = new File([blob], `comprovante-${bet.bet_number}.png`, { type: 'image/png' });
 
       if (navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({
@@ -38,17 +51,25 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
           title: 'Comprovante de Aposta',
           text: 'Confira meu comprovante de aposta!'
         });
-        toast.success("PDF compartilhado com sucesso!");
+        toast.success("Comprovante compartilhado com sucesso!");
       } else {
-        handleDownloadPDF();
-        toast.info("Seu dispositivo não suporta compartilhamento direto. O PDF foi baixado.");
+        // Fallback para download se compartilhamento não for suportado
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `comprovante-${bet.bet_number}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.info("Seu dispositivo não suporta compartilhamento direto. A imagem foi baixada.");
       }
     } catch (error) {
-      console.error("Erro ao compartilhar PDF:", error);
+      console.error("Erro ao compartilhar comprovante:", error);
       if (error instanceof Error && error.name === "NotAllowedError") {
-        toast.error("Permissão negada para compartilhar. Tente baixar o PDF.");
+        toast.error("Permissão negada para compartilhar.");
       } else {
-        toast.error("Erro ao compartilhar PDF");
+        toast.error("Erro ao compartilhar comprovante");
       }
     }
   };
@@ -56,7 +77,7 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
   const potentialPrize = calculatePrize(bet.bet_type, bet.position as Position, Number(bet.amount));
 
   return (
-    <Card className="w-full max-w-md mx-auto bg-white shadow-lg animate-fade-in font-mono">
+    <Card className="w-full max-w-md mx-auto bg-white shadow-lg animate-fade-in font-mono py-4 my-4" ref={receiptRef}>
       <div className="text-center py-6 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-t-lg">
         <h1 className="text-3xl font-bold text-white font-sans tracking-wider animate-pulse">
           Corações Premiados
@@ -117,7 +138,7 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
           </Button>
           <Button
             variant="outline"
-            onClick={handleSharePDF}
+            onClick={handleShareReceipt}
             className="flex items-center gap-2 hover:bg-gray-100"
           >
             <Share2 className="w-4 h-4" />
