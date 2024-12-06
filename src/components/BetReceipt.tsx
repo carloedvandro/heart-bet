@@ -28,7 +28,7 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
   return (
     <div className={`w-full mx-auto ${isMobile ? 'max-w-[320px]' : 'max-w-md'}`}>
       <Card 
-        className="w-full bg-[#FFFBE6] shadow-lg animate-fade-in font-mono relative overflow-hidden" 
+        className="w-full bg-white shadow-lg animate-fade-in font-mono relative overflow-hidden" 
         ref={receiptRef} 
         data-receipt
       >

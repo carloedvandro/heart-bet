@@ -41,7 +41,7 @@ export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
     return bet.hearts?.map(color => (
       <span 
         key={color} 
-        className="inline-block w-4 h-4 rounded-full mr-1"
+        className="inline-block w-4 h-4 rounded-full mr-1 border border-gray-300"
         style={{ backgroundColor: `var(--heart-${color})` }}
         title={color}
       />
