@@ -1,6 +1,6 @@
 import { Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
+import { playSounds } from "@/utils/soundEffects";
 
 interface HeartButtonProps {
   color: string;
@@ -10,25 +10,8 @@ interface HeartButtonProps {
 }
 
 const HeartButton = ({ color, selected, onClick, disabled }: HeartButtonProps) => {
-  const playClickSound = async () => {
-    try {
-      const audio = new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/click.mp3");
-      audio.volume = 0.7; // Aumentado para 70%
-      const playPromise = audio.play();
-      
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.error("Error playing click sound:", error);
-          toast.error("Erro ao reproduzir som de clique");
-        });
-      }
-    } catch (error) {
-      console.error("Error creating audio:", error);
-    }
-  };
-
   const handleClick = () => {
-    playClickSound();
+    playSounds.click();
     onClick();
   };
 

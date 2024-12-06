@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Wallet } from "lucide-react";
+import { playSounds } from "@/utils/soundEffects";
 
 export function RechargeDialog() {
   const [amount, setAmount] = useState<number>(0);
@@ -20,6 +21,7 @@ export function RechargeDialog() {
 
   const handleRecharge = async () => {
     if (amount <= 0) {
+      playSounds.error();
       toast.error("O valor da recarga deve ser maior que zero");
       return;
     }
@@ -29,6 +31,7 @@ export function RechargeDialog() {
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {
+        playSounds.error();
         toast.error("Usuário não autenticado");
         return;
       }
@@ -42,11 +45,13 @@ export function RechargeDialog() {
 
       if (error) throw error;
 
+      playSounds.recharge();
       toast.success("Recarga solicitada com sucesso!");
       setIsOpen(false);
       setAmount(0);
     } catch (error) {
       console.error("Error creating recharge:", error);
+      playSounds.error();
       toast.error("Erro ao solicitar recarga. Tente novamente.");
     } finally {
       setIsLoading(false);

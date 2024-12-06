@@ -6,6 +6,7 @@ import HeartButton from "./HeartButton";
 import BetForm from "./BetForm";
 import { BetType, DrawPeriod, HEART_COLORS, MAX_SELECTIONS, Position } from "@/types/betting";
 import { useNavigate } from "react-router-dom";
+import { playSounds } from "@/utils/soundEffects";
 
 interface HeartGridProps {
   onBetPlaced?: () => void;
@@ -22,12 +23,9 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   const session = useSession();
   const navigate = useNavigate();
 
-  // Shuffle the hearts array for display
-  const shuffledHearts = [...HEART_COLORS]
-    .sort(() => Math.random() - 0.5);
-
   const handleHeartClick = (color: string) => {
     if (!session) {
+      playSounds.error();
       toast.error("Você precisa estar logado para fazer uma aposta");
       navigate("/login");
       return;
@@ -38,6 +36,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
         return prev.filter((c) => c !== color);
       }
       if (prev.length >= MAX_SELECTIONS[betType]) {
+        playSounds.error();
         toast.error(`Máximo de ${MAX_SELECTIONS[betType]} ${betType === 'simple_group' ? 'coração' : 'corações'} para este tipo de aposta`);
         return prev;
       }
@@ -68,21 +67,23 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
 
   const handleSubmit = async () => {
     if (!session?.user) {
+      playSounds.error();
       toast.error("Você precisa estar logado para fazer uma aposta");
       navigate("/login");
       return;
     }
 
     if (selectedHearts.length !== MAX_SELECTIONS[betType]) {
+      playSounds.error();
       toast.error(`Selecione exatamente ${MAX_SELECTIONS[betType]} ${betType === 'simple_group' ? 'coração' : 'corações'}`);
       return;
     }
 
     setIsSubmitting(true);
 
-    // Check balance before attempting to place bet
     const hasBalance = await checkBalance(session.user.id);
     if (!hasBalance) {
+      playSounds.error();
       toast.error("Saldo insuficiente para realizar esta aposta. Por favor, faça uma recarga.");
       setIsSubmitting(false);
       return;
@@ -108,24 +109,27 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
       if (error) {
         console.error("Supabase error:", error);
         if (error.message.includes('Saldo insuficiente')) {
+          playSounds.error();
           toast.error("Saldo insuficiente para realizar esta aposta. Por favor, faça uma recarga.");
         } else {
+          playSounds.error();
           toast.error("Erro ao registrar aposta. Tente novamente.");
         }
         setIsSubmitting(false);
         return;
       }
 
+      playSounds.bet();
       toast.success("Aposta registrada com sucesso!");
       setSelectedHearts([]);
       onBetPlaced?.();
       
-      // Aguarda 2 segundos e recarrega a página
       setTimeout(() => {
         window.location.reload();
       }, 2000);
     } catch (error) {
       console.error("Erro ao registrar aposta:", error);
+      playSounds.error();
       toast.error("Erro ao registrar aposta. Tente novamente.");
       setIsSubmitting(false);
     }
@@ -145,7 +149,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
       />
 
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 animate-fade-in">
-        {shuffledHearts.map(({ color }) => (
+        {HEART_COLORS.map(({ color }) => (
           <HeartButton
             key={color}
             color={color}
