@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import jsPDF from "jspdf";
 import { Bet } from "@/integrations/supabase/custom-types";
 import autoTable from "jspdf-autotable";
+import { calculatePrize, Position } from "@/types/betting";
 
 interface BetsTableActionsProps {
   date: Date | undefined;
@@ -57,14 +58,15 @@ export function BetsTableActions({ date, setDate, bets }: BetsTableActionsProps)
 
       // Tabela
       autoTable(doc, {
-        head: [["Data", "Período", "Tipo", "Posição", "Números", "Valor", "Resultado", "Prêmio"]],
+        head: [["Data/Hora", "Período", "Tipo", "Posição", "Números", "Valor", "Prêmio Potencial", "Resultado", "Prêmio"]],
         body: bets.map((bet) => [
-          format(new Date(bet.created_at), "dd/MM/yyyy"),
+          format(new Date(bet.created_at), "dd/MM/yyyy HH:mm:ss"),
           getDrawPeriodName(bet.draw_period),
           getBetTypeName(bet.bet_type),
           bet.position + "º",
           bet.numbers?.join(", ") || "N/A",
           `R$ ${Number(bet.amount).toFixed(2)}`,
+          `R$ ${calculatePrize(bet.bet_type, bet.position as Position, Number(bet.amount)).toFixed(2)}`,
           bet.drawn_numbers ? bet.drawn_numbers.join(", ") : "Aguardando",
           bet.prize_amount ? 
             `R$ ${Number(bet.prize_amount).toFixed(2)}` : 
