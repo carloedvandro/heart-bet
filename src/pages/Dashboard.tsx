@@ -19,6 +19,7 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const session = useSession();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [previousBalance, setPreviousBalance] = useState<number>(0);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -36,6 +37,14 @@ export default function Dashboard() {
         .single();
 
       if (error) throw error;
+      
+      // Check if balance increased and play sound
+      if (data && data.balance > previousBalance) {
+        console.log('Balance increased, playing coin sound');
+        await playSounds.coin();
+      }
+      
+      setPreviousBalance(data?.balance || 0);
       setProfile(data);
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -43,7 +52,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.id, navigate]);
+  }, [session?.user?.id, navigate, previousBalance]);
 
   // Initial profile fetch and session check
   useEffect(() => {
