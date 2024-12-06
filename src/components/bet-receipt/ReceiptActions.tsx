@@ -1,10 +1,9 @@
 import { Download, Share2, RotateCcw } from "lucide-react";
-import { Button } from "../ui/button";
 import { toast } from "sonner";
-import html2canvas from "html2canvas";
 import { Bet } from "@/integrations/supabase/custom-types";
 import { generateBetsPDF } from "@/utils/pdfGenerator";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { captureReceipt, shareReceipt } from "@/utils/receiptSharing";
+import ActionButton from "./receipt-actions/ActionButton";
 
 interface ReceiptActionsProps {
   bet: Bet;
@@ -13,155 +12,72 @@ interface ReceiptActionsProps {
 }
 
 const ReceiptActions = ({ bet, receiptRef, onReset }: ReceiptActionsProps) => {
-  const isMobile = useIsMobile();
-
   const handleDownloadPDF = async () => {
     try {
-      console.log("ReceiptActions - Starting PDF download");
+      console.log("Starting PDF download");
       const doc = generateBetsPDF([bet]);
       if (doc) {
         doc.save(`comprovante-${bet.bet_number}.pdf`);
         toast.success("PDF baixado com sucesso!");
       } else {
-        console.error("ReceiptActions - Failed to generate PDF");
+        console.error("Failed to generate PDF");
         toast.error("Erro ao gerar PDF");
       }
     } catch (error) {
-      console.error("ReceiptActions - Error generating PDF:", error);
+      console.error("Error generating PDF:", error);
       toast.error("Erro ao gerar PDF");
     }
   };
 
   const handleShareReceipt = async () => {
     try {
-      console.log("ReceiptActions - Starting share process");
-      
-      if (!receiptRef.current) {
-        console.error("ReceiptActions - Receipt ref is null");
-        toast.error("Erro ao gerar imagem do comprovante");
-        return;
-      }
-
-      // Ensure the receipt is visible and rendered
-      const receipt = receiptRef.current;
-      receipt.style.opacity = '1';
-      receipt.style.visibility = 'visible';
-
-      console.log("ReceiptActions - Receipt dimensions:", {
-        width: receipt.offsetWidth,
-        height: receipt.offsetHeight
-      });
-
-      // Wait for any animations to complete
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const canvas = await html2canvas(receipt, {
-        scale: 2,
-        backgroundColor: '#ffffff',
-        useCORS: true,
-        allowTaint: true,
-        logging: true,
-        onclone: (document, element) => {
-          console.log("ReceiptActions - Cloning document for canvas");
-          // Ensure the cloned element is visible
-          element.style.opacity = '1';
-          element.style.visibility = 'visible';
-          element.style.position = 'relative';
-          element.style.transform = 'none';
-          // Force white background
-          element.style.backgroundColor = '#ffffff';
-        }
-      });
-
-      console.log("ReceiptActions - Canvas created successfully");
+      console.log("Starting share process");
+      const canvas = await captureReceipt(receiptRef);
+      console.log("Canvas created successfully");
 
       const blob = await new Promise<Blob>((resolve, reject) => {
         try {
           canvas.toBlob((blob) => {
             if (blob) {
-              console.log("ReceiptActions - Blob created successfully");
+              console.log("Blob created successfully");
               resolve(blob);
             } else {
-              console.error("ReceiptActions - Failed to create blob");
+              console.error("Failed to create blob");
               reject(new Error("Erro ao gerar imagem"));
             }
           }, 'image/png', 1.0);
         } catch (error) {
-          console.error("ReceiptActions - Error in blob creation:", error);
+          console.error("Error in blob creation:", error);
           reject(error);
         }
       });
 
-      const file = new File([blob], `comprovante-${bet.bet_number}.png`, { type: 'image/png' });
-
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-          console.log("ReceiptActions - Starting native share");
-          await navigator.share({
-            files: [file],
-            title: 'Comprovante de Aposta',
-            text: 'Confira meu comprovante de aposta!'
-          });
-          toast.success("Comprovante compartilhado com sucesso!");
-        } catch (error) {
-          console.error("ReceiptActions - Share error:", error);
-          if (error instanceof Error && error.name !== "AbortError") {
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `comprovante-${bet.bet_number}.png`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            toast.info("Não foi possível compartilhar. O arquivo foi baixado.");
-          }
-        }
-      } else {
-        console.log("ReceiptActions - Web Share API not supported, downloading directly");
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `comprovante-${bet.bet_number}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        toast.info("Seu dispositivo não suporta compartilhamento direto. A imagem foi baixada.");
-      }
+      await shareReceipt(blob, bet.bet_number || '');
+      toast.success("Comprovante compartilhado com sucesso!");
     } catch (error) {
-      console.error("ReceiptActions - Error in share process:", error);
+      console.error("Error in share process:", error);
       toast.error("Erro ao compartilhar comprovante");
     }
   };
 
   return (
     <div className="flex flex-col gap-2 pt-3 border-t border-dashed border-gray-200 px-3">
-      <Button
-        variant="outline"
+      <ActionButton
+        icon={Download}
+        label="Baixar PDF"
         onClick={handleDownloadPDF}
-        className={`flex items-center justify-center gap-2 ${isMobile ? 'text-xs h-7' : 'text-xs h-8'}`}
-      >
-        <Download className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
-        Baixar PDF
-      </Button>
-      <Button
-        variant="outline"
+      />
+      <ActionButton
+        icon={Share2}
+        label="Compartilhar"
         onClick={handleShareReceipt}
-        className={`flex items-center justify-center gap-2 ${isMobile ? 'text-xs h-7' : 'text-xs h-8'}`}
-      >
-        <Share2 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
-        Compartilhar
-      </Button>
+      />
       {onReset && (
-        <Button
-          variant="outline"
+        <ActionButton
+          icon={RotateCcw}
+          label="Nova Aposta"
           onClick={onReset}
-          className={`flex items-center justify-center gap-2 ${isMobile ? 'text-xs h-7' : 'text-xs h-8'}`}
-        >
-          <RotateCcw className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
-          Nova Aposta
-        </Button>
+        />
       )}
     </div>
   );
