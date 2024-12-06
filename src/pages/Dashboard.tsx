@@ -63,19 +63,28 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // First check if we have a session
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
       
-      // Clear any local state
+      // Only attempt to sign out if we have a session
+      if (currentSession) {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error("Logout error:", error);
+          toast.error("Erro ao desconectar");
+          return;
+        }
+      }
+
+      // Clean up and redirect regardless of session state
       setProfile(null);
       localStorage.clear();
-      
-      // Navigate to login page after successful logout
       navigate("/login");
       toast.success("Desconectado com sucesso");
+      
     } catch (error) {
-      console.error("Error during logout:", error);
-      toast.error("Erro ao desconectar");
+      console.error("Unexpected logout error:", error);
+      toast.error("Erro inesperado ao desconectar");
     }
   };
 
