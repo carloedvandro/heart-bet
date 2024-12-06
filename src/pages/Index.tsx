@@ -3,11 +3,13 @@ import HeartGrid from "@/components/HeartGrid";
 import { Button } from "@/components/ui/button";
 import { Volume2, VolumeX } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Index = () => {
   const [isMuted, setIsMuted] = useState(true);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioLoaded, setAudioLoaded] = useState(false);
 
   useEffect(() => {
     const fetchAudioUrl = async () => {
@@ -16,9 +18,13 @@ const Index = () => {
           .from('sounds')
           .getPublicUrl('background.mp3');
 
-        setAudioUrl(data.publicUrl);
+        if (data?.publicUrl) {
+          setAudioUrl(data.publicUrl);
+          console.log("Audio URL set:", data.publicUrl);
+        }
       } catch (err) {
         console.error('Unexpected error fetching audio URL:', err);
+        toast.error('Erro ao carregar o áudio');
       }
     };
 
@@ -27,9 +33,21 @@ const Index = () => {
 
   useEffect(() => {
     if (audioUrl) {
-      audioRef.current = new Audio(audioUrl);
-      audioRef.current.loop = true;
-      audioRef.current.volume = 0.1;
+      const audio = new Audio(audioUrl);
+      audio.loop = true;
+      audio.volume = 0.1;
+      
+      audio.addEventListener('canplaythrough', () => {
+        console.log("Audio loaded successfully");
+        setAudioLoaded(true);
+      });
+
+      audio.addEventListener('error', (e) => {
+        console.error("Error loading audio:", e);
+        toast.error('Erro ao carregar o áudio');
+      });
+
+      audioRef.current = audio;
       
       return () => {
         if (audioRef.current) {
@@ -41,16 +59,33 @@ const Index = () => {
   }, [audioUrl]);
 
   const toggleSound = () => {
-    if (!audioRef.current) return;
-    
-    if (isMuted) {
-      audioRef.current.play().catch(error => {
-        console.error('Error playing audio:', error);
-      });
-    } else {
-      audioRef.current.pause();
+    if (!audioRef.current || !audioLoaded) {
+      toast.error('Áudio ainda não está pronto');
+      return;
     }
-    setIsMuted(!isMuted);
+    
+    try {
+      if (isMuted) {
+        const playPromise = audioRef.current.play();
+        if (playPromise !== undefined) {
+          playPromise
+            .then(() => {
+              console.log("Audio playing successfully");
+              setIsMuted(false);
+            })
+            .catch(error => {
+              console.error('Error playing audio:', error);
+              toast.error('Erro ao reproduzir o áudio');
+            });
+        }
+      } else {
+        audioRef.current.pause();
+        setIsMuted(true);
+      }
+    } catch (error) {
+      console.error('Error toggling audio:', error);
+      toast.error('Erro ao controlar o áudio');
+    }
   };
 
   return (
@@ -63,6 +98,7 @@ const Index = () => {
               size="icon"
               onClick={toggleSound}
               className="rounded-full"
+              disabled={!audioLoaded}
             >
               {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
             </Button>
