@@ -18,5 +18,6 @@ export const playSounds = {
   click: () => playSound("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/click.mp3"),
   bet: () => playSound("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/apostar.mp3"),
   recharge: () => playSound("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/recarga.mp3"),
-  error: () => playSound("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/error.mp3", 0.5)
+  error: () => playSound("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/error.mp3", 0.5),
+  coin: () => playSound("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/multi-coin.mp3")
 };

@@ -3,6 +3,7 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { BetType, DrawPeriod, Position, calculatePrize, DRAW_PERIODS } from "@/types/betting";
+import { playSounds } from "@/utils/soundEffects";
 
 interface BetFormProps {
   betType: BetType;
@@ -27,6 +28,11 @@ const BetForm = ({
 }: BetFormProps) => {
   const calculatePotentialPrize = () => {
     return calculatePrize(betType, position, betAmount);
+  };
+
+  const handleAmountChange = (value: number) => {
+    setBetAmount(value);
+    playSounds.coin();
   };
 
   return (
@@ -87,7 +93,7 @@ const BetForm = ({
           min="1"
           step="1"
           value={betAmount}
-          onChange={(e) => setBetAmount(Number(e.target.value))}
+          onChange={(e) => handleAmountChange(Number(e.target.value))}
           className="w-full border-2 border-gray-200 rounded-md shadow-sm hover:border-gray-300 focus:border-heart-pink focus:ring-heart-pink"
         />
         <p className="text-sm text-muted-foreground">
