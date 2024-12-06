@@ -11,6 +11,7 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { playSounds } from "@/utils/soundEffects";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
+type RechargeRow = Database['public']['Tables']['recharges']['Row'];
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -68,7 +69,10 @@ export default function Dashboard() {
           table: 'recharges',
           filter: `user_id=eq.${session.user.id}`,
         },
-        async (payload) => {
+        async (payload: {
+          new: RechargeRow;
+          old: RechargeRow;
+        }) => {
           console.log('Received recharge update:', payload);
           if (payload.new.status === 'completed' && payload.old.status === 'pending') {
             console.log('Playing recharge sound');
