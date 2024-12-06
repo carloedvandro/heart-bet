@@ -2,9 +2,16 @@ import { useState } from "react";
 import { Bet } from "@/integrations/supabase/custom-types";
 import BettingForm from "./betting/BettingForm";
 import BetReceipt from "./BetReceipt";
-import { supabase } from "@/integrations/supabase/client";
-import { useSession } from "@supabase/auth-helpers-react";
-import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface HeartGridProps {
   onBetPlaced?: () => void;
@@ -12,17 +19,30 @@ interface HeartGridProps {
 
 const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   const [lastBet, setLastBet] = useState<Bet | null>(null);
-  const session = useSession();
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingBet, setPendingBet] = useState<Bet | null>(null);
 
   const handleReset = () => {
     setLastBet(null);
+    setPendingBet(null);
+    setShowConfirmDialog(false);
   };
 
   const handleBetPlaced = (bet: Bet) => {
-    setLastBet(bet);
+    setPendingBet(bet);
+    setShowConfirmDialog(true);
     if (onBetPlaced) {
       onBetPlaced();
     }
+  };
+
+  const handleViewReceipt = () => {
+    setLastBet(pendingBet);
+    setShowConfirmDialog(false);
+  };
+
+  const handleSkipReceipt = () => {
+    handleReset();
   };
 
   return (
@@ -32,6 +52,31 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
       ) : (
         <BettingForm onBetPlaced={handleBetPlaced} />
       )}
+
+      <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+        <AlertDialogContent className="max-w-[320px]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Aposta Registrada!</AlertDialogTitle>
+            <AlertDialogDescription>
+              Deseja visualizar o comprovante da sua aposta?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col gap-2 sm:flex-col">
+            <AlertDialogAction 
+              onClick={handleViewReceipt}
+              className="w-full bg-primary hover:bg-primary/90"
+            >
+              Sim, ver comprovante
+            </AlertDialogAction>
+            <AlertDialogCancel 
+              onClick={handleSkipReceipt}
+              className="w-full"
+            >
+              Não, fazer nova aposta
+            </AlertDialogCancel>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
