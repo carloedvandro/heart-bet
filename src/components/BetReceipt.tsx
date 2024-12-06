@@ -35,49 +35,64 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
       const canvas = await html2canvas(receiptRef.current, {
         scale: 2,
         backgroundColor: 'white',
+        width: receiptRef.current.offsetWidth,
+        height: receiptRef.current.offsetHeight,
+        logging: true,
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.querySelector('[data-receipt]');
+          if (clonedElement) {
+            clonedElement.scrollTop = 0;
+          }
+        }
       });
 
-      const blob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((blob) => {
-          if (blob) resolve(blob);
-        }, 'image/png', 1.0);
-      });
+      canvas.toBlob(async (blob) => {
+        if (!blob) {
+          toast.error("Erro ao gerar imagem do comprovante");
+          return;
+        }
 
-      const file = new File([blob], `comprovante-${bet.bet_number}.png`, { type: 'image/png' });
+        const file = new File([blob], `comprovante-${bet.bet_number}.png`, { type: 'image/png' });
 
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
-          files: [file],
-          title: 'Comprovante de Aposta',
-          text: 'Confira meu comprovante de aposta!'
-        });
-        toast.success("Comprovante compartilhado com sucesso!");
-      } else {
-        // Fallback para download se compartilhamento não for suportado
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `comprovante-${bet.bet_number}.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-        toast.info("Seu dispositivo não suporta compartilhamento direto. A imagem foi baixada.");
-      }
+        if (navigator.share && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'Comprovante de Aposta',
+              text: 'Confira meu comprovante de aposta!'
+            });
+            toast.success("Comprovante compartilhado com sucesso!");
+          } catch (error) {
+            console.error("Erro ao compartilhar:", error);
+            // Se o usuário cancelar o compartilhamento, não mostrar erro
+            if (error instanceof Error && error.name !== "AbortError") {
+              toast.error("Erro ao compartilhar comprovante");
+            }
+          }
+        } else {
+          // Fallback para download se compartilhamento não for suportado
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `comprovante-${bet.bet_number}.png`;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+          toast.info("Seu dispositivo não suporta compartilhamento direto. A imagem foi baixada.");
+        }
+      }, 'image/png', 1.0);
+
     } catch (error) {
       console.error("Erro ao compartilhar comprovante:", error);
-      if (error instanceof Error && error.name === "NotAllowedError") {
-        toast.error("Permissão negada para compartilhar.");
-      } else {
-        toast.error("Erro ao compartilhar comprovante");
-      }
+      toast.error("Erro ao compartilhar comprovante");
     }
   };
 
   const potentialPrize = calculatePrize(bet.bet_type, bet.position as Position, Number(bet.amount));
 
   return (
-    <Card className="w-full max-w-md mx-auto bg-white shadow-lg animate-fade-in font-mono py-4 my-4" ref={receiptRef}>
+    <Card className="w-full max-w-md mx-auto bg-white shadow-lg animate-fade-in font-mono py-4 my-4" ref={receiptRef} data-receipt>
       <div className="text-center py-6 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-t-lg">
         <h1 className="text-3xl font-bold text-white font-sans tracking-wider animate-pulse">
           Corações Premiados
@@ -92,29 +107,39 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
         </div>
 
         <div className="space-y-3 px-4">
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Data/Hora:</span>
-            <span className="font-medium">{format(new Date(bet.created_at), "dd/MM/yyyy HH:mm:ss")}</span>
+          <div className="flex justify-between text-sm break-words">
+            <span className="text-gray-600 min-w-[100px]">Data/Hora:</span>
+            <span className="font-medium text-right flex-1 pl-2">
+              {format(new Date(bet.created_at), "dd/MM/yyyy HH:mm:ss")}
+            </span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Período:</span>
-            <span className="font-medium">{getDrawPeriodName(bet.draw_period)}</span>
+          <div className="flex justify-between text-sm break-words">
+            <span className="text-gray-600 min-w-[100px]">Período:</span>
+            <span className="font-medium text-right flex-1 pl-2">
+              {getDrawPeriodName(bet.draw_period)}
+            </span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Tipo de Aposta:</span>
-            <span className="font-medium">{getBetTypeName(bet.bet_type)}</span>
+          <div className="flex justify-between text-sm break-words">
+            <span className="text-gray-600 min-w-[100px]">Tipo de Aposta:</span>
+            <span className="font-medium text-right flex-1 pl-2">
+              {getBetTypeName(bet.bet_type)}
+            </span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Posição:</span>
-            <span className="font-medium">{bet.position}º</span>
+          <div className="flex justify-between text-sm break-words">
+            <span className="text-gray-600 min-w-[100px]">Posição:</span>
+            <span className="font-medium text-right flex-1 pl-2">{bet.position}º</span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Números:</span>
-            <span className="font-medium">{bet.numbers.join(", ")}</span>
+          <div className="flex justify-between text-sm break-words">
+            <span className="text-gray-600 min-w-[100px]">Números:</span>
+            <span className="font-medium text-right flex-1 pl-2 break-all">
+              {bet.numbers.join(", ")}
+            </span>
           </div>
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Valor:</span>
-            <span className="font-medium">R$ {Number(bet.amount).toFixed(2)}</span>
+          <div className="flex justify-between text-sm break-words">
+            <span className="text-gray-600 min-w-[100px]">Valor:</span>
+            <span className="font-medium text-right flex-1 pl-2">
+              R$ {Number(bet.amount).toFixed(2)}
+            </span>
           </div>
         </div>
 
@@ -144,14 +169,16 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
             <Share2 className="w-4 h-4" />
             Compartilhar
           </Button>
-          <Button
-            variant="outline"
-            onClick={onReset}
-            className="flex items-center gap-2 hover:bg-gray-100"
-          >
-            <RotateCcw className="w-4 h-4" />
-            Nova Aposta
-          </Button>
+          {onReset && (
+            <Button
+              variant="outline"
+              onClick={onReset}
+              className="flex items-center gap-2 hover:bg-gray-100"
+            >
+              <RotateCcw className="w-4 h-4" />
+              Nova Aposta
+            </Button>
+          )}
         </div>
 
         <div className="text-center text-xs text-gray-500 pt-4 border-t-2 border-dashed border-gray-200">
