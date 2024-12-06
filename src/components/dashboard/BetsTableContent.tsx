@@ -26,7 +26,7 @@ export function BetsTableContent({ bets }: BetsTableContentProps) {
             <TableHead>Período</TableHead>
             <TableHead>Tipo</TableHead>
             <TableHead>Posição</TableHead>
-            <TableHead>Números</TableHead>
+            <TableHead>Sequência</TableHead>
             <TableHead>Valor</TableHead>
             <TableHead>Prêmio Potencial</TableHead>
             <TableHead>Resultado</TableHead>
