@@ -13,19 +13,30 @@ export function LogoutButton({ onLogout }: LogoutButtonProps) {
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Logout error:", error);
+      // First check if we have a session
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // Only attempt to sign out if we have a session
+      if (session) {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          console.error("Logout error:", error);
+          toast.error("Erro ao desconectar");
+          return;
+        }
       }
-    } catch (error) {
-      console.error("Unexpected logout error:", error);
-    } finally {
+
+      // Clean up and redirect regardless of session state
       if (onLogout) {
         onLogout();
       }
       localStorage.clear();
       navigate("/login");
       toast.success("Desconectado com sucesso");
+      
+    } catch (error) {
+      console.error("Unexpected logout error:", error);
+      toast.error("Erro inesperado ao desconectar");
     }
   };
 
