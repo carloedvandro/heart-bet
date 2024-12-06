@@ -21,6 +21,8 @@ export default function Dashboard() {
   const fetchProfile = useCallback(async () => {
     try {
       if (!session?.user?.id) {
+        console.log("No session found, redirecting to login");
+        navigate("/login");
         setLoading(false);
         return;
       }
@@ -39,11 +41,12 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.id]);
+  }, [session?.user?.id, navigate]);
 
   // Initial profile fetch and session check
   useEffect(() => {
     if (!session) {
+      console.log("No session in useEffect, redirecting to login");
       navigate("/login");
       return;
     }
@@ -63,22 +66,18 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     try {
-      // First check if we have a session
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      console.log("Starting logout process");
+      localStorage.clear();
       
-      // Only attempt to sign out if we have a session
-      if (currentSession) {
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-          console.error("Logout error:", error);
-          toast.error("Erro ao desconectar");
-          return;
-        }
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Logout error:", error);
+        toast.error("Erro ao desconectar");
+        return;
       }
 
-      // Clean up and redirect regardless of session state
+      console.log("Logout successful, clearing state and navigating");
       setProfile(null);
-      localStorage.clear();
       navigate("/login");
       toast.success("Desconectado com sucesso");
       
@@ -88,7 +87,10 @@ export default function Dashboard() {
     }
   };
 
-  if (!session) return null;
+  if (!session) {
+    console.log("No session in render, returning null");
+    return null;
+  }
 
   return (
     <div 
