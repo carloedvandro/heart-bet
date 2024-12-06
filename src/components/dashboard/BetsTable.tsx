@@ -6,7 +6,7 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { toast } from "sonner";
 import { BetsTableActions } from "./BetsTableActions";
 import { format } from "date-fns";
-import { calculatePrize } from "@/types/betting";
+import { calculatePrize, Position } from "@/types/betting";
 
 interface BetsTableProps {
   refreshTrigger?: number;
@@ -125,7 +125,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
                   R$ {Number(bet.amount).toFixed(2)}
                 </TableCell>
                 <TableCell>
-                  R$ {calculatePrize(bet.bet_type, bet.position, Number(bet.amount)).toFixed(2)}
+                  R$ {calculatePrize(bet.bet_type, bet.position as Position, Number(bet.amount)).toFixed(2)}
                 </TableCell>
                 <TableCell>
                   {bet.drawn_numbers ? bet.drawn_numbers.join(", ") : "Aguardando sorteio"}
