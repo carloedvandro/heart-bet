@@ -66,7 +66,10 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
     return profile?.balance >= betAmount;
   };
 
-  const simulateReceiptButtonClick = () => {
+  const simulateReceiptButtonClick = async () => {
+    // Pequeno delay para garantir que os dados foram atualizados
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
     const receiptButtons = document.querySelectorAll('button:has(.lucide-receipt)') as NodeListOf<HTMLButtonElement>;
     if (receiptButtons.length > 0) {
       const lastReceiptButton = receiptButtons[0];
@@ -133,12 +136,14 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
       playSounds.bet();
       toast.success("Aposta registrada com sucesso!");
       
+      // Navegar para o dashboard e forçar um refresh da página
+      navigate("/dashboard?tab=bets");
+      window.location.reload();
+      
+      // Após o reload, simular o clique no botão do comprovante
       setTimeout(() => {
-        navigate("/dashboard?tab=bets");
-        setTimeout(() => {
-          simulateReceiptButtonClick();
-        }, 500);
-      }, 3000);
+        simulateReceiptButtonClick();
+      }, 1500);
 
       setSelectedHearts([]);
       setBetAmount(1);
