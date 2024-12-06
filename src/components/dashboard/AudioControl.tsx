@@ -1,98 +1,71 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 
 export function AudioControl() {
-  // Inicializa o estado mudo baseado no localStorage
   const [isMuted, setIsMuted] = useState(() => {
     const savedMuteState = localStorage.getItem('audioMuted');
     return savedMuteState ? JSON.parse(savedMuteState) : false;
   });
   
-  const [audio] = useState(new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/background.mp3"));
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    audio.loop = true;
-    
-    // Força o volume inicial para 5%
-    const setInitialVolume = () => {
+    // Criar o elemento de áudio apenas uma vez
+    if (!audioRef.current) {
+      const audio = new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/background.mp3");
+      audio.loop = true;
       audio.volume = 0.05;
-      console.log("Volume inicial definido:", audio.volume);
-    };
-
-    // Configura o volume inicial antes de qualquer interação
-    setInitialVolume();
-
-    const playAudio = async () => {
-      try {
-        // Garante que o volume está em 5% antes de iniciar
-        setInitialVolume();
-        await audio.play();
-        console.log("Música de fundo iniciada com volume:", audio.volume);
-      } catch (error) {
-        console.error("Erro ao reproduzir áudio de fundo:", error);
-        setIsMuted(true);
-        localStorage.setItem('audioMuted', 'true');
-        toast.error("Erro ao reproduzir música de fundo");
-      }
-    };
-
-    // Só inicia o áudio se não estiver mutado
-    if (!isMuted) {
-      const platform = navigator.platform.toLowerCase();
-      const isIOS = /iphone|ipad|ipod/.test(platform);
-      
-      // Em iOS, só tenta reproduzir se houver interação do usuário
-      if (!isIOS) {
-        playAudio();
-      }
+      audioRef.current = audio;
+      setIsInitialized(true);
     }
 
-    // Monitora e corrige alterações no volume
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isInitialized || !audioRef.current) return;
+
+    const audio = audioRef.current;
+    
+    if (!isMuted) {
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.error("Erro ao reproduzir áudio:", error);
+          setIsMuted(true);
+          localStorage.setItem('audioMuted', 'true');
+          toast.error("Erro ao reproduzir música de fundo");
+        });
+      }
+    } else {
+      audio.pause();
+    }
+
+    // Monitora alterações no volume
     const handleVolumeChange = () => {
-      if (!isMuted && Math.abs(audio.volume - 0.05) > 0.001) {
-        console.log("Corrigindo volume para 5%. Volume atual:", audio.volume);
+      if (!isMuted && audio.volume !== 0.05) {
+        console.log("Ajustando volume para 5%");
         audio.volume = 0.05;
       }
     };
 
-    // Monitora interações do usuário que podem afetar o volume
-    const handleUserInteraction = () => {
-      if (!isMuted) {
-        setInitialVolume();
-      }
-    };
-
     audio.addEventListener('volumechange', handleVolumeChange);
-    document.addEventListener('touchstart', handleUserInteraction);
-    document.addEventListener('mousedown', handleUserInteraction);
-
     return () => {
       audio.removeEventListener('volumechange', handleVolumeChange);
-      document.removeEventListener('touchstart', handleUserInteraction);
-      document.removeEventListener('mousedown', handleUserInteraction);
-      audio.pause();
-      audio.currentTime = 0;
     };
-  }, [audio, isMuted]);
+  }, [isMuted, isInitialized]);
 
   const toggleSound = () => {
-    try {
-      if (isMuted) {
-        audio.volume = 0.05; // Garante volume em 5% ao desmutar
-        audio.play();
-        setIsMuted(false);
-        localStorage.setItem('audioMuted', 'false');
-      } else {
-        audio.pause();
-        setIsMuted(true);
-        localStorage.setItem('audioMuted', 'true');
-      }
-    } catch (error) {
-      console.error("Erro ao controlar o áudio:", error);
-      toast.error("Erro ao controlar o áudio");
-    }
+    setIsMuted(!isMuted);
+    localStorage.setItem('audioMuted', (!isMuted).toString());
   };
 
   return (
