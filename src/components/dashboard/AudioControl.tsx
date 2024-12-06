@@ -32,7 +32,10 @@ export function AudioControl() {
       }
     };
 
-    playAudio();
+    // Só inicia o áudio se não estiver mutado
+    if (!isMuted) {
+      playAudio();
+    }
 
     // Monitora e corrige alterações no volume
     const handleVolumeChange = () => {
@@ -62,11 +65,11 @@ export function AudioControl() {
     };
   }, [audio, isMuted]);
 
-  const toggleSound = async () => {
+  const toggleSound = () => {
     try {
       if (isMuted) {
         audio.volume = 0.05; // Garante volume em 5% ao desmutar
-        await audio.play();
+        audio.play();
         setIsMuted(false);
       } else {
         audio.pause();
