@@ -14,44 +14,6 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   const [lastBet, setLastBet] = useState<Bet | null>(null);
   const session = useSession();
 
-  const fetchLastBet = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('bets')
-        .select('*')
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
-
-      if (error) {
-        console.error("Error fetching last bet:", error);
-        toast.error("Erro ao buscar comprovante");
-        return null;
-      }
-
-      return data;
-    } catch (error) {
-      console.error("Error in fetchLastBet:", error);
-      toast.error("Erro ao buscar comprovante");
-      return null;
-    }
-  };
-
-  const handleBetPlaced = async (bet: Bet) => {
-    if (!session?.user?.id) {
-      toast.error("Usuário não encontrado");
-      return;
-    }
-
-    // Buscar o último comprovante após a aposta ser registrada
-    const lastBet = await fetchLastBet(session.user.id);
-    if (lastBet) {
-      setLastBet(lastBet);
-      onBetPlaced?.();
-    }
-  };
-
   const handleReset = () => {
     setLastBet(null);
   };
@@ -61,7 +23,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
       {lastBet ? (
         <BetReceipt bet={lastBet} onReset={handleReset} />
       ) : (
-        <BettingForm onBetPlaced={handleBetPlaced} />
+        <BettingForm onBetPlaced={onBetPlaced} />
       )}
     </div>
   );

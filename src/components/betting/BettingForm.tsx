@@ -124,12 +124,19 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
 
       playSounds.bet();
       toast.success("Aposta registrada com sucesso!");
-      onBetPlaced(bet);
+      
+      // Adiciona um delay de 3 segundos antes de redirecionar
+      setTimeout(() => {
+        navigate("/dashboard?tab=bets");
+      }, 3000);
+
+      setSelectedHearts([]);
+      setBetAmount(1);
+      setIsSubmitting(false);
     } catch (error) {
       console.error("Erro ao registrar aposta:", error);
       playSounds.error();
       toast.error("Erro ao registrar aposta. Tente novamente.");
-    } finally {
       setIsSubmitting(false);
     }
   };
