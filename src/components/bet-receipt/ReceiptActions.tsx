@@ -42,29 +42,34 @@ const ReceiptActions = ({ bet, receiptRef, onReset }: ReceiptActionsProps) => {
         return;
       }
 
+      // Ensure the receipt is visible and rendered
+      const receipt = receiptRef.current;
+      receipt.style.opacity = '1';
+      receipt.style.visibility = 'visible';
+
       console.log("ReceiptActions - Receipt dimensions:", {
-        width: receiptRef.current.offsetWidth,
-        height: receiptRef.current.offsetHeight
+        width: receipt.offsetWidth,
+        height: receipt.offsetHeight
       });
 
-      // Aguardar um momento para garantir que o DOM está totalmente renderizado
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Aumentado para 1 segundo
+      // Wait for any animations to complete
+      await new Promise(resolve => setTimeout(resolve, 500));
 
-      console.log("ReceiptActions - Starting html2canvas conversion");
-      const canvas = await html2canvas(receiptRef.current, {
+      const canvas = await html2canvas(receipt, {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
         allowTaint: true,
-        logging: true, // Ativado para debug
-        width: receiptRef.current.offsetWidth,
-        height: receiptRef.current.offsetHeight,
+        logging: true,
         onclone: (document, element) => {
           console.log("ReceiptActions - Cloning document for canvas");
-          element.style.width = `${receiptRef.current?.offsetWidth}px`;
-          element.style.height = `${receiptRef.current?.offsetHeight}px`;
+          // Ensure the cloned element is visible
+          element.style.opacity = '1';
+          element.style.visibility = 'visible';
           element.style.position = 'relative';
           element.style.transform = 'none';
+          // Force white background
+          element.style.backgroundColor = '#ffffff';
         }
       });
 
@@ -101,8 +106,6 @@ const ReceiptActions = ({ bet, receiptRef, onReset }: ReceiptActionsProps) => {
         } catch (error) {
           console.error("ReceiptActions - Share error:", error);
           if (error instanceof Error && error.name !== "AbortError") {
-            // Fallback para download direto
-            console.log("ReceiptActions - Falling back to direct download");
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -115,7 +118,6 @@ const ReceiptActions = ({ bet, receiptRef, onReset }: ReceiptActionsProps) => {
           }
         }
       } else {
-        // Fallback para navegadores que não suportam Web Share API
         console.log("ReceiptActions - Web Share API not supported, downloading directly");
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
