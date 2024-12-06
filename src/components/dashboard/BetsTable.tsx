@@ -107,7 +107,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
             {bets.map((bet) => (
               <TableRow key={bet.id}>
                 <TableCell>
-                  {new Date(bet.created_at).toLocaleDateString('pt-BR')}
+                  {format(new Date(bet.created_at), "dd/MM/yyyy HH:mm:ss")}
                 </TableCell>
                 <TableCell>
                   {getDrawPeriodName(bet.draw_period)}
