@@ -66,6 +66,14 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
     return profile?.balance >= betAmount;
   };
 
+  const simulateReceiptButtonClick = () => {
+    const receiptButtons = document.querySelectorAll('button:has(.lucide-receipt)');
+    if (receiptButtons.length > 0) {
+      const lastReceiptButton = receiptButtons[0];
+      lastReceiptButton.click();
+    }
+  };
+
   const handleSubmit = async () => {
     if (!session?.user) {
       playSounds.error();
@@ -125,9 +133,11 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
       playSounds.bet();
       toast.success("Aposta registrada com sucesso!");
       
-      // Adiciona um delay de 3 segundos antes de redirecionar
       setTimeout(() => {
         navigate("/dashboard?tab=bets");
+        setTimeout(() => {
+          simulateReceiptButtonClick();
+        }, 500);
       }, 3000);
 
       setSelectedHearts([]);
