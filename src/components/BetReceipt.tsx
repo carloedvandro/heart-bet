@@ -1,6 +1,6 @@
 import { Bet } from "@/integrations/supabase/custom-types";
 import { Card, CardContent } from "./ui/card";
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import ReceiptHeader from "./bet-receipt/ReceiptHeader";
 import ReceiptDetails from "./bet-receipt/ReceiptDetails";
 import ReceiptActions from "./bet-receipt/ReceiptActions";
@@ -13,13 +13,22 @@ interface BetReceiptProps {
 const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
   const receiptRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    // Log para debug
+    console.log("Bet data:", bet);
+  }, [bet]);
+
+  if (!bet) {
+    console.error("No bet data provided to BetReceipt");
+    return null;
+  }
+
   return (
     <div className="w-full max-w-md mx-auto">
       <Card 
-        className="w-full bg-white shadow-lg animate-fade-in font-mono relative" 
+        className="w-full bg-white shadow-lg animate-fade-in font-mono relative overflow-hidden" 
         ref={receiptRef} 
         data-receipt
-        style={{ maxWidth: '100%', width: '100%' }}
       >
         <ReceiptHeader betNumber={bet.bet_number || ''} />
         

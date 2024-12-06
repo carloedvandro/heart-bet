@@ -13,11 +13,16 @@ interface ReceiptActionsProps {
 
 const ReceiptActions = ({ bet, receiptRef, onReset }: ReceiptActionsProps) => {
   const handleDownloadPDF = () => {
-    const doc = generateBetsPDF([bet]);
-    if (doc) {
-      doc.save(`comprovante-${bet.bet_number}.pdf`);
-      toast.success("PDF baixado com sucesso!");
-    } else {
+    try {
+      const doc = generateBetsPDF([bet]);
+      if (doc) {
+        doc.save(`comprovante-${bet.bet_number}.pdf`);
+        toast.success("PDF baixado com sucesso!");
+      } else {
+        toast.error("Erro ao gerar PDF");
+      }
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
       toast.error("Erro ao gerar PDF");
     }
   };
@@ -30,20 +35,17 @@ const ReceiptActions = ({ bet, receiptRef, onReset }: ReceiptActionsProps) => {
       }
 
       // Aguardar um momento para garantir que o DOM está totalmente renderizado
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise(resolve => setTimeout(resolve, 500));
 
       const canvas = await html2canvas(receiptRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',
         useCORS: true,
         allowTaint: true,
-        logging: true,
+        logging: false,
         width: receiptRef.current.offsetWidth,
         height: receiptRef.current.offsetHeight,
-        windowWidth: receiptRef.current.offsetWidth,
-        windowHeight: receiptRef.current.offsetHeight,
-        onclone: (document, element) => {
-          // Garantir que o elemento clonado mantenha o estilo
+        onclone: (_, element) => {
           element.style.width = `${receiptRef.current?.offsetWidth}px`;
           element.style.height = `${receiptRef.current?.offsetHeight}px`;
           element.style.position = 'relative';
@@ -51,41 +53,53 @@ const ReceiptActions = ({ bet, receiptRef, onReset }: ReceiptActionsProps) => {
         }
       });
 
-      canvas.toBlob(async (blob) => {
-        if (!blob) {
-          toast.error("Erro ao gerar imagem do comprovante");
-          return;
-        }
-
-        const file = new File([blob], `comprovante-${bet.bet_number}.png`, { type: 'image/png' });
-
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({
-              files: [file],
-              title: 'Comprovante de Aposta',
-              text: 'Confira meu comprovante de aposta!'
-            });
-            toast.success("Comprovante compartilhado com sucesso!");
-          } catch (error) {
-            console.error("Erro ao compartilhar:", error);
-            if (error instanceof Error && error.name !== "AbortError") {
-              toast.error("Erro ao compartilhar comprovante");
-            }
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(blob);
+          } else {
+            throw new Error("Erro ao gerar imagem");
           }
-        } else {
-          const url = URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = `comprovante-${bet.bet_number}.png`;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-          toast.info("Seu dispositivo não suporta compartilhamento direto. A imagem foi baixada.");
-        }
-      }, 'image/png', 1.0);
+        }, 'image/png', 1.0);
+      });
 
+      const file = new File([blob], `comprovante-${bet.bet_number}.png`, { type: 'image/png' });
+
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: 'Comprovante de Aposta',
+            text: 'Confira meu comprovante de aposta!'
+          });
+          toast.success("Comprovante compartilhado com sucesso!");
+        } catch (error) {
+          console.error("Erro ao compartilhar:", error);
+          if (error instanceof Error && error.name !== "AbortError") {
+            // Fallback para download direto em caso de erro no compartilhamento
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `comprovante-${bet.bet_number}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            toast.info("Não foi possível compartilhar. O arquivo foi baixado.");
+          }
+        }
+      } else {
+        // Fallback para navegadores que não suportam Web Share API
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `comprovante-${bet.bet_number}.png`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.info("Seu dispositivo não suporta compartilhamento direto. A imagem foi baixada.");
+      }
     } catch (error) {
       console.error("Erro ao compartilhar comprovante:", error);
       toast.error("Erro ao compartilhar comprovante");
