@@ -24,7 +24,7 @@ const Index = () => {
         }
       } catch (err) {
         console.error('Unexpected error fetching audio URL:', err);
-        toast.error('Erro ao carregar o áudio');
+        toast.error('Erro ao carregar o áudio de fundo');
       }
     };
 
@@ -33,32 +33,43 @@ const Index = () => {
 
   useEffect(() => {
     if (audioUrl) {
-      const audio = new Audio(audioUrl);
-      audio.loop = true;
-      audio.volume = 0.1;
-      
-      audio.addEventListener('canplaythrough', () => {
-        console.log("Audio loaded successfully");
-        setAudioLoaded(true);
-      });
+      try {
+        const audio = new Audio(audioUrl);
+        audio.loop = true;
+        audio.volume = 0.1;
+        audio.preload = "auto";
+        
+        const handleCanPlay = () => {
+          console.log("Audio can play now");
+          setAudioLoaded(true);
+        };
 
-      audio.addEventListener('error', (e) => {
-        console.error("Error loading audio:", e);
-        toast.error('Erro ao carregar o áudio');
-      });
+        const handleError = (e: ErrorEvent) => {
+          console.error("Error loading background audio:", e);
+          toast.error('Erro ao carregar música de fundo');
+        };
 
-      audioRef.current = audio;
-      
-      return () => {
-        if (audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current = null;
-        }
-      };
+        audio.addEventListener('canplay', handleCanPlay);
+        audio.addEventListener('error', handleError);
+
+        audioRef.current = audio;
+        
+        return () => {
+          audio.removeEventListener('canplay', handleCanPlay);
+          audio.removeEventListener('error', handleError);
+          if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current = null;
+          }
+        };
+      } catch (error) {
+        console.error("Error setting up audio:", error);
+        toast.error('Erro ao configurar áudio');
+      }
     }
   }, [audioUrl]);
 
-  const toggleSound = () => {
+  const toggleSound = async () => {
     if (!audioRef.current || !audioLoaded) {
       toast.error('Áudio ainda não está pronto');
       return;
@@ -68,15 +79,9 @@ const Index = () => {
       if (isMuted) {
         const playPromise = audioRef.current.play();
         if (playPromise !== undefined) {
-          playPromise
-            .then(() => {
-              console.log("Audio playing successfully");
-              setIsMuted(false);
-            })
-            .catch(error => {
-              console.error('Error playing audio:', error);
-              toast.error('Erro ao reproduzir o áudio');
-            });
+          await playPromise;
+          console.log("Audio playing successfully");
+          setIsMuted(false);
         }
       } else {
         audioRef.current.pause();
