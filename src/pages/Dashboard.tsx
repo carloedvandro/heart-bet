@@ -58,6 +58,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!session?.user?.id) return;
 
+    console.log("Setting up recharge notification listener");
     const channel = supabase.channel('recharge_updates')
       .on(
         'postgres_changes',
@@ -68,9 +69,11 @@ export default function Dashboard() {
           filter: `user_id=eq.${session.user.id}`,
         },
         (payload) => {
+          console.log('Received recharge update:', payload);
           if (payload.new.status === 'completed' && payload.old.status === 'pending') {
-            console.log('Recarga completada:', payload.new);
+            console.log('Playing recharge sound');
             playSounds.recharge();
+            toast.success(`Recarga de R$ ${payload.new.amount} completada!`);
             fetchProfile();
           }
         }
@@ -78,6 +81,7 @@ export default function Dashboard() {
       .subscribe();
 
     return () => {
+      console.log("Cleaning up recharge notification listener");
       supabase.removeChannel(channel);
     };
   }, [session?.user?.id, fetchProfile]);
