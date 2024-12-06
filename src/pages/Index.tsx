@@ -11,17 +11,19 @@ const Index = () => {
 
   useEffect(() => {
     const fetchAudioUrl = async () => {
-      const { data, error } = await supabase.storage
-        .from('sounds')
-        .getPublicUrl('background.mp3');
+      try {
+        const { data, error } = await supabase.storage
+          .from('sounds')
+          .getPublicUrl('background.mp3');
 
-      if (error) {
-        console.error('Error fetching audio URL:', error);
-        return;
-      }
+        if (error) {
+          console.error('Error fetching audio URL:', error);
+          return;
+        }
 
-      if (data) {
         setAudioUrl(data.publicUrl);
+      } catch (err) {
+        console.error('Unexpected error fetching audio URL:', err);
       }
     };
 
