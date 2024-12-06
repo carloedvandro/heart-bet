@@ -12,6 +12,7 @@ export type Database = {
       bets: {
         Row: {
           amount: number
+          bet_number: string | null
           bet_type: Database["public"]["Enums"]["bet_type"]
           created_at: string
           draw_date: string
@@ -28,6 +29,7 @@ export type Database = {
         }
         Insert: {
           amount?: number
+          bet_number?: string | null
           bet_type: Database["public"]["Enums"]["bet_type"]
           created_at?: string
           draw_date?: string
@@ -44,6 +46,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          bet_number?: string | null
           bet_type?: Database["public"]["Enums"]["bet_type"]
           created_at?: string
           draw_date?: string

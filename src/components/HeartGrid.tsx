@@ -7,6 +7,8 @@ import BetForm from "./BetForm";
 import { BetType, DrawPeriod, HEART_COLORS, MAX_SELECTIONS, Position } from "@/types/betting";
 import { useNavigate } from "react-router-dom";
 import { playSounds } from "@/utils/soundEffects";
+import BetReceipt from "./BetReceipt";
+import { Bet } from "@/integrations/supabase/custom-types";
 
 interface HeartGridProps {
   onBetPlaced?: () => void;
@@ -19,6 +21,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   const [betAmount, setBetAmount] = useState<number>(1);
   const [position, setPosition] = useState<Position>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lastBet, setLastBet] = useState<Bet | null>(null);
   
   const session = useSession();
   const navigate = useNavigate();
@@ -94,7 +97,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
     );
 
     try {
-      const { error } = await supabase
+      const { data: bet, error } = await supabase
         .from('bets')
         .insert({
           user_id: session.user.id,
@@ -104,7 +107,9 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
           draw_period: drawPeriod,
           amount: betAmount,
           position: position,
-        });
+        })
+        .select()
+        .single();
 
       if (error) {
         console.error("Supabase error:", error);
@@ -119,56 +124,60 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
         return;
       }
 
+      setLastBet(bet);
       playSounds.bet();
       toast.success("Aposta registrada com sucesso!");
       setSelectedHearts([]);
       onBetPlaced?.();
-      
-      setTimeout(() => {
-        window.location.reload();
-      }, 2000);
     } catch (error) {
       console.error("Erro ao registrar aposta:", error);
       playSounds.error();
       toast.error("Erro ao registrar aposta. Tente novamente.");
+    } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
     <div className="flex flex-col items-center space-y-8 p-8">
-      <BetForm
-        betType={betType}
-        setBetType={handleBetTypeChange}
-        drawPeriod={drawPeriod}
-        setDrawPeriod={setDrawPeriod}
-        betAmount={betAmount}
-        setBetAmount={setBetAmount}
-        position={position}
-        setPosition={setPosition}
-      />
-
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 animate-fade-in">
-        {HEART_COLORS.map(({ color }) => (
-          <HeartButton
-            key={color}
-            color={color}
-            selected={selectedHearts.includes(color)}
-            onClick={() => handleHeartClick(color)}
+      {lastBet ? (
+        <BetReceipt bet={lastBet} />
+      ) : (
+        <>
+          <BetForm
+            betType={betType}
+            setBetType={handleBetTypeChange}
+            drawPeriod={drawPeriod}
+            setDrawPeriod={setDrawPeriod}
+            betAmount={betAmount}
+            setBetAmount={setBetAmount}
+            position={position}
+            setPosition={setPosition}
           />
-        ))}
-      </div>
 
-      <button
-        onClick={handleSubmit}
-        disabled={!session || selectedHearts.length !== MAX_SELECTIONS[betType] || isSubmitting}
-        className="mt-8 px-8 py-3 bg-gradient-to-r from-heart-pink to-heart-purple
-                 text-white rounded-full shadow-lg hover:shadow-xl
-                 transition-all duration-300 transform hover:scale-105
-                 disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {isSubmitting ? "Processando..." : session ? "Confirmar Aposta" : "Faça login para apostar"}
-      </button>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4 animate-fade-in">
+            {HEART_COLORS.map(({ color }) => (
+              <HeartButton
+                key={color}
+                color={color}
+                selected={selectedHearts.includes(color)}
+                onClick={() => handleHeartClick(color)}
+              />
+            ))}
+          </div>
+
+          <button
+            onClick={handleSubmit}
+            disabled={!session || selectedHearts.length !== MAX_SELECTIONS[betType] || isSubmitting}
+            className="mt-8 px-8 py-3 bg-gradient-to-r from-heart-pink to-heart-purple
+                     text-white rounded-full shadow-lg hover:shadow-xl
+                     transition-all duration-300 transform hover:scale-105
+                     disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isSubmitting ? "Processando..." : session ? "Confirmar Aposta" : "Faça login para apostar"}
+          </button>
+        </>
+      )}
     </div>
   );
 };
