@@ -1,26 +1,19 @@
 import { HEART_COLORS } from "@/types/betting";
 
-let currentMapping: { [key: string]: number } = {};
-
-// Inicializa o mapeamento
-const initializeMapping = () => {
-  const numbers = Array.from({ length: 10 }, (_, i) => i);
-  const shuffledNumbers = [...numbers].sort(() => Math.random() - 0.5);
-  
-  currentMapping = HEART_COLORS.reduce((acc, heart, index) => ({
-    ...acc,
-    [heart.color]: shuffledNumbers[index]
-  }), {});
-
-  console.log("New heart mapping generated:", currentMapping);
+// Fixed mapping between heart colors and numbers
+const heartNumberMapping: { [key: string]: number } = {
+  white: 0,
+  red: 1,
+  blue: 2,
+  black: 3,
+  yellow: 4,
+  green: 5,
+  purple: 6,
+  pink: 7,
+  brown: 8,
+  gray: 9
 };
 
-// Atualiza o mapeamento a cada 3 segundos
-setInterval(initializeMapping, 3000);
-
-// Inicializa o primeiro mapeamento
-initializeMapping();
-
 export const getNumberForHeart = (color: string): number => {
-  return currentMapping[color] ?? 0;
+  return heartNumberMapping[color] ?? 0;
 };
