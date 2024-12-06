@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Header } from "@/components/dashboard/Header";
 import { BetsTable } from "@/components/dashboard/BetsTable";
 import { useSession } from "@supabase/auth-helpers-react";
+import { playSounds } from "@/utils/soundEffects";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 
@@ -52,6 +53,34 @@ export default function Dashboard() {
     }
     fetchProfile();
   }, [session, navigate, fetchProfile]);
+
+  // Configurar escuta de notificações de recarga
+  useEffect(() => {
+    if (!session?.user?.id) return;
+
+    const channel = supabase.channel('recharge_updates')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'recharges',
+          filter: `user_id=eq.${session.user.id}`,
+        },
+        (payload) => {
+          if (payload.new.status === 'completed' && payload.old.status === 'pending') {
+            console.log('Recarga completada:', payload.new);
+            playSounds.recharge();
+            fetchProfile();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session?.user?.id, fetchProfile]);
 
   // Refresh profile periodically
   useEffect(() => {
