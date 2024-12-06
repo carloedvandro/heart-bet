@@ -64,7 +64,7 @@ export default function Dashboard() {
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'UPDATE',
           schema: 'public',
           table: 'recharges',
           filter: `user_id=eq.${session.user.id}`,
