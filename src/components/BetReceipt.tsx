@@ -4,6 +4,7 @@ import { useRef, useEffect } from "react";
 import ReceiptHeader from "./bet-receipt/ReceiptHeader";
 import ReceiptDetails from "./bet-receipt/ReceiptDetails";
 import ReceiptActions from "./bet-receipt/ReceiptActions";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface BetReceiptProps {
   bet: Bet;
@@ -12,9 +13,9 @@ interface BetReceiptProps {
 
 const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
   const receiptRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
-    // Log para debug
     console.log("BetReceipt - Rendering with bet data:", bet);
     console.log("BetReceipt - Receipt ref exists:", !!receiptRef.current);
   }, [bet]);
@@ -25,7 +26,7 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
   }
 
   return (
-    <div className="w-full max-w-md mx-auto">
+    <div className={`w-full mx-auto ${isMobile ? 'max-w-[320px]' : 'max-w-md'}`}>
       <Card 
         className="w-full bg-white shadow-lg animate-fade-in font-mono relative overflow-hidden" 
         ref={receiptRef} 

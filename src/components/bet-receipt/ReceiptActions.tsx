@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import html2canvas from "html2canvas";
 import { Bet } from "@/integrations/supabase/custom-types";
 import { generateBetsPDF } from "@/utils/pdfGenerator";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface ReceiptActionsProps {
   bet: Bet;
@@ -12,6 +13,8 @@ interface ReceiptActionsProps {
 }
 
 const ReceiptActions = ({ bet, receiptRef, onReset }: ReceiptActionsProps) => {
+  const isMobile = useIsMobile();
+
   const handleDownloadPDF = async () => {
     try {
       console.log("ReceiptActions - Starting PDF download");
@@ -135,26 +138,26 @@ const ReceiptActions = ({ bet, receiptRef, onReset }: ReceiptActionsProps) => {
       <Button
         variant="outline"
         onClick={handleDownloadPDF}
-        className="flex items-center justify-center gap-2 text-xs h-8"
+        className={`flex items-center justify-center gap-2 ${isMobile ? 'text-xs h-7' : 'text-xs h-8'}`}
       >
-        <Download className="w-4 h-4" />
+        <Download className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
         Baixar PDF
       </Button>
       <Button
         variant="outline"
         onClick={handleShareReceipt}
-        className="flex items-center justify-center gap-2 text-xs h-8"
+        className={`flex items-center justify-center gap-2 ${isMobile ? 'text-xs h-7' : 'text-xs h-8'}`}
       >
-        <Share2 className="w-4 h-4" />
+        <Share2 className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
         Compartilhar
       </Button>
       {onReset && (
         <Button
           variant="outline"
           onClick={onReset}
-          className="flex items-center justify-center gap-2 text-xs h-8"
+          className={`flex items-center justify-center gap-2 ${isMobile ? 'text-xs h-7' : 'text-xs h-8'}`}
         >
-          <RotateCcw className="w-4 h-4" />
+          <RotateCcw className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'}`} />
           Nova Aposta
         </Button>
       )}
