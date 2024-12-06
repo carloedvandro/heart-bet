@@ -69,15 +69,15 @@ export default function Dashboard() {
           table: 'recharges',
           filter: `user_id=eq.${session.user.id}`,
         },
-        async (payload: {
-          new: RechargeRow;
-          old: RechargeRow;
-        }) => {
+        async (payload) => {
           console.log('Received recharge update:', payload);
-          if (payload.new.status === 'completed' && payload.old.status === 'pending') {
+          const newData = payload.new as RechargeRow;
+          const oldData = payload.old as RechargeRow;
+          
+          if (newData.status === 'completed' && oldData.status === 'pending') {
             console.log('Playing recharge sound');
             await playSounds.recharge();
-            toast.success(`Recarga de R$ ${payload.new.amount} completada!`);
+            toast.success(`Recarga de R$ ${newData.amount} completada!`);
             await fetchProfile();
           }
         }
