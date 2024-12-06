@@ -35,15 +35,11 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
       const canvas = await html2canvas(receiptRef.current, {
         scale: 2,
         backgroundColor: 'white',
-        width: receiptRef.current.offsetWidth,
-        height: receiptRef.current.offsetHeight,
-        logging: true,
-        onclone: (clonedDoc) => {
-          const clonedElement = clonedDoc.querySelector('[data-receipt]');
-          if (clonedElement) {
-            clonedElement.scrollTop = 0;
-          }
-        }
+        useCORS: true,
+        allowTaint: true,
+        scrollY: -window.scrollY,
+        windowWidth: receiptRef.current.offsetWidth,
+        windowHeight: receiptRef.current.offsetHeight
       });
 
       canvas.toBlob(async (blob) => {
@@ -54,7 +50,7 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
 
         const file = new File([blob], `comprovante-${bet.bet_number}.png`, { type: 'image/png' });
 
-        if (navigator.share && navigator.canShare({ files: [file] })) {
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
           try {
             await navigator.share({
               files: [file],
@@ -64,11 +60,13 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
             toast.success("Comprovante compartilhado com sucesso!");
           } catch (error) {
             console.error("Erro ao compartilhar:", error);
+            // Se o usuário cancelar o compartilhamento, não mostrar erro
             if (error instanceof Error && error.name !== "AbortError") {
               toast.error("Erro ao compartilhar comprovante");
             }
           }
         } else {
+          // Fallback para download direto se o compartilhamento não for suportado
           const url = URL.createObjectURL(blob);
           const a = document.createElement('a');
           a.href = url;
@@ -90,58 +88,58 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
   const potentialPrize = calculatePrize(bet.bet_type, bet.position as Position, Number(bet.amount));
 
   return (
-    <Card className="w-full max-w-[320px] mx-auto bg-white shadow-lg animate-fade-in font-mono" ref={receiptRef} data-receipt>
+    <Card className="w-full bg-white shadow-lg animate-fade-in font-mono" ref={receiptRef} data-receipt>
       <div className="text-center py-4 bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 rounded-t-lg">
         <h1 className="text-2xl font-bold text-white font-sans tracking-wider animate-pulse">
           Corações Premiados
         </h1>
       </div>
       
-      <CardContent className="space-y-3 px-3 py-4">
+      <CardContent className="space-y-3 p-0">
         <div className="text-center border-b border-dashed border-gray-200 pb-3">
           <Receipt className="w-6 h-6 mx-auto mb-1" />
           <p className="text-xs text-gray-500">Comprovante de Aposta</p>
           <p className="text-base font-bold">#{bet.bet_number}</p>
         </div>
 
-        <div className="space-y-2">
+        <div className="space-y-2 px-4">
           <div className="flex justify-between text-xs">
-            <span className="text-gray-600 w-24">Data/Hora:</span>
-            <span className="font-medium text-right flex-1">
+            <span className="text-gray-600 min-w-[100px]">Data/Hora:</span>
+            <span className="font-medium text-right flex-1 break-words">
               {format(new Date(bet.created_at), "dd/MM/yyyy HH:mm:ss")}
             </span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-gray-600 w-24">Período:</span>
-            <span className="font-medium text-right flex-1">
+            <span className="text-gray-600 min-w-[100px]">Período:</span>
+            <span className="font-medium text-right flex-1 break-words">
               {getDrawPeriodName(bet.draw_period)}
             </span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-gray-600 w-24">Tipo de Aposta:</span>
-            <span className="font-medium text-right flex-1">
+            <span className="text-gray-600 min-w-[100px]">Tipo de Aposta:</span>
+            <span className="font-medium text-right flex-1 break-words">
               {getBetTypeName(bet.bet_type)}
             </span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-gray-600 w-24">Posição:</span>
+            <span className="text-gray-600 min-w-[100px]">Posição:</span>
             <span className="font-medium text-right flex-1">{bet.position}º</span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-gray-600 w-24">Números:</span>
+            <span className="text-gray-600 min-w-[100px]">Números:</span>
             <span className="font-medium text-right flex-1 break-all">
               {bet.numbers.join(", ")}
             </span>
           </div>
           <div className="flex justify-between text-xs">
-            <span className="text-gray-600 w-24">Valor:</span>
+            <span className="text-gray-600 min-w-[100px]">Valor:</span>
             <span className="font-medium text-right flex-1">
               R$ {Number(bet.amount).toFixed(2)}
             </span>
           </div>
         </div>
 
-        <div className="pt-3 border-t border-dashed border-gray-200">
+        <div className="pt-3 border-t border-dashed border-gray-200 px-4">
           <div className="flex justify-between items-center">
             <span className="text-xs text-gray-600">Prêmio Potencial:</span>
             <span className="text-lg font-bold text-green-600">
@@ -150,7 +148,7 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
           </div>
         </div>
 
-        <div className="flex flex-col gap-2 pt-3 border-t border-dashed border-gray-200">
+        <div className="flex flex-col gap-2 pt-3 border-t border-dashed border-gray-200 px-4">
           <Button
             variant="outline"
             onClick={handleDownloadPDF}
@@ -179,7 +177,7 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
           )}
         </div>
 
-        <div className="text-center text-[10px] text-gray-500 pt-2 border-t border-dashed border-gray-200">
+        <div className="text-center text-[10px] text-gray-500 pt-2 border-t border-dashed border-gray-200 px-4 pb-4">
           * Guarde este comprovante
         </div>
       </CardContent>
