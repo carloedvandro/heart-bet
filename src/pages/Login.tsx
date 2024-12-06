@@ -1,16 +1,15 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Auth } from "@supabase/auth-ui-react";
-import { ThemeSupa } from "@supabase/auth-ui-shared";
+import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { LoginHeader } from "@/components/auth/LoginHeader";
+import { AuthConfig } from "@/components/auth/AuthConfig";
 import { toast } from "sonner";
 
 export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check current session
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
@@ -19,7 +18,7 @@ export default function Login() {
           .from('profiles')
           .select('*')
           .eq('id', session.user.id)
-          .maybeSingle(); // Use maybeSingle instead of single to handle missing profile
+          .maybeSingle();
 
         if (error) {
           console.error("Error fetching profile:", error);
@@ -53,27 +52,19 @@ export default function Login() {
   }, [navigate]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-gray-100">
-      <div className="container mx-auto px-4 py-12">
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center"
+      style={{
+        backgroundImage: 'url("/lovable-uploads/5a0e0336-aecf-49bc-961c-013d9aee3443.png")',
+      }}
+    >
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
+      <Card className="w-full max-w-md relative z-10 bg-white/95">
         <LoginHeader />
-        <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-8">
-          <Auth
-            supabaseClient={supabase}
-            appearance={{
-              theme: ThemeSupa,
-              variables: {
-                default: {
-                  colors: {
-                    brand: '#e11d48',
-                    brandAccent: '#be123c',
-                  },
-                },
-              },
-            }}
-            providers={[]}
-          />
-        </div>
-      </div>
+        <CardContent>
+          <AuthConfig />
+        </CardContent>
+      </Card>
     </div>
   );
 }
