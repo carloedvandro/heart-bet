@@ -1,10 +1,50 @@
+import { useEffect, useRef, useState } from "react";
 import HeartGrid from "@/components/HeartGrid";
+import { Button } from "@/components/ui/button";
+import { Volume2, VolumeX } from "lucide-react";
 
 const Index = () => {
+  const [isMuted, setIsMuted] = useState(true);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    audioRef.current = new Audio("/sounds/background.mp3");
+    audioRef.current.loop = true;
+    audioRef.current.volume = 0.1; // Volume inicial em 10%
+    
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const toggleSound = () => {
+    if (!audioRef.current) return;
+    
+    if (isMuted) {
+      audioRef.current.play();
+    } else {
+      audioRef.current.pause();
+    }
+    setIsMuted(!isMuted);
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-white to-gray-100">
       <div className="container mx-auto px-4 py-12">
         <div className="text-center mb-12">
+          <div className="flex justify-end mb-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={toggleSound}
+              className="rounded-full"
+            >
+              {isMuted ? <VolumeX className="h-6 w-6" /> : <Volume2 className="h-6 w-6" />}
+            </Button>
+          </div>
           <h1 className="text-4xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-heart-pink to-heart-purple">
             Loteria dos Corações
           </h1>

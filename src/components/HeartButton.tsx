@@ -9,9 +9,20 @@ interface HeartButtonProps {
 }
 
 const HeartButton = ({ color, selected, onClick, disabled }: HeartButtonProps) => {
+  const playClickSound = () => {
+    const audio = new Audio("/sounds/click.mp3");
+    audio.volume = 0.3; // Reduz o volume para 30%
+    audio.play();
+  };
+
+  const handleClick = () => {
+    playClickSound();
+    onClick();
+  };
+
   return (
     <button
-      onClick={onClick}
+      onClick={handleClick}
       disabled={disabled}
       data-color={color}
       className={cn(
