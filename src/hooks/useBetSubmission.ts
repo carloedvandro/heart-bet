@@ -50,13 +50,9 @@ export const useBetSubmission = (
       const pairsCount = selectedHearts.filter(c => c !== mainHeart).length;
       if (!mainHeart || pairsCount !== 4) {
         playSounds.error();
-        toast.error("Para grupo simples, você precisa selecionar um coração principal e 4 corações diferentes para formar pares");
+        toast.error("Para grupo simples, você precisa selecionar um coração principal e 4 corações para formar pares");
         return;
       }
-    } else if (selectedHearts.length !== MAX_SELECTIONS[betType]) {
-      playSounds.error();
-      toast.error(`Selecione exatamente ${MAX_SELECTIONS[betType]} ${betType === "simple_group" ? "coração" : "corações"}`);
-      return;
     }
 
     setIsSubmitting(true);

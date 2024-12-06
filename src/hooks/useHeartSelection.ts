@@ -1,5 +1,5 @@
 import { toast } from "sonner";
-import { BetType, MAX_SELECTIONS } from "@/types/betting";
+import { BetType } from "@/types/betting";
 import { playSounds } from "@/utils/soundEffects";
 
 export const useHeartSelection = (
@@ -15,42 +15,39 @@ export const useHeartSelection = (
       if (!mainHeart) {
         setMainHeart(color);
         setSelectedHearts([color]);
-        toast.info("Agora escolha 4 corações diferentes para formar os pares");
+        toast.info("Agora escolha 4 corações para formar os pares");
         return;
       }
 
-      // Se já temos o coração principal
-      if (color === mainHeart) {
-        playSounds.error();
-        toast.error("Escolha um coração diferente do principal para formar o par");
-        return;
-      }
+      // Se já temos o coração principal, permitimos selecionar qualquer coração (incluindo o mesmo)
+      const pairsCount = selectedHearts.filter(c => c !== mainHeart).length;
 
-      setSelectedHearts((prev) => {
-        // Se o coração já foi selecionado como par
-        if (prev.includes(color)) {
-          return prev.filter((c) => c !== color);
-        }
-
-        // Contando quantos pares já foram formados (excluindo o coração principal)
-        const pairsCount = prev.filter(c => c !== mainHeart).length;
-
-        if (pairsCount >= 4) {
+      if (pairsCount >= 4) {
+        if (!selectedHearts.includes(color)) {
           playSounds.error();
           toast.error("Você já selecionou todos os pares necessários");
-          return prev;
+          return;
         }
+        // Permite remover um coração já selecionado
+        setSelectedHearts(selectedHearts.filter(c => c !== color));
+        return;
+      }
 
-        return [...prev, color];
-      });
+      // Adiciona o coração selecionado aos pares
+      if (!selectedHearts.includes(color) || color === mainHeart) {
+        setSelectedHearts([...selectedHearts, color]);
+      } else {
+        setSelectedHearts(selectedHearts.filter(c => c !== color));
+      }
     } else {
-      setSelectedHearts((prev) => {
+      // Lógica para outros tipos de apostas
+      setSelectedHearts(prev => {
         if (prev.includes(color)) {
-          return prev.filter((c) => c !== color);
+          return prev.filter(c => c !== color);
         }
-        if (prev.length >= MAX_SELECTIONS[betType]) {
+        if (prev.length >= 4) {
           playSounds.error();
-          toast.error(`Máximo de ${MAX_SELECTIONS[betType]} ${betType === "simple_group" ? "coração" : "corações"} para este tipo de aposta`);
+          toast.error("Máximo de 4 corações para este tipo de aposta");
           return prev;
         }
         return [...prev, color];
