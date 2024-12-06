@@ -11,6 +11,7 @@ interface BettingFormProps {
 const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
   const {
     selectedHearts,
+    mainHeart,
     betType,
     drawPeriod,
     betAmount,
@@ -40,6 +41,7 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
 
       <HeartGrid 
         selectedHearts={selectedHearts}
+        mainHeart={mainHeart}
         onHeartClick={handleHeartClick}
       />
 

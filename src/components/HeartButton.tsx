@@ -5,11 +5,12 @@ import { playSounds } from "@/utils/soundEffects";
 interface HeartButtonProps {
   color: string;
   selected: boolean;
+  isMain?: boolean;
   onClick: () => void;
   disabled?: boolean;
 }
 
-const HeartButton = ({ color, selected, onClick, disabled }: HeartButtonProps) => {
+const HeartButton = ({ color, selected, isMain, onClick, disabled }: HeartButtonProps) => {
   const handleClick = () => {
     playSounds.click();
     onClick();
@@ -24,7 +25,8 @@ const HeartButton = ({ color, selected, onClick, disabled }: HeartButtonProps) =
         "group transition-all duration-300 ease-in-out",
         "focus:outline-none focus:ring-2 focus:ring-offset-2",
         "disabled:opacity-50 disabled:cursor-not-allowed",
-        selected && "animate-heart-beat"
+        selected && "animate-heart-beat",
+        isMain && "ring-4 ring-heart-pink ring-offset-4 rounded-full"
       )}
       style={{
         border: "none",
@@ -39,7 +41,7 @@ const HeartButton = ({ color, selected, onClick, disabled }: HeartButtonProps) =
           "fill-current",
           "stroke-black stroke-1 group-hover:scale-105",
           selected ? "scale-110" : "",
-          "animate-heart-float"
+          isMain ? "animate-pulse" : "animate-heart-float"
         )}
         style={{
           color: `var(--heart-${color})`,

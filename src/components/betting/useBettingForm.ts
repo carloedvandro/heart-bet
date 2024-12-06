@@ -10,6 +10,7 @@ import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
 export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
   const [selectedHearts, setSelectedHearts] = useState<string[]>([]);
+  const [mainHeart, setMainHeart] = useState<string | null>(null);
   const [betType, setBetType] = useState<BetType>("simple_group");
   const [drawPeriod, setDrawPeriod] = useState<DrawPeriod>("morning");
   const [betAmount, setBetAmount] = useState<number>(1);
@@ -42,22 +43,59 @@ export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
       return;
     }
 
-    setSelectedHearts((prev) => {
-      if (prev.includes(color)) {
-        return prev.filter((c) => c !== color);
+    if (betType === "simple_group") {
+      // Se ainda não temos um coração principal
+      if (!mainHeart) {
+        setMainHeart(color);
+        setSelectedHearts([color]);
+        toast.info("Agora escolha 4 corações diferentes para formar os pares");
+        return;
       }
-      if (prev.length >= MAX_SELECTIONS[betType]) {
+
+      // Se já temos o coração principal
+      if (color === mainHeart) {
         playSounds.error();
-        toast.error(`Máximo de ${MAX_SELECTIONS[betType]} ${betType === 'simple_group' ? 'coração' : 'corações'} para este tipo de aposta`);
-        return prev;
+        toast.error("Escolha um coração diferente do principal para formar o par");
+        return;
       }
-      return [...prev, color];
-    });
+
+      setSelectedHearts((prev) => {
+        // Se o coração já foi selecionado como par
+        if (prev.includes(color)) {
+          return prev.filter((c) => c !== color);
+        }
+
+        // Contando quantos pares já foram formados (excluindo o coração principal)
+        const pairsCount = prev.filter(c => c !== mainHeart).length;
+
+        if (pairsCount >= 4) {
+          playSounds.error();
+          toast.error("Você já selecionou todos os pares necessários");
+          return prev;
+        }
+
+        return [...prev, color];
+      });
+    } else {
+      // Lógica original para outros tipos de aposta
+      setSelectedHearts((prev) => {
+        if (prev.includes(color)) {
+          return prev.filter((c) => c !== color);
+        }
+        if (prev.length >= MAX_SELECTIONS[betType]) {
+          playSounds.error();
+          toast.error(`Máximo de ${MAX_SELECTIONS[betType]} ${betType === 'simple_group' ? 'coração' : 'corações'} para este tipo de aposta`);
+          return prev;
+        }
+        return [...prev, color];
+      });
+    }
   };
 
   const handleBetTypeChange = (newBetType: BetType) => {
     setBetType(newBetType);
     setSelectedHearts([]);
+    setMainHeart(null);
     toast.info(`Seleção de corações resetada para ${newBetType === 'simple_group' ? 'grupo simples' : 'nova aposta'}`);
   };
 
@@ -69,7 +107,15 @@ export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
       return;
     }
 
-    if (selectedHearts.length !== MAX_SELECTIONS[betType]) {
+    if (betType === "simple_group") {
+      // Verificar se temos o coração principal e 4 pares
+      const pairsCount = selectedHearts.filter(c => c !== mainHeart).length;
+      if (!mainHeart || pairsCount !== 4) {
+        playSounds.error();
+        toast.error("Para grupo simples, você precisa selecionar um coração principal e 4 corações diferentes para formar pares");
+        return;
+      }
+    } else if (selectedHearts.length !== MAX_SELECTIONS[betType]) {
       playSounds.error();
       toast.error(`Selecione exatamente ${MAX_SELECTIONS[betType]} ${betType === 'simple_group' ? 'coração' : 'corações'}`);
       return;
@@ -85,7 +131,18 @@ export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
       return;
     }
 
-    const numbers = selectedHearts.map(color => getNumberForHeart(color));
+    // Para grupo simples, criar as 4 dezenas combinando o coração principal com cada par
+    const numbers = betType === "simple_group" 
+      ? selectedHearts
+          .filter(color => color !== mainHeart)
+          .map(color => {
+            const mainNumber = getNumberForHeart(mainHeart!);
+            const pairNumber = getNumberForHeart(color);
+            return mainNumber < pairNumber 
+              ? mainNumber * 10 + pairNumber 
+              : pairNumber * 10 + mainNumber;
+          })
+      : selectedHearts.map(color => getNumberForHeart(color));
 
     try {
       const { data: bet, error } = await supabase
@@ -121,6 +178,7 @@ export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
       onBetPlaced(bet);
 
       setSelectedHearts([]);
+      setMainHeart(null);
       setBetAmount(1);
       setIsSubmitting(false);
     } catch (error) {
@@ -133,6 +191,7 @@ export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
 
   return {
     selectedHearts,
+    mainHeart,
     betType,
     drawPeriod,
     betAmount,
