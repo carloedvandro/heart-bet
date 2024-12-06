@@ -67,7 +67,7 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
   };
 
   const simulateReceiptButtonClick = () => {
-    const receiptButtons = document.querySelectorAll('button:has(.lucide-receipt)');
+    const receiptButtons = document.querySelectorAll('button:has(.lucide-receipt)') as NodeListOf<HTMLButtonElement>;
     if (receiptButtons.length > 0) {
       const lastReceiptButton = receiptButtons[0];
       lastReceiptButton.click();
