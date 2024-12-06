@@ -13,8 +13,10 @@ export function AudioControl() {
 
     const playAudio = async () => {
       try {
+        // Força o volume para 5% antes de iniciar a reprodução
+        audio.volume = 0.05;
         await audio.play();
-        console.log("Background music started playing");
+        console.log("Background music started playing with volume:", audio.volume);
       } catch (error) {
         console.error("Error playing background audio:", error);
         setIsMuted(true);
@@ -24,15 +26,27 @@ export function AudioControl() {
 
     playAudio();
 
+    // Adiciona um listener para garantir que o volume permaneça em 5%
+    const handleVolumeChange = () => {
+      if (audio.volume !== 0.05 && !isMuted) {
+        audio.volume = 0.05;
+        console.log("Volume adjusted back to 5%");
+      }
+    };
+
+    audio.addEventListener('volumechange', handleVolumeChange);
+
     return () => {
+      audio.removeEventListener('volumechange', handleVolumeChange);
       audio.pause();
       audio.currentTime = 0;
     };
-  }, [audio]);
+  }, [audio, isMuted]);
 
   const toggleSound = async () => {
     try {
       if (isMuted) {
+        audio.volume = 0.05; // Garante volume em 5% ao desmutar
         await audio.play();
         setIsMuted(false);
       } else {
