@@ -16,14 +16,17 @@ export const captureReceipt = async (receiptRef: React.RefObject<HTMLDivElement>
     height: receipt.offsetHeight
   });
 
-  await new Promise(resolve => setTimeout(resolve, 500));
+  // Wait for animations and rendering to complete
+  await new Promise(resolve => setTimeout(resolve, 1000));
 
   const canvas = await html2canvas(receipt, {
-    scale: 2,
+    scale: 3, // Increased from 2 to 3 for better quality
     backgroundColor: '#ffffff',
     useCORS: true,
     allowTaint: true,
     logging: true,
+    windowWidth: receipt.offsetWidth * 2, // Ensure proper scaling
+    windowHeight: receipt.offsetHeight * 2,
     onclone: (_, element) => {
       console.log("Cloning document for canvas");
       element.style.opacity = '1';
@@ -31,6 +34,8 @@ export const captureReceipt = async (receiptRef: React.RefObject<HTMLDivElement>
       element.style.position = 'relative';
       element.style.transform = 'none';
       element.style.backgroundColor = '#ffffff';
+      // Force a repaint to ensure all elements are rendered
+      element.style.transform = 'translateZ(0)';
     }
   });
 
@@ -42,7 +47,10 @@ export const shareReceipt = async (
   betNumber: string,
   fallbackToDownload = true
 ) => {
-  const file = new File([blob], `comprovante-${betNumber}.png`, { type: 'image/png' });
+  // Compress the image less to maintain quality
+  const file = new File([blob], `comprovante-${betNumber}.png`, { 
+    type: 'image/png'
+  });
 
   if (navigator.canShare && navigator.canShare({ files: [file] })) {
     try {
