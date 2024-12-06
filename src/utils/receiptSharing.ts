@@ -18,13 +18,20 @@ export const captureReceipt = async (receiptRef: React.RefObject<HTMLDivElement>
 
   // Longer wait time for iOS devices
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-  const waitTime = isIOS ? 2000 : 1000;
+  const waitTime = isIOS ? 3000 : 1000; // Increased to 3 seconds for iOS
+
+  // Pre-optimize for iOS
+  if (isIOS) {
+    receipt.style.webkitTransform = 'translateZ(0)';
+    receipt.style.webkitPerspective = '1000';
+    receipt.style.backfaceVisibility = 'hidden';
+  }
   
   // Wait for animations and rendering to complete
   await new Promise(resolve => setTimeout(resolve, waitTime));
 
   const canvas = await html2canvas(receipt, {
-    scale: 4, // Increased scale for better quality on mobile
+    scale: 4,
     backgroundColor: '#ffffff',
     useCORS: true,
     allowTaint: true,
@@ -33,27 +40,46 @@ export const captureReceipt = async (receiptRef: React.RefObject<HTMLDivElement>
     windowHeight: receipt.offsetHeight * 2,
     onclone: (doc, element) => {
       console.log("Cloning document for canvas");
+      
+      // Force immediate rendering
+      element.style.willChange = 'transform';
       element.style.opacity = '1';
       element.style.visibility = 'visible';
       element.style.position = 'relative';
       element.style.transform = 'none';
       element.style.backgroundColor = '#ffffff';
       
-      // Force better rendering on iOS
+      // Enhanced iOS optimizations
       if (isIOS) {
         element.style.webkitTransform = 'translateZ(0)';
         element.style.webkitPerspective = '1000';
         element.style.backfaceVisibility = 'hidden';
+        element.style.webkitBackfaceVisibility = 'hidden';
+        element.style.webkitOverflowScrolling = 'touch';
+        
+        // Force GPU acceleration
+        element.style.transform = 'translate3d(0,0,0)';
       }
       
-      // Force a repaint
-      element.style.transform = 'translateZ(0)';
-      
-      // Ensure all images are loaded
+      // Ensure all images and fonts are loaded
       const images = element.getElementsByTagName('img');
       for (let i = 0; i < images.length; i++) {
         images[i].style.maxWidth = '100%';
         images[i].style.height = 'auto';
+        // Force image loading
+        if (images[i].complete) {
+          console.log(`Image ${i} already loaded`);
+        } else {
+          console.log(`Waiting for image ${i} to load`);
+        }
+      }
+
+      // Force text rendering
+      const textElements = element.getElementsByTagName('*');
+      for (let i = 0; i < textElements.length; i++) {
+        if (textElements[i].textContent) {
+          textElements[i].style.textRendering = 'optimizeLegibility';
+        }
       }
     }
   });
