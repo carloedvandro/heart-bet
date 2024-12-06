@@ -7,13 +7,16 @@ interface HeartGridProps {
   onHeartClick: (color: string) => void;
 }
 
+// Define o tipo para um item do coração
+type HeartColor = typeof HEART_COLORS[number];
+
 const HeartGrid = ({ selectedHearts, onHeartClick }: HeartGridProps) => {
-  const [shuffledHearts, setShuffledHearts] = useState(HEART_COLORS);
+  const [shuffledHearts, setShuffledHearts] = useState<HeartColor[]>([...HEART_COLORS]);
 
   // Função para embaralhar o array de corações
   const shuffleHearts = () => {
     const shuffled = [...HEART_COLORS].sort(() => Math.random() - 0.5);
-    setShuffledHearts(shuffled);
+    setShuffledHearts(shuffled as HeartColor[]);
   };
 
   useEffect(() => {
