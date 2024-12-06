@@ -11,44 +11,74 @@ export default function Login() {
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        // Verify if profile exists
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error("Error fetching profile:", error);
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Session error:", sessionError);
           return;
         }
 
-        // If no profile exists, create one
-        if (!profile) {
-          const { error: createError } = await supabase
+        if (session) {
+          console.log("Session found:", session);
+          
+          // Verify if profile exists
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .insert([
-              {
-                id: session.user.id,
-                email: session.user.email,
-              }
-            ]);
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle();
 
-          if (createError) {
-            console.error("Error creating profile:", createError);
-            toast.error("Erro ao criar perfil. Por favor, tente novamente.");
+          if (profileError) {
+            console.error("Error fetching profile:", profileError);
+            toast.error("Erro ao verificar perfil");
             return;
           }
-        }
 
-        // Navigate to dashboard after ensuring profile exists
-        navigate("/");
+          // If no profile exists, create one
+          if (!profile) {
+            console.log("Creating new profile for user:", session.user.id);
+            const { error: createError } = await supabase
+              .from('profiles')
+              .insert([
+                {
+                  id: session.user.id,
+                  email: session.user.email,
+                }
+              ]);
+
+            if (createError) {
+              console.error("Error creating profile:", createError);
+              toast.error("Erro ao criar perfil");
+              return;
+            }
+          }
+
+          // Navigate to dashboard after ensuring profile exists
+          console.log("Navigating to dashboard");
+          navigate("/dashboard");
+        }
+      } catch (error) {
+        console.error("Unexpected error:", error);
+        toast.error("Erro inesperado ao verificar sessão");
       }
     };
 
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session);
+      if (event === 'SIGNED_IN' && session) {
+        checkSession();
+      }
+    });
+
+    // Check session on component mount
     checkSession();
+
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   return (
