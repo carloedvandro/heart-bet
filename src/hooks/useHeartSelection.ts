@@ -7,7 +7,7 @@ export const useHeartSelection = (
   mainHeart: string | null,
   selectedHearts: string[],
   setMainHeart: (heart: string | null) => void,
-  setSelectedHearts: (hearts: string[]) => void
+  setSelectedHearts: React.Dispatch<React.SetStateAction<string[]>>
 ) => {
   const handleHeartClick = (color: string) => {
     if (betType === "simple_group") {
@@ -19,7 +19,7 @@ export const useHeartSelection = (
         return;
       }
 
-      // Se já temos o coração principal, permitimos selecionar qualquer coração (incluindo o mesmo)
+      // Se já temos o coração principal, permitimos selecionar qualquer coração
       const pairsCount = selectedHearts.filter(c => c !== mainHeart).length;
 
       if (pairsCount >= 4) {
@@ -29,15 +29,15 @@ export const useHeartSelection = (
           return;
         }
         // Permite remover um coração já selecionado
-        setSelectedHearts(selectedHearts.filter(c => c !== color));
+        setSelectedHearts(prev => prev.filter(c => c !== color));
         return;
       }
 
       // Adiciona o coração selecionado aos pares
-      if (!selectedHearts.includes(color) || color === mainHeart) {
-        setSelectedHearts([...selectedHearts, color]);
+      if (!selectedHearts.includes(color)) {
+        setSelectedHearts(prev => [...prev, color]);
       } else {
-        setSelectedHearts(selectedHearts.filter(c => c !== color));
+        setSelectedHearts(prev => prev.filter(c => c !== color));
       }
     } else {
       // Lógica para outros tipos de apostas
