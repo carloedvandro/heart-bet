@@ -4,7 +4,12 @@ import { Volume2, VolumeX } from "lucide-react";
 import { toast } from "sonner";
 
 export function AudioControl() {
-  const [isMuted, setIsMuted] = useState(false);
+  // Inicializa o estado mudo baseado no localStorage
+  const [isMuted, setIsMuted] = useState(() => {
+    const savedMuteState = localStorage.getItem('audioMuted');
+    return savedMuteState ? JSON.parse(savedMuteState) : false;
+  });
+  
   const [audio] = useState(new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/background.mp3"));
 
   useEffect(() => {
@@ -28,13 +33,20 @@ export function AudioControl() {
       } catch (error) {
         console.error("Erro ao reproduzir áudio de fundo:", error);
         setIsMuted(true);
+        localStorage.setItem('audioMuted', 'true');
         toast.error("Erro ao reproduzir música de fundo");
       }
     };
 
     // Só inicia o áudio se não estiver mutado
     if (!isMuted) {
-      playAudio();
+      const platform = navigator.platform.toLowerCase();
+      const isIOS = /iphone|ipad|ipod/.test(platform);
+      
+      // Em iOS, só tenta reproduzir se houver interação do usuário
+      if (!isIOS) {
+        playAudio();
+      }
     }
 
     // Monitora e corrige alterações no volume
@@ -71,9 +83,11 @@ export function AudioControl() {
         audio.volume = 0.05; // Garante volume em 5% ao desmutar
         audio.play();
         setIsMuted(false);
+        localStorage.setItem('audioMuted', 'false');
       } else {
         audio.pause();
         setIsMuted(true);
+        localStorage.setItem('audioMuted', 'true');
       }
     } catch (error) {
       console.error("Erro ao controlar o áudio:", error);
