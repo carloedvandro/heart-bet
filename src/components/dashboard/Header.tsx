@@ -1,11 +1,12 @@
 import { Profile } from "@/integrations/supabase/custom-types";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, Volume2, VolumeX } from "lucide-react";
 import { BalanceDisplay } from "./BalanceDisplay";
 import { RechargeDialog } from "./RechargeDialog";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 
 interface HeaderProps {
   profile: Profile | null;
@@ -14,10 +15,33 @@ interface HeaderProps {
 
 export function Header({ profile, onLogout }: HeaderProps) {
   const navigate = useNavigate();
+  const [isMuted, setIsMuted] = useState(true);
+  const [audio] = useState(new Audio("/sounds/background.mp3"));
+
+  useEffect(() => {
+    audio.loop = true;
+    audio.volume = 0.1; // 10% volume
+
+    return () => {
+      audio.pause();
+      audio.currentTime = 0;
+    };
+  }, [audio]);
+
+  const toggleSound = () => {
+    if (isMuted) {
+      audio.play().catch(error => {
+        console.error("Error playing audio:", error);
+        toast.error("Erro ao reproduzir áudio");
+      });
+    } else {
+      audio.pause();
+    }
+    setIsMuted(!isMuted);
+  };
 
   const handleLogout = async () => {
     try {
-      // First try to sign out
       const { error } = await supabase.auth.signOut();
       if (error) {
         console.error("Logout error:", error);
@@ -25,15 +49,10 @@ export function Header({ profile, onLogout }: HeaderProps) {
     } catch (error) {
       console.error("Unexpected logout error:", error);
     } finally {
-      // Always perform these cleanup actions
       if (onLogout) {
         onLogout();
       }
-      
-      // Clear any local storage items related to auth
       localStorage.clear();
-      
-      // Navigate to login and show success message
       navigate("/login");
       toast.success("Desconectado com sucesso");
     }
@@ -46,6 +65,18 @@ export function Header({ profile, onLogout }: HeaderProps) {
         <BalanceDisplay profile={profile} />
       </div>
       <div className="flex items-center gap-4">
+        <Button
+          variant="outline"
+          size="icon"
+          onClick={toggleSound}
+          className="bg-white/90 hover:bg-white"
+        >
+          {isMuted ? (
+            <VolumeX className="h-4 w-4" />
+          ) : (
+            <Volume2 className="h-4 w-4" />
+          )}
+        </Button>
         <RechargeDialog />
         <Button 
           variant="outline" 
