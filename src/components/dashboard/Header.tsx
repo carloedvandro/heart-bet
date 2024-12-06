@@ -15,14 +15,13 @@ interface HeaderProps {
 
 export function Header({ profile, onLogout }: HeaderProps) {
   const navigate = useNavigate();
-  const [isMuted, setIsMuted] = useState(false); // Changed to false to start unmuted
+  const [isMuted, setIsMuted] = useState(false);
   const [audio] = useState(new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/background.mp3"));
 
   useEffect(() => {
     audio.loop = true;
-    audio.volume = 0.1;
+    audio.volume = 0.1; // Mantido em 10%
 
-    // Try to play audio immediately when component mounts
     const playAudio = async () => {
       try {
         await audio.play();

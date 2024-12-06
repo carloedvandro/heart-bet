@@ -13,7 +13,7 @@ const HeartButton = ({ color, selected, onClick, disabled }: HeartButtonProps) =
   const playClickSound = async () => {
     try {
       const audio = new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/click.mp3");
-      audio.volume = 0.3;
+      audio.volume = 0.7; // Aumentado para 70%
       const playPromise = audio.play();
       
       if (playPromise !== undefined) {
