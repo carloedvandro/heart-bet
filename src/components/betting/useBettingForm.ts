@@ -34,12 +34,19 @@ export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
   };
 
   const simulateReceiptButtonClick = async () => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log("Attempting to simulate receipt button click");
+    // Aguarda um pouco mais para garantir que a página foi recarregada
+    await new Promise(resolve => setTimeout(resolve, 2000));
     
     const receiptButtons = document.querySelectorAll('button:has(.lucide-receipt)') as NodeListOf<HTMLButtonElement>;
+    console.log("Found receipt buttons:", receiptButtons.length);
+    
     if (receiptButtons.length > 0) {
       const lastReceiptButton = receiptButtons[0];
+      console.log("Clicking receipt button");
       lastReceiptButton.click();
+    } else {
+      console.log("No receipt buttons found");
     }
   };
 
@@ -129,12 +136,17 @@ export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
       playSounds.bet();
       toast.success("Aposta registrada com sucesso!");
       
+      // Primeiro navega para a página de dashboard
       navigate("/dashboard?tab=bets");
+      
+      // Depois recarrega a página e simula o clique
       window.location.reload();
       
-      setTimeout(() => {
+      // Aguarda a recarga e tenta clicar no botão
+      window.addEventListener('load', () => {
+        console.log("Page loaded, attempting to click receipt button");
         simulateReceiptButtonClick();
-      }, 1500);
+      });
 
       setSelectedHearts([]);
       setBetAmount(1);
