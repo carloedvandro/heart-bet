@@ -61,6 +61,24 @@ export default function Dashboard() {
     return () => clearInterval(interval);
   }, [session?.user?.id, fetchProfile]);
 
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Clear any local state
+      setProfile(null);
+      localStorage.clear();
+      
+      // Navigate to login page after successful logout
+      navigate("/login");
+      toast.success("Desconectado com sucesso");
+    } catch (error) {
+      console.error("Error during logout:", error);
+      toast.error("Erro ao desconectar");
+    }
+  };
+
   if (!session) return null;
 
   return (
@@ -72,10 +90,7 @@ export default function Dashboard() {
     >
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
       <div className="max-w-7xl mx-auto space-y-6 relative z-10">
-        <Header profile={profile} onLogout={async () => {
-          await supabase.auth.signOut();
-          navigate("/login");
-        }} />
+        <Header profile={profile} onLogout={handleLogout} />
 
         <Card className="bg-white/90 backdrop-blur">
           <CardHeader>
