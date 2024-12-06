@@ -15,12 +15,26 @@ interface HeaderProps {
 
 export function Header({ profile, onLogout }: HeaderProps) {
   const navigate = useNavigate();
-  const [isMuted, setIsMuted] = useState(true);
-  const [audio] = useState(new Audio("/sounds/background.mp3"));
+  const [isMuted, setIsMuted] = useState(false); // Changed to false to start unmuted
+  const [audio] = useState(new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/background.mp3"));
 
   useEffect(() => {
     audio.loop = true;
-    audio.volume = 0.1; // 10% volume
+    audio.volume = 0.1;
+
+    // Try to play audio immediately when component mounts
+    const playAudio = async () => {
+      try {
+        await audio.play();
+        console.log("Background music started playing");
+      } catch (error) {
+        console.error("Error playing background audio:", error);
+        setIsMuted(true);
+        toast.error("Erro ao reproduzir música de fundo");
+      }
+    };
+
+    playAudio();
 
     return () => {
       audio.pause();
@@ -28,16 +42,19 @@ export function Header({ profile, onLogout }: HeaderProps) {
     };
   }, [audio]);
 
-  const toggleSound = () => {
-    if (isMuted) {
-      audio.play().catch(error => {
-        console.error("Error playing audio:", error);
-        toast.error("Erro ao reproduzir áudio");
-      });
-    } else {
-      audio.pause();
+  const toggleSound = async () => {
+    try {
+      if (isMuted) {
+        await audio.play();
+        setIsMuted(false);
+      } else {
+        audio.pause();
+        setIsMuted(true);
+      }
+    } catch (error) {
+      console.error("Error toggling audio:", error);
+      toast.error("Erro ao controlar o áudio");
     }
-    setIsMuted(!isMuted);
   };
 
   const handleLogout = async () => {
