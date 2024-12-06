@@ -33,38 +33,6 @@ export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
     return profile?.balance >= betAmount;
   };
 
-  const simulateReceiptButtonClick = async () => {
-    console.log("Attempting to simulate receipt button click");
-    
-    // Função para tentar clicar no botão
-    const tryClickButton = () => {
-      const receiptButtons = document.querySelectorAll('button:has(.lucide-receipt)') as NodeListOf<HTMLButtonElement>;
-      console.log("Found receipt buttons:", receiptButtons.length);
-      
-      if (receiptButtons.length > 0) {
-        console.log("Clicking receipt button");
-        receiptButtons[0].click();
-        return true;
-      }
-      console.log("No receipt buttons found");
-      return false;
-    };
-
-    // Tenta clicar imediatamente
-    if (tryClickButton()) return;
-
-    // Se não conseguiu, tenta novamente após um curto intervalo
-    let attempts = 0;
-    const maxAttempts = 5;
-    const interval = setInterval(() => {
-      console.log(`Attempt ${attempts + 1} of ${maxAttempts}`);
-      if (tryClickButton() || attempts >= maxAttempts - 1) {
-        clearInterval(interval);
-      }
-      attempts++;
-    }, 1000);
-  };
-
   const handleHeartClick = (color: string) => {
     if (!session) {
       playSounds.error();
@@ -151,14 +119,8 @@ export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
       playSounds.bet();
       toast.success("Aposta registrada com sucesso!");
       
-      // Navega para a página de dashboard
-      navigate("/dashboard?tab=bets");
-      
-      // Aguarda um momento para garantir que a navegação foi concluída
-      setTimeout(() => {
-        console.log("Attempting to click receipt button after navigation");
-        simulateReceiptButtonClick();
-      }, 500);
+      // Chama o callback com a aposta criada
+      onBetPlaced(bet);
 
       setSelectedHearts([]);
       setBetAmount(1);

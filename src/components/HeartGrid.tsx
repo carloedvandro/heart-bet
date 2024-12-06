@@ -18,12 +18,19 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
     setLastBet(null);
   };
 
+  const handleBetPlaced = (bet: Bet) => {
+    setLastBet(bet);
+    if (onBetPlaced) {
+      onBetPlaced();
+    }
+  };
+
   return (
     <div className="flex flex-col items-center space-y-8 p-8">
       {lastBet ? (
         <BetReceipt bet={lastBet} onReset={handleReset} />
       ) : (
-        <BettingForm onBetPlaced={onBetPlaced} />
+        <BettingForm onBetPlaced={handleBetPlaced} />
       )}
     </div>
   );
