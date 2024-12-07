@@ -3,7 +3,6 @@ import { useBettingForm } from "./useBettingForm";
 import HeartGrid from "./HeartGrid";
 import SubmitButton from "./SubmitButton";
 import { Bet } from "@/integrations/supabase/custom-types";
-import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
 interface BettingFormProps {
   onBetPlaced: (bet: Bet) => void;
@@ -33,27 +32,20 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
     const pairs = selectedHearts
       .filter(heart => heart !== mainHeart)
       .map((heart, index) => {
-        const mainNumber = getNumberForHeart(mainHeart);
-        const pairNumber = getNumberForHeart(heart);
-        const dezena = mainNumber < pairNumber 
-          ? `${mainNumber}${pairNumber}`
-          : `${pairNumber}${mainNumber}`;
         return (
           <div 
             key={`${heart}-${index}`} 
             className="flex items-center gap-2 p-2 bg-gray-100 rounded-md"
           >
             <div 
-              className="w-4 h-4 rounded-full border border-gray-300"
+              className="w-8 h-8 rounded-full border-2 border-gray-300 shadow-sm"
               style={{ backgroundColor: `var(--heart-${mainHeart})` }}
             />
-            <span>+</span>
+            <span className="text-xl font-bold">+</span>
             <div 
-              className="w-4 h-4 rounded-full border border-gray-300"
+              className="w-8 h-8 rounded-full border-2 border-gray-300 shadow-sm"
               style={{ backgroundColor: `var(--heart-${heart})` }}
             />
-            <span className="text-sm font-medium">=</span>
-            <span className="text-sm font-medium">{dezena}</span>
           </div>
         );
       });

@@ -19,7 +19,7 @@ export const useHeartSelection = (
         return;
       }
 
-      // Se já temos o coração principal, permitimos selecionar qualquer coração (incluindo o mesmo)
+      // Se já temos o coração principal
       const pairsCount = selectedHearts.filter(c => c !== mainHeart).length;
 
       if (pairsCount >= 4) {
@@ -34,11 +34,7 @@ export const useHeartSelection = (
       }
 
       // Adiciona o coração selecionado aos pares (permite repetição)
-      if (color === mainHeart || !selectedHearts.includes(color)) {
-        setSelectedHearts(prev => [...prev, color]);
-      } else {
-        setSelectedHearts(prev => prev.filter(c => c !== color));
-      }
+      setSelectedHearts(prev => [...prev, color]);
     } else {
       // Lógica para outros tipos de apostas
       setSelectedHearts(prev => {
