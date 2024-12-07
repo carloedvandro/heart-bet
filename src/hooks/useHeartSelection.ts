@@ -44,36 +44,28 @@ export const useHeartSelection = (
         return;
       }
 
-      // Verifica se o par já existe (incluindo pares iguais)
+      // Verifica se o par já existe
       const existingPairs = selectedPairs.map(pairColor => {
         const pairNumber = getNumberForHeart(pairColor);
-        // Para pares iguais, retorna o número duplicado (ex: "55")
-        if (mainNumber === pairNumber) {
-          return `${mainNumber}${mainNumber}`;
-        }
-        // Para pares diferentes, mantém a ordem crescente
-        return mainNumber < pairNumber 
-          ? `${mainNumber}${pairNumber}` 
-          : `${pairNumber}${mainNumber}`;
+        return `${mainNumber}-${pairNumber}`;
       });
       
       console.log("🔍 Existing pairs:", existingPairs);
 
       // Verifica o novo par que seria formado
       const newPairNumber = getNumberForHeart(color);
-      // Para pares iguais
-      const newPair = mainNumber === newPairNumber
-        ? `${mainNumber}${mainNumber}`
-        : mainNumber < newPairNumber 
-          ? `${mainNumber}${newPairNumber}` 
-          : `${newPairNumber}${mainNumber}`;
+      const newPair = `${mainNumber}-${newPairNumber}`;
       
       console.log("🆕 Attempting to form new pair:", newPair);
 
-      if (existingPairs.includes(newPair)) {
-        console.log("❌ Pair already exists");
+      // Conta quantas vezes o coração principal já foi usado em pares
+      const mainHeartPairCount = selectedPairs.filter(h => h === mainHeart).length;
+
+      // Permite até dois pares com o mesmo coração principal
+      if (color === mainHeart && mainHeartPairCount >= 2) {
+        console.log("❌ Maximum pairs with main heart reached");
         playSounds.error();
-        toast.error("Este par já foi formado");
+        toast.error("Máximo de 2 pares com o mesmo coração atingido");
         return;
       }
 
