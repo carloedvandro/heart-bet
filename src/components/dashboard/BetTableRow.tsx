@@ -20,14 +20,23 @@ export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
 
   useEffect(() => {
     const checkAdminStatus = async () => {
-      if (session?.user?.id) {
-        const { data: profile } = await supabase
+      try {
+        if (!session?.user?.id) return;
+
+        const { data: profile, error } = await supabase
           .from('profiles')
           .select('is_admin')
           .eq('id', session.user.id)
-          .single();
+          .maybeSingle();
         
+        if (error) {
+          console.error('Error fetching admin status:', error);
+          return;
+        }
+
         setIsAdmin(!!profile?.is_admin);
+      } catch (error) {
+        console.error('Error in checkAdminStatus:', error);
       }
     };
 
