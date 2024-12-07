@@ -29,52 +29,32 @@ export const BICHO_GROUPS = [
 
 // Função para encontrar o grupo baseado em um número de dois dígitos
 export const findBichoGroup = (number: number) => {
-  // Tratamento especial para números repetidos (00, 11, 22, etc.)
-  const isRepeatedNumber = Math.floor(number / 10) === number % 10;
-  if (isRepeatedNumber) {
-    return {
-      start: Math.floor(number / 10) * 10,
-      end: Math.floor(number / 10) * 10 + 3,
-      name: `Grupo ${Math.floor(number / 10)}`
-    };
-  }
-
   // Tratamento especial para 0, que pertence ao último grupo (97-00)
   if (number === 0) {
     return BICHO_GROUPS[BICHO_GROUPS.length - 1];
   }
 
+  // Encontrar o grupo correto baseado no número
   return BICHO_GROUPS.find(group => {
-    const start = group.start;
-    const end = group.end === 0 ? 100 : group.end;
-    return number >= start && number <= end;
+    if (group.end === 0) {
+      // Caso especial para o último grupo (97-00)
+      return number >= 97 || number === 0;
+    }
+    return number >= group.start && number <= group.end;
   });
 };
 
 // Função para obter todos os números de um grupo
 export const getGroupNumbers = (number: number): number[] => {
-  const firstDigit = Math.floor(number / 10);
-  const secondDigit = number % 10;
-  
-  // Se for um número repetido (00, 11, 22, etc.), retorna o grupo correspondente
-  if (firstDigit === secondDigit) {
-    return [
-      firstDigit * 10 + 0,
-      firstDigit * 10 + 1,
-      firstDigit * 10 + 2,
-      firstDigit * 10 + 3
-    ];
-  }
-
-  // Encontra o grupo ao qual o número pertence
   const group = findBichoGroup(number);
   if (!group) return [];
 
-  if (group.end === 0) { // Caso especial para o grupo 97-00
+  // Se for o último grupo (97-00)
+  if (group.end === 0) {
     return [97, 98, 99, 0];
   }
 
-  // Retorna a sequência correta do grupo
+  // Para qualquer outro grupo, retorna os 4 números começando do start
   return [
     group.start,
     group.start + 1,
