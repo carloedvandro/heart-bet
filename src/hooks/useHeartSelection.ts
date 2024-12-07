@@ -29,57 +29,27 @@ export const useHeartSelection = (
         return;
       }
 
-      const mainNumber = getNumberForHeart(mainHeart);
-
-      // Lista de pares já formados
-      const selectedPairs = selectedHearts.map((pairColor) => ({
-        main: mainNumber,
-        pair: getNumberForHeart(pairColor),
-      }));
-
-      console.log("🎭 Existing pairs:", selectedPairs);
-
       // Verifica se já formou todos os pares necessários
-      if (selectedPairs.length >= 4) {
+      if (selectedHearts.length >= 4) {
         console.log("❌ Maximum pairs reached");
         playSounds.error();
         toast.error("Você já selecionou todos os pares necessários");
         return;
       }
 
-      const newPairNumber = getNumberForHeart(color);
-      const newPair = { main: mainNumber, pair: newPairNumber };
+      // Conta quantas vezes este coração já foi selecionado
+      const colorCount = selectedHearts.filter(h => h === color).length;
 
-      // Evitar pares duplicados (ex: 22-33 e 33-22 são iguais)
-      const isDuplicatePair = selectedPairs.some(
-        (pair) =>
-          (pair.main === newPair.main && pair.pair === newPair.pair) ||
-          (pair.main === newPair.pair && pair.pair === newPair.main)
-      );
-
-      if (isDuplicatePair) {
-        console.log("❌ Duplicate pair detected");
+      // Se já selecionou este coração duas vezes, bloqueia
+      if (colorCount >= 2) {
+        console.log("❌ Heart already selected twice:", color);
         playSounds.error();
-        toast.error("Este par já foi formado");
+        toast.error("Você já selecionou este coração duas vezes");
         return;
       }
 
-      // Permitir apenas uma vez pares com o mesmo número (ex: 22-22)
-      if (mainNumber === newPairNumber) {
-        const sameNumberPairCount = selectedPairs.filter(
-          (pair) => pair.main === mainNumber && pair.pair === mainNumber
-        ).length;
-
-        if (sameNumberPairCount >= 1) {
-          console.log("❌ Same number pair already exists");
-          playSounds.error();
-          toast.error("Você já formou um par com este mesmo número");
-          return;
-        }
-      }
-
-      console.log("✅ Adding new pair:", newPair);
-      setSelectedHearts((prev) => [...prev, color]);
+      console.log("✅ Adding heart:", color);
+      setSelectedHearts(prev => [...prev, color]);
     } else {
       // Lógica para outros tipos de apostas
       setSelectedHearts((prev) => {
