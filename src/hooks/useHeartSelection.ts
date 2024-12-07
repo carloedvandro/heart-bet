@@ -18,7 +18,7 @@ export const useHeartSelection = (
       if (!mainHeart) {
         console.log("🎈 Setting main heart:", color);
         setMainHeart(color);
-        setSelectedHearts([color]);
+        setSelectedHearts([color]); // Apenas define o coração principal, sem criar par
         toast.info("Agora escolha os corações para formar os pares");
         return;
       }
