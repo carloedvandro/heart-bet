@@ -22,8 +22,11 @@ export const useHeartSelection = (
       // Se já temos o coração principal
       const pairsCount = selectedHearts.filter(c => c !== mainHeart).length;
       const selectedPairs = selectedHearts.filter(c => c !== mainHeart);
-      const hasUsedWithItself = selectedPairs.includes(mainHeart);
 
+      // Verifica se já usou o coração principal com ele mesmo
+      const usedWithItself = selectedPairs.includes(mainHeart);
+
+      // Se já selecionou todos os pares necessários
       if (pairsCount >= 4) {
         if (!selectedHearts.includes(color)) {
           playSounds.error();
@@ -37,8 +40,12 @@ export const useHeartSelection = (
 
       // Se está tentando usar o coração principal com ele mesmo
       if (color === mainHeart) {
-        if (!hasUsedWithItself) {
+        if (!usedWithItself) {
+          // Permite usar o coração principal com ele mesmo apenas uma vez
           setSelectedHearts(prev => [...prev, color]);
+        } else {
+          playSounds.error();
+          toast.error("Este coração já foi usado com ele mesmo");
         }
         return;
       }
