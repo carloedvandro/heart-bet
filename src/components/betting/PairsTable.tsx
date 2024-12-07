@@ -22,25 +22,32 @@ const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
 
   const groupNumbers = getGroupNumbersFromHearts();
 
-  const getSecondHeartForNumber = (number: number) => {
+  const getHeartsForNumber = (number: number) => {
+    const firstDigit = Math.floor(number / 10);
     const secondDigit = number % 10;
-    return getHeartForNumber(secondDigit);
+    return {
+      first: getHeartForNumber(firstDigit),
+      second: getHeartForNumber(secondDigit)
+    };
   };
 
-  const SplitCircle = ({ firstColor, secondColor }: { firstColor: string, secondColor: string }) => (
-    <div className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-300">
-      <div className="absolute top-0 left-0 w-full h-full">
-        <div 
-          className="absolute top-0 left-0 w-1/2 h-full" 
-          style={{ backgroundColor: `var(--heart-${firstColor})` }}
-        />
-        <div 
-          className="absolute top-0 right-0 w-1/2 h-full" 
-          style={{ backgroundColor: `var(--heart-${secondColor})` }}
-        />
+  const SplitCircle = ({ number }: { number: number }) => {
+    const { first, second } = getHeartsForNumber(number);
+    return (
+      <div className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-300">
+        <div className="absolute top-0 left-0 w-full h-full">
+          <div 
+            className="absolute top-0 left-0 w-1/2 h-full" 
+            style={{ backgroundColor: `var(--heart-${first})` }}
+          />
+          <div 
+            className="absolute top-0 right-0 w-1/2 h-full" 
+            style={{ backgroundColor: `var(--heart-${second})` }}
+          />
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="w-full bg-white/90 backdrop-blur rounded-lg shadow-lg p-4 animate-fade-in">
@@ -68,15 +75,12 @@ const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
               <TableCell>
                 <Heart
                   className="w-8 h-8"
-                  fill={`var(--heart-${getSecondHeartForNumber(number)})`}
+                  fill={`var(--heart-${getHeartForNumber(number % 10)})`}
                   stroke="black"
                 />
               </TableCell>
               <TableCell>
-                <SplitCircle 
-                  firstColor={mainHeart || 'white'} 
-                  secondColor={getSecondHeartForNumber(number)}
-                />
+                <SplitCircle number={number} />
               </TableCell>
             </TableRow>
           ))}
