@@ -8,33 +8,13 @@ import { Receipt } from "lucide-react";
 import { useSession } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
+import { BetCircles } from "./bet-display/BetCircles";
+import { PrizeStatus } from "./bet-display/PrizeStatus";
 
 interface BetTableRowProps {
   bet: Bet;
   onViewReceipt: (bet: Bet) => void;
 }
-
-const SplitCircle = ({ firstColor, secondColor }: { firstColor: string, secondColor: string }) => (
-  <div className="relative w-4 h-4 rounded-full overflow-hidden border border-gray-300 inline-block mr-1">
-    <div className="absolute top-0 left-0 w-full h-full">
-      <div 
-        className="absolute top-0 left-0 w-1/2 h-full" 
-        style={{ backgroundColor: `var(--heart-${firstColor})` }}
-      />
-      <div 
-        className="absolute top-0 right-0 w-1/2 h-full" 
-        style={{ backgroundColor: `var(--heart-${secondColor})` }}
-      />
-    </div>
-  </div>
-);
-
-const SingleCircle = ({ color }: { color: string }) => (
-  <div 
-    className="w-4 h-4 rounded-full border border-gray-300 inline-block mr-1"
-    style={{ backgroundColor: `var(--heart-${color})` }}
-  />
-);
 
 export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
   const session = useSession();
@@ -65,31 +45,6 @@ export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
     checkAdminStatus();
   }, [session?.user?.id]);
 
-  const renderNumbers = () => {
-    if (isAdmin) {
-      return bet.numbers?.join(", ") || "N/A";
-    }
-
-    if (!bet.hearts?.length) return "N/A";
-
-    // Se for grupo simples, o primeiro coração é o principal
-    if (bet.bet_type === "simple_group") {
-      const mainHeart = bet.hearts[0];
-      return bet.hearts.slice(1).map((pairHeart, index) => (
-        <SplitCircle 
-          key={`${mainHeart}-${pairHeart}-${index}`}
-          firstColor={mainHeart}
-          secondColor={pairHeart}
-        />
-      ));
-    }
-
-    // Para outros tipos de aposta, mostrar círculos individuais
-    return bet.hearts.map((color, index) => (
-      <SingleCircle key={`${color}-${index}`} color={color} />
-    ));
-  };
-
   return (
     <TableRow>
       <TableCell>
@@ -108,7 +63,12 @@ export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
         {bet.position}º
       </TableCell>
       <TableCell>
-        {renderNumbers()}
+        <BetCircles 
+          hearts={bet.hearts}
+          betType={bet.bet_type}
+          isAdmin={isAdmin}
+          numbers={bet.numbers}
+        />
       </TableCell>
       <TableCell>
         R$ {Number(bet.amount).toFixed(2)}
@@ -120,15 +80,7 @@ export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
         {isAdmin && bet.drawn_numbers ? bet.drawn_numbers.join(", ") : "Aguardando sorteio"}
       </TableCell>
       <TableCell>
-        {bet.prize_amount ? (
-          <span className="text-green-600 font-medium">
-            R$ {Number(bet.prize_amount).toFixed(2)}
-          </span>
-        ) : bet.is_winner === false ? (
-          <span className="text-red-600 font-medium">Não premiado</span>
-        ) : (
-          "Pendente"
-        )}
+        <PrizeStatus prizeAmount={bet.prize_amount} isWinner={bet.is_winner} />
       </TableCell>
       <TableCell>
         <Button
