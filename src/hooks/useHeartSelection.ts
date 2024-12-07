@@ -29,18 +29,18 @@ export const useHeartSelection = (
         return;
       }
 
-      // Verifica se já atingiu o limite de 4 pares
-      if (selectedHearts.length >= 5) { // 5 porque inclui o coração principal
-        console.log("❌ Maximum pairs reached");
+      // Verifica se já atingiu o limite total de seleções (1 principal + 4 pares = 5)
+      if (selectedHearts.length >= 5) {
+        console.log("❌ Maximum selections reached");
         playSounds.error();
-        toast.error("Você já selecionou todos os pares necessários");
+        toast.error("Você já selecionou todos os corações necessários");
         return;
       }
 
       // Conta quantas vezes este coração específico já foi selecionado
       const colorCount = selectedHearts.filter(h => h === color).length;
 
-      // Permite selecionar o mesmo coração até duas vezes (para formar pares reflexivos)
+      // Permite até duas seleções do mesmo coração (para pares reflexivos)
       if (colorCount >= 2) {
         console.log("❌ Heart already selected twice:", color);
         playSounds.error();
