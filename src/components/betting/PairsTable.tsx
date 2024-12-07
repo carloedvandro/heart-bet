@@ -10,7 +10,6 @@ interface PairsTableProps {
 }
 
 const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
-  // Obtém os números do grupo quando temos dois corações selecionados
   const getGroupNumbersFromHearts = () => {
     if (mainHeart && selectedPairs.length > 0) {
       const firstNumber = getNumberForHeart(mainHeart);
@@ -23,11 +22,25 @@ const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
 
   const groupNumbers = getGroupNumbersFromHearts();
 
-  // Função para obter o coração correspondente ao segundo dígito do número
   const getSecondHeartForNumber = (number: number) => {
     const secondDigit = number % 10;
     return getHeartForNumber(secondDigit);
   };
+
+  const SplitCircle = ({ firstColor, secondColor }: { firstColor: string, secondColor: string }) => (
+    <div className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-300">
+      <div className="absolute top-0 left-0 w-full h-full">
+        <div 
+          className="absolute top-0 left-0 w-1/2 h-full" 
+          style={{ backgroundColor: `var(--heart-${firstColor})` }}
+        />
+        <div 
+          className="absolute top-0 right-0 w-1/2 h-full" 
+          style={{ backgroundColor: `var(--heart-${secondColor})` }}
+        />
+      </div>
+    </div>
+  );
 
   return (
     <div className="w-full bg-white/90 backdrop-blur rounded-lg shadow-lg p-4 animate-fade-in">
@@ -37,7 +50,7 @@ const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
           <TableRow>
             <TableHead className="w-[100px]">Principal</TableHead>
             <TableHead>Par</TableHead>
-            <TableHead>Número do Grupo</TableHead>
+            <TableHead>Combinação</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -59,8 +72,11 @@ const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
                   stroke="black"
                 />
               </TableCell>
-              <TableCell className="font-mono text-lg">
-                {number.toString().padStart(2, '0')}
+              <TableCell>
+                <SplitCircle 
+                  firstColor={mainHeart || 'white'} 
+                  secondColor={getSecondHeartForNumber(number)}
+                />
               </TableCell>
             </TableRow>
           ))}

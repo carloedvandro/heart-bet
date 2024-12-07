@@ -14,6 +14,21 @@ interface BetTableRowProps {
   onViewReceipt: (bet: Bet) => void;
 }
 
+const SplitCircle = ({ firstColor, secondColor }: { firstColor: string, secondColor: string }) => (
+  <div className="relative w-4 h-4 rounded-full overflow-hidden border border-gray-300 inline-block mr-1">
+    <div className="absolute top-0 left-0 w-full h-full">
+      <div 
+        className="absolute top-0 left-0 w-1/2 h-full" 
+        style={{ backgroundColor: `var(--heart-${firstColor})` }}
+      />
+      <div 
+        className="absolute top-0 right-0 w-1/2 h-full" 
+        style={{ backgroundColor: `var(--heart-${secondColor})` }}
+      />
+    </div>
+  </div>
+);
+
 export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
   const session = useSession();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -47,14 +62,21 @@ export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
     if (isAdmin) {
       return bet.numbers?.join(", ") || "N/A";
     }
-    return bet.hearts?.map(color => (
-      <span 
-        key={color} 
-        className="inline-block w-4 h-4 rounded-full mr-1 border border-gray-300"
-        style={{ backgroundColor: `var(--heart-${color})` }}
-        title={color}
-      />
-    ));
+    return bet.hearts?.map((color, index, array) => {
+      if (index % 2 === 0) {
+        const nextColor = array[index + 1];
+        if (nextColor) {
+          return (
+            <SplitCircle 
+              key={`${color}-${nextColor}`}
+              firstColor={color}
+              secondColor={nextColor}
+            />
+          );
+        }
+      }
+      return null;
+    }).filter(Boolean);
   };
 
   return (
