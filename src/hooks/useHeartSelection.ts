@@ -29,6 +29,19 @@ export const useHeartSelection = (
         return;
       }
 
+      // Caso o mesmo coração seja clicado novamente (par reflexivo)
+      if (color === mainHeart) {
+        // Verifica se já existe um par reflexivo
+        const reflexivePairExists = selectedHearts.filter(heart => heart === mainHeart).length >= 2;
+        
+        if (reflexivePairExists) {
+          console.log("❌ Reflexive pair already exists");
+          playSounds.error();
+          toast.error("Você já formou o par reflexivo com este coração");
+          return;
+        }
+      }
+
       // Verifica se já atingiu o limite total de seleções (1 principal + 4 pares = 5)
       if (selectedHearts.length >= 5) {
         console.log("❌ Maximum selections reached");
@@ -37,8 +50,8 @@ export const useHeartSelection = (
         return;
       }
 
-      // Verifica se este par já existe
-      const existingPair = selectedHearts.slice(1).some(heart => heart === color);
+      // Verifica se este par já existe (exceto para pares reflexivos)
+      const existingPair = selectedHearts.includes(color) && color !== mainHeart;
       if (existingPair) {
         console.log("❌ Pair already exists:", color);
         playSounds.error();
