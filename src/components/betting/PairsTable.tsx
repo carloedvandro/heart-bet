@@ -11,7 +11,7 @@ const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
 
   // Cria um array de pares formatados para exibição
   const pairs = selectedPairs.map((pair, index) => ({
-    id: index + 1, // Começa do 1 para melhor visualização
+    id: index + 1,
     mainHeart,
     pairedHeart: pair,
   }));
@@ -27,19 +27,19 @@ const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {pairs.map((pair) => (
-            <TableRow key={pair.id}>
+          {pairs.map(({ id, mainHeart, pairedHeart }) => (
+            <TableRow key={id}>
               <TableCell>
                 <Heart
                   className="w-8 h-8"
-                  fill={`var(--heart-${pair.mainHeart})`}
+                  fill={`var(--heart-${mainHeart})`}
                   stroke="black"
                 />
               </TableCell>
               <TableCell>
                 <Heart
                   className="w-8 h-8"
-                  fill={`var(--heart-${pair.pairedHeart})`}
+                  fill={`var(--heart-${pairedHeart})`}
                   stroke="black"
                 />
               </TableCell>
