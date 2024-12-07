@@ -18,21 +18,23 @@ export const useHeartSelection = (
     });
 
     if (betType === "simple_group") {
-      // Caso ainda não tenha um coração principal, defina-o
+      // Initial main heart selection
       if (!mainHeart) {
         console.log("🎈 Setting main heart:", color);
         setMainHeart(color);
-        setSelectedHearts([color]); // Apenas armazena o principal
+        setSelectedHearts([color]); // Only store the main heart
         toast.info("Agora escolha 4 corações para formar os pares");
         return;
       }
 
-      // Verifica se o clique foi no coração principal (par reflexivo)
-      if (color === mainHeart) {
-        const mainHeartCount = selectedHearts.filter((heart) => heart === mainHeart).length;
+      // Get non-main heart pairs
+      const nonMainPairs = selectedHearts.filter(heart => heart !== mainHeart);
 
-        // Permite apenas 1 par reflexivo
-        if (mainHeartCount >= 2) {
+      // Handle reflexive pair (clicking main heart again)
+      if (color === mainHeart) {
+        const mainHeartOccurrences = selectedHearts.filter(heart => heart === mainHeart).length;
+        
+        if (mainHeartOccurrences >= 2) {
           console.log("❌ Reflexive pair already exists");
           playSounds.error();
           toast.error("Você já formou o par reflexivo com este coração");
@@ -40,14 +42,11 @@ export const useHeartSelection = (
         }
 
         console.log("✅ Adding reflexive pair:", color);
-        setSelectedHearts((prev) => [...prev, color]);
+        setSelectedHearts(prev => [...prev, color]);
         return;
       }
 
-      // Conta os pares não reflexivos já formados
-      const nonMainPairs = selectedHearts.filter((heart) => heart !== mainHeart);
-
-      // Verifica se já atingiu o limite de 4 pares
+      // Check if maximum pairs reached (4 non-main pairs)
       if (nonMainPairs.length >= 4) {
         console.log("❌ Maximum pairs reached");
         playSounds.error();
@@ -55,7 +54,7 @@ export const useHeartSelection = (
         return;
       }
 
-      // Verifica se o par já existe
+      // Check for duplicate non-reflexive pair
       if (nonMainPairs.includes(color)) {
         console.log("❌ Pair already exists:", color);
         playSounds.error();
@@ -63,14 +62,14 @@ export const useHeartSelection = (
         return;
       }
 
-      // Adiciona o novo coração como parte de um par
+      // Add new non-reflexive pair
       console.log("✅ Adding new pair:", color);
-      setSelectedHearts((prev) => [...prev, color]);
+      setSelectedHearts(prev => [...prev, color]);
     } else {
-      // Lógica para outros tipos de apostas
-      setSelectedHearts((prev) => {
+      // Logic for other bet types
+      setSelectedHearts(prev => {
         if (prev.includes(color)) {
-          return prev.filter((c) => c !== color);
+          return prev.filter(c => c !== color);
         }
         if (prev.length >= 4) {
           playSounds.error();
