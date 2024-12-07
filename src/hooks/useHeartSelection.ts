@@ -25,13 +25,6 @@ export const useHeartSelection = (
 
     // Se já temos o coração principal e este é o segundo coração
     if (selectedHearts.length === 1) {
-      // Impedir a seleção do mesmo coração
-      if (color === mainHeart) {
-        playSounds.error();
-        toast.error("Não é permitido selecionar o mesmo coração duas vezes");
-        return;
-      }
-
       const firstNumber = getNumberForHeart(mainHeart);
       const secondNumber = getNumberForHeart(color);
       
