@@ -29,14 +29,14 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
   const renderPairs = () => {
     if (betType !== "simple_group" || !mainHeart || selectedHearts.length <= 1) return null;
 
-    // Filter valid pairs (excluding main heart)
-    const pairHearts = selectedHearts.filter(heart => heart !== mainHeart);
+    // Skip the first heart (main heart) when displaying pairs
+    const pairs = selectedHearts.slice(1);
 
     return (
       <div className="mt-4 space-y-2">
         <h3 className="text-sm font-medium text-gray-700">Pares formados:</h3>
         <div className="grid grid-cols-2 gap-2">
-          {pairHearts.map((heart, index) => (
+          {pairs.map((heart, index) => (
             <div 
               key={`${mainHeart}-${heart}-${index}`}
               className="flex items-center gap-2 p-2 bg-gray-100 rounded-md"

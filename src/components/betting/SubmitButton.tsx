@@ -12,21 +12,23 @@ interface SubmitButtonProps {
 
 const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmitting, onSubmit }: SubmitButtonProps) => {
   const isValid = () => {
+    console.log("🔍 Validating button state:", {
+      betType,
+      mainHeart,
+      selectedHearts,
+      totalHearts: selectedHearts.length
+    });
+
     if (!session) return false;
     if (isSubmitting) return false;
 
     if (betType === "simple_group") {
-      // Validate main heart
+      // For simple_group, we need exactly 5 hearts total (1 main + 4 pairs)
       if (!mainHeart) return false;
-
-      // Filter valid pairs (excluding main heart)
-      const pairs = selectedHearts.filter((heart) => heart !== mainHeart);
-
-      // We need exactly 4 pairs to enable the button
-      return pairs.length === 4;
+      return selectedHearts.length === 5;
     }
 
-    // Logic for other bet types
+    // For other bet types
     return selectedHearts.length === 4;
   };
 
