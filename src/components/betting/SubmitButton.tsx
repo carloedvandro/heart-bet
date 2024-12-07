@@ -18,7 +18,7 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
       selectedHearts,
       totalHearts: selectedHearts.length,
       hasMainHeart: Boolean(mainHeart),
-      hasPair: selectedHearts.filter(heart => heart !== mainHeart).length > 0
+      pairsCount: selectedHearts.filter(heart => heart !== mainHeart).length
     });
 
     if (!session) return false;
@@ -28,8 +28,8 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
       // Para grupo simples, precisamos de:
       // 1. Um coração principal selecionado
       // 2. Exatamente 4 corações diferentes do principal para formar os pares
-      const pairs = selectedHearts.filter(heart => heart !== mainHeart);
-      return Boolean(mainHeart) && pairs.length === 4;
+      const pairsCount = selectedHearts.filter(heart => heart !== mainHeart).length;
+      return Boolean(mainHeart) && pairsCount === 4;
     }
 
     // Para outros tipos de aposta
@@ -39,17 +39,20 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
   const getButtonText = () => {
     if (isSubmitting) return "Processando...";
     if (!session) return "Faça login para apostar";
+    
     if (!isValid()) {
       if (betType === "simple_group") {
-        const pairs = selectedHearts.filter(heart => heart !== mainHeart);
         if (!mainHeart) return "Selecione 1 coração principal";
-        if (pairs.length === 0) return "Selecione 4 pares";
-        if (pairs.length < 4) return `Selecione mais ${4 - pairs.length} par(es)`;
-        if (pairs.length > 4) return "Selecione apenas 4 pares";
+        
+        const pairsCount = selectedHearts.filter(heart => heart !== mainHeart).length;
+        if (pairsCount === 0) return "Selecione 4 pares";
+        if (pairsCount < 4) return `Selecione mais ${4 - pairsCount} par(es)`;
+        if (pairsCount > 4) return "Remova alguns pares (máximo 4)";
       } else {
         return "Selecione 4 corações";
       }
     }
+    
     return "Confirmar Aposta";
   };
 
