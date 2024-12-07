@@ -27,13 +27,29 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
     if (betType === "simple_group") {
       // Para grupo simples, precisamos de:
       // 1. Um coração principal selecionado
-      // 2. Pelo menos um coração diferente do principal para formar o par
+      // 2. Pelo menos um coração diferente do principal
       const pairs = selectedHearts.filter(heart => heart !== mainHeart);
-      return Boolean(mainHeart) && pairs.length > 0;
+      return Boolean(mainHeart) && pairs.length === 1;
     }
 
     // Para outros tipos de aposta
     return selectedHearts.length === 4;
+  };
+
+  const getButtonText = () => {
+    if (isSubmitting) return "Processando...";
+    if (!session) return "Faça login para apostar";
+    if (!isValid()) {
+      if (betType === "simple_group") {
+        const pairs = selectedHearts.filter(heart => heart !== mainHeart);
+        if (!mainHeart) return "Selecione 1 coração principal";
+        if (pairs.length === 0) return "Selecione 1 par";
+        if (pairs.length > 1) return "Selecione apenas 1 par";
+      } else {
+        return "Selecione 4 corações";
+      }
+    }
+    return "Confirmar Aposta";
   };
 
   return (
@@ -46,17 +62,7 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
                disabled:opacity-50 disabled:cursor-not-allowed
                disabled:hover:scale-100 disabled:hover:shadow-lg"
     >
-      {isSubmitting ? (
-        "Processando..."
-      ) : !session ? (
-        "Faça login para apostar"
-      ) : !isValid() ? (
-        betType === "simple_group" 
-          ? "Selecione 1 coração principal e 1 par" 
-          : "Selecione 4 corações"
-      ) : (
-        "Confirmar Aposta"
-      )}
+      {getButtonText()}
     </button>
   );
 };
