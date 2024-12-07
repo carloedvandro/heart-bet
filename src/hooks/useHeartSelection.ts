@@ -1,7 +1,6 @@
 import { toast } from "sonner";
 import { BetType } from "@/types/betting";
 import { playSounds } from "@/utils/soundEffects";
-import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
 export const useHeartSelection = (
   betType: BetType,
@@ -24,7 +23,7 @@ export const useHeartSelection = (
       if (!mainHeart) {
         console.log("🎈 Setting main heart:", color);
         setMainHeart(color);
-        setSelectedHearts([color]);
+        setSelectedHearts([color]); // Apenas armazena o principal, sem criar pares
         toast.info("Agora escolha 4 corações para formar os pares");
         return;
       }
@@ -59,6 +58,7 @@ export const useHeartSelection = (
         return;
       }
 
+      // Adiciona o novo par
       console.log("✅ Adding heart to selection:", color);
       setSelectedHearts(prev => [...prev, color]);
     } else {
