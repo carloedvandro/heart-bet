@@ -31,7 +31,9 @@ export const useHeartSelection = (
       // Caso o mesmo coração seja clicado novamente (par reflexivo)
       if (color === mainHeart) {
         // Verifica se já existe um par reflexivo
-        const reflexivePairExists = selectedHearts.filter(heart => heart === mainHeart).length >= 2;
+        const reflexivePairExists = selectedHearts.filter(
+          (heart) => heart === mainHeart
+        ).length >= 2;
         
         if (reflexivePairExists) {
           console.log("❌ Reflexive pair already exists");
@@ -39,18 +41,26 @@ export const useHeartSelection = (
           toast.error("Você já formou o par reflexivo com este coração");
           return;
         }
+
+        // Adiciona o par reflexivo
+        console.log("✅ Adding reflexive pair:", color);
+        setSelectedHearts((prev) => [...prev, color]);
+        return;
       }
 
       // Verifica se já atingiu o limite total de seleções (1 principal + 4 pares = 5)
-      if (selectedHearts.length >= 5) {
+      const pairs = selectedHearts.filter((heart) => heart !== mainHeart);
+      if (pairs.length >= 4) {
         console.log("❌ Maximum selections reached");
         playSounds.error();
         toast.error("Você já selecionou todos os corações necessários");
         return;
       }
 
-      // Verifica se este par já existe (exceto para pares reflexivos)
-      const existingPair = selectedHearts.includes(color) && color !== mainHeart;
+      // Verifica se este par já existe
+      const existingPair = selectedHearts.some(
+        (heart) => heart === color && heart !== mainHeart
+      );
       if (existingPair) {
         console.log("❌ Pair already exists:", color);
         playSounds.error();
@@ -59,8 +69,8 @@ export const useHeartSelection = (
       }
 
       // Adiciona o novo par
-      console.log("✅ Adding heart to selection:", color);
-      setSelectedHearts(prev => [...prev, color]);
+      console.log("✅ Adding new pair:", color);
+      setSelectedHearts((prev) => [...prev, color]);
     } else {
       // Lógica para outros tipos de apostas
       setSelectedHearts((prev) => {
