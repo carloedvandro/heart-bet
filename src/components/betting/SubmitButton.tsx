@@ -4,19 +4,24 @@ import { BetType } from "@/types/betting";
 interface SubmitButtonProps {
   session: Session | null;
   selectedHearts: string[];
+  mainHeart: string | null;
   betType: BetType;
   isSubmitting: boolean;
   onSubmit: () => void;
 }
 
-const SubmitButton = ({ session, selectedHearts, betType, isSubmitting, onSubmit }: SubmitButtonProps) => {
+const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmitting, onSubmit }: SubmitButtonProps) => {
   const isValid = () => {
     if (!session) return false;
     if (isSubmitting) return false;
 
     if (betType === "simple_group") {
-      // Para grupo simples, precisamos de 5 seleções (1 principal + 4 pares)
-      return selectedHearts.length === 5;
+      // Verifica se temos um coração principal
+      if (!mainHeart) return false;
+      
+      // Filtra os pares (excluindo o coração principal)
+      const pairs = selectedHearts.filter(heart => heart !== mainHeart);
+      return pairs.length === 4;
     }
 
     // Para outros tipos de aposta, mantemos a lógica original
