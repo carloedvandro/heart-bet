@@ -27,9 +27,9 @@ export default function Login() {
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
-            .maybeSingle();
+            .single();
 
-          if (profileError) {
+          if (profileError && profileError.code !== 'PGRST116') {
             console.error("Error checking profile:", profileError);
             toast.error("Erro ao verificar perfil");
             return;
@@ -44,7 +44,8 @@ export default function Login() {
                 {
                   id: session.user.id,
                   email: session.user.email,
-                  is_admin: false // explicitly set default value
+                  is_admin: false, // explicitly set default value
+                  balance: 0 // set initial balance
                 }
               ]);
 
