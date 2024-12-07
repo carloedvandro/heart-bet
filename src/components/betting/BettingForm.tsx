@@ -32,7 +32,7 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
 
     const pairs = selectedHearts
       .filter(heart => heart !== mainHeart)
-      .map(heart => {
+      .map((heart, index) => {
         const mainNumber = getNumberForHeart(mainHeart);
         const pairNumber = getNumberForHeart(heart);
         const dezena = mainNumber < pairNumber 
@@ -40,7 +40,7 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
           : `${pairNumber}${mainNumber}`;
         return (
           <div 
-            key={heart} 
+            key={`${heart}-${index}`} 
             className="flex items-center gap-2 p-2 bg-gray-100 rounded-md"
           >
             <div 

@@ -19,7 +19,7 @@ export const useHeartSelection = (
         return;
       }
 
-      // Se já temos o coração principal, permitimos selecionar qualquer coração
+      // Se já temos o coração principal, permitimos selecionar qualquer coração (incluindo o mesmo)
       const pairsCount = selectedHearts.filter(c => c !== mainHeart).length;
 
       if (pairsCount >= 4) {
@@ -33,8 +33,8 @@ export const useHeartSelection = (
         return;
       }
 
-      // Adiciona o coração selecionado aos pares
-      if (!selectedHearts.includes(color)) {
+      // Adiciona o coração selecionado aos pares (permite repetição)
+      if (color === mainHeart || !selectedHearts.includes(color)) {
         setSelectedHearts(prev => [...prev, color]);
       } else {
         setSelectedHearts(prev => prev.filter(c => c !== color));
