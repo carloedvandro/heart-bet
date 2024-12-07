@@ -18,7 +18,7 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
       selectedHearts,
       totalHearts: selectedHearts.length,
       hasMainHeart: Boolean(mainHeart),
-      hasPair: selectedHearts.length > 0 && selectedHearts[0] !== mainHeart
+      hasPair: selectedHearts.filter(heart => heart !== mainHeart).length > 0
     });
 
     if (!session) return false;
@@ -28,8 +28,8 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
       // Para grupo simples, precisamos de:
       // 1. Um coração principal selecionado
       // 2. Pelo menos um coração diferente do principal para formar o par
-      const hasPair = selectedHearts.some(heart => heart !== mainHeart);
-      return Boolean(mainHeart) && hasPair;
+      const pairs = selectedHearts.filter(heart => heart !== mainHeart);
+      return Boolean(mainHeart) && pairs.length > 0;
     }
 
     // Para outros tipos de aposta
