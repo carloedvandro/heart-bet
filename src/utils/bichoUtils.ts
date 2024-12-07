@@ -33,9 +33,9 @@ export const findBichoGroup = (number: number) => {
   const isRepeatedNumber = Math.floor(number / 10) === number % 10;
   if (isRepeatedNumber) {
     return {
-      start: number,
-      end: number,
-      name: `Milhar ${number}${number}`
+      start: Math.floor(number / 10) * 10,
+      end: Math.floor(number / 10) * 10 + 3,
+      name: `Grupo ${Math.floor(number / 10)}`
     };
   }
 
@@ -53,11 +53,20 @@ export const findBichoGroup = (number: number) => {
 
 // Função para obter todos os números de um grupo
 export const getGroupNumbers = (number: number): number[] => {
-  // Se for um número repetido (00, 11, 22, etc.), retorna apenas ele mesmo
-  if (Math.floor(number / 10) === number % 10) {
-    return [number];
+  const firstDigit = Math.floor(number / 10);
+  const secondDigit = number % 10;
+  
+  // Se for um número repetido (00, 11, 22, etc.), retorna o grupo correspondente
+  if (firstDigit === secondDigit) {
+    return [
+      firstDigit * 10 + 0,
+      firstDigit * 10 + 1,
+      firstDigit * 10 + 2,
+      firstDigit * 10 + 3
+    ];
   }
 
+  // Encontra o grupo ao qual o número pertence
   const group = findBichoGroup(number);
   if (!group) return [];
 
@@ -65,12 +74,18 @@ export const getGroupNumbers = (number: number): number[] => {
     return [97, 98, 99, 0];
   }
 
-  return Array.from({ length: 4 }, (_, i) => group.start + i);
+  // Retorna a sequência correta do grupo
+  return [
+    group.start,
+    group.start + 1,
+    group.start + 2,
+    group.start + 3
+  ];
 };
 
 // Função para verificar se dois números pertencem ao mesmo grupo
 export const areNumbersInSameGroup = (num1: number, num2: number): boolean => {
   const group1 = findBichoGroup(num1);
   const group2 = findBichoGroup(num2);
-  return group1 === group2;
+  return group1?.start === group2?.start;
 };
