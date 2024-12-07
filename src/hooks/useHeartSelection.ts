@@ -15,6 +15,7 @@ export const useHeartSelection = (
       betType,
       mainHeart,
       selectedHearts,
+      totalHearts: selectedHearts.length
     });
 
     if (betType === "simple_group") {
@@ -27,14 +28,15 @@ export const useHeartSelection = (
         return;
       }
 
-      // Get non-main heart pairs
-      const nonMainPairs = selectedHearts.filter(heart => heart !== mainHeart);
+      // Get current pairs (excluding main heart)
+      const currentPairs = selectedHearts.filter(heart => heart !== mainHeart);
+      console.log("📊 Current pairs:", currentPairs);
 
       // Handle reflexive pair (clicking main heart again)
       if (color === mainHeart) {
-        const mainHeartOccurrences = selectedHearts.filter(heart => heart === mainHeart).length;
+        const reflexivePairExists = selectedHearts.filter(heart => heart === mainHeart).length > 1;
         
-        if (mainHeartOccurrences >= 2) {
+        if (reflexivePairExists) {
           console.log("❌ Reflexive pair already exists");
           playSounds.error();
           toast.error("Você já formou o par reflexivo com este coração");
@@ -47,7 +49,7 @@ export const useHeartSelection = (
       }
 
       // Check if maximum pairs reached (4 non-main pairs)
-      if (nonMainPairs.length >= 4) {
+      if (currentPairs.length >= 4) {
         console.log("❌ Maximum pairs reached");
         playSounds.error();
         toast.error("Você já selecionou todos os corações necessários");
@@ -55,7 +57,7 @@ export const useHeartSelection = (
       }
 
       // Check for duplicate non-reflexive pair
-      if (nonMainPairs.includes(color)) {
+      if (currentPairs.includes(color)) {
         console.log("❌ Pair already exists:", color);
         playSounds.error();
         toast.error("Este par já foi formado");
