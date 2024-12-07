@@ -32,6 +32,7 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
     const pairs = selectedHearts
       .filter(heart => heart !== mainHeart)
       .map((heart, index) => {
+        const isSamePair = heart === mainHeart;
         return (
           <div 
             key={`${heart}-${index}`} 
@@ -46,6 +47,7 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
               className="w-8 h-8 rounded-full border-2 border-gray-300 shadow-sm"
               style={{ backgroundColor: `var(--heart-${heart})` }}
             />
+            {isSamePair && <span className="ml-2 text-sm">(Par igual)</span>}
           </div>
         );
       });

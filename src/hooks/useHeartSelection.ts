@@ -21,6 +21,8 @@ export const useHeartSelection = (
 
       // Se já temos o coração principal
       const pairsCount = selectedHearts.filter(c => c !== mainHeart).length;
+      const selectedPairs = selectedHearts.filter(c => c !== mainHeart);
+      const alreadyUsedWithItself = selectedPairs.filter(c => c === color).length >= 1;
 
       if (pairsCount >= 4) {
         if (!selectedHearts.includes(color)) {
@@ -33,8 +35,17 @@ export const useHeartSelection = (
         return;
       }
 
-      // Adiciona o coração selecionado aos pares (permite repetição)
-      setSelectedHearts(prev => [...prev, color]);
+      // Verifica se o coração já foi usado consigo mesmo
+      if (color === mainHeart && alreadyUsedWithItself) {
+        playSounds.error();
+        toast.error("Este coração já foi usado para formar par com ele mesmo");
+        return;
+      }
+
+      // Adiciona o coração selecionado aos pares (permite usar o mesmo coração uma vez)
+      if (!alreadyUsedWithItself) {
+        setSelectedHearts(prev => [...prev, color]);
+      }
     } else {
       // Lógica para outros tipos de apostas
       setSelectedHearts(prev => {
