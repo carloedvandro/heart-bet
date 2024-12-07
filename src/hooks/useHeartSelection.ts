@@ -18,7 +18,6 @@ export const useHeartSelection = (
       if (!mainHeart) {
         console.log("🎈 Setting main heart:", color);
         setMainHeart(color);
-        // Apenas armazena o coração principal
         setSelectedHearts([color]);
         toast.info("Agora escolha os corações para formar os pares");
         return;
@@ -44,16 +43,10 @@ export const useHeartSelection = (
         return;
       }
 
-      // Se estiver clicando no coração principal novamente
-      if (color === mainHeart) {
-        console.log("✅ Adicionando par com o coração principal");
-        // Adiciona apenas um novo par com o coração principal
-        setSelectedHearts([mainHeart, ...pairs, mainHeart]);
-      } else {
-        // Adicionando par com outro coração
-        console.log("✅ Adicionando novo par:", color);
-        setSelectedHearts([mainHeart, ...pairs, color]);
-      }
+      // Adiciona um novo par
+      console.log("✅ Adicionando novo par:", color);
+      const newPairs = [...pairs, color];
+      setSelectedHearts([mainHeart, ...newPairs]);
     } else {
       // Lógica para outros tipos de aposta
       setSelectedHearts(prev => {
