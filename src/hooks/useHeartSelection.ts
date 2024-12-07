@@ -35,7 +35,7 @@ export const useHeartSelection = (
         return;
       }
 
-      // Verifica se o coração já foi usado em algum par
+      // Se o coração clicado já está em um par, não permite adicionar novamente
       if (currentPairs.includes(color)) {
         console.log("❌ Coração já usado em um par");
         playSounds.error();
@@ -45,10 +45,12 @@ export const useHeartSelection = (
 
       // Adiciona um novo par
       console.log("✅ Adicionando novo par:", color);
-      // Mantém o coração principal e adiciona o novo par
-      const updatedHearts = [mainHeart, ...currentPairs, color];
-      console.log("Updated hearts array:", updatedHearts);
-      setSelectedHearts(updatedHearts);
+      // Mantém o coração principal e adiciona apenas um novo par
+      setSelectedHearts(prev => {
+        const newHearts = [mainHeart, ...prev.slice(1), color];
+        console.log("Updated hearts array:", newHearts);
+        return newHearts;
+      });
     } else {
       // Lógica para outros tipos de aposta
       setSelectedHearts(prev => {
