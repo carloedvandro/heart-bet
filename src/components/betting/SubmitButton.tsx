@@ -23,11 +23,9 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
     if (isSubmitting) return false;
 
     if (betType === "simple_group") {
-      // Valida a presença do coração principal
-      if (!mainHeart) return false;
-      
-      // Precisamos exatamente de 5 corações no total (1 principal + 4 pares)
-      return selectedHearts.length === 5;
+      // Para grupo simples, precisamos de exatamente 2 corações:
+      // 1 principal e 1 para formar o par
+      return mainHeart && selectedHearts.length === 1;
     }
 
     // Para outros tipos de aposta
@@ -41,9 +39,20 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
       className="mt-8 px-8 py-3 bg-gradient-to-r from-heart-pink to-heart-purple
                text-white rounded-full shadow-lg hover:shadow-xl
                transition-all duration-300 transform hover:scale-105
-               disabled:opacity-50 disabled:cursor-not-allowed"
+               disabled:opacity-50 disabled:cursor-not-allowed
+               disabled:hover:scale-100 disabled:hover:shadow-lg"
     >
-      {isSubmitting ? "Processando..." : session ? "Confirmar Aposta" : "Faça login para apostar"}
+      {isSubmitting ? (
+        "Processando..."
+      ) : !session ? (
+        "Faça login para apostar"
+      ) : !isValid() ? (
+        betType === "simple_group" 
+          ? "Selecione 1 coração principal e 1 par" 
+          : "Selecione 4 corações"
+      ) : (
+        "Confirmar Aposta"
+      )}
     </button>
   );
 };
