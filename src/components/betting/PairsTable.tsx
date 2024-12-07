@@ -11,18 +11,18 @@ const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
 
   // Cria um array de pares formatados para exibição
   const pairs = selectedPairs.map((pair, index) => ({
-    id: index,
+    id: index + 1, // Começa do 1 para melhor visualização
     mainHeart,
     pairedHeart: pair,
   }));
 
   return (
     <div className="w-full max-w-sm bg-white/90 backdrop-blur rounded-lg shadow-lg p-4 animate-fade-in">
-      <h3 className="text-lg font-semibold mb-4">Pares Formados</h3>
+      <h3 className="text-lg font-semibold mb-4">Pares Formados ({pairs.length}/4)</h3>
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Principal</TableHead>
+            <TableHead className="w-[100px]">Principal</TableHead>
             <TableHead>Par</TableHead>
           </TableRow>
         </TableHeader>

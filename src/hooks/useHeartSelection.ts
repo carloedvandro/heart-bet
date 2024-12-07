@@ -25,6 +25,7 @@ export const useHeartSelection = (
 
       // Obtém os pares já formados (excluindo o coração principal)
       const currentPairs = selectedHearts.slice(1);
+      console.log("Current pairs:", currentPairs);
 
       // Verifica se atingiu o máximo de pares (4 pares)
       if (currentPairs.length >= 4) {
@@ -35,8 +36,8 @@ export const useHeartSelection = (
       }
 
       // Verifica se o par já existe
-      const pairExists = currentPairs.includes(color);
-      if (pairExists) {
+      const pairAlreadyExists = currentPairs.some(existingPair => existingPair === color);
+      if (pairAlreadyExists) {
         console.log("❌ Par já existe");
         playSounds.error();
         toast.error("Este par já foi formado");
