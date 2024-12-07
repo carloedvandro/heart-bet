@@ -1,15 +1,15 @@
 // Fixed mapping between heart colors and numbers (based on Jogo do Bicho)
 const heartNumberMapping: { [key: string]: number } = {
-  white: 0,     // Primeiro número (0)
-  red: 5,       // Águia
-  blue: 9,      // Burro
-  black: 13,    // Borboleta
-  yellow: 17,   // Cachorro
-  green: 21,    // Cabra
-  purple: 25,   // Carneiro
-  pink: 29,     // Camelo
-  brown: 33,    // Cobra
-  gray: 37,     // Coelho
+  white: 0,     // Branco
+  red: 1,       // Vermelho
+  blue: 2,      // Azul
+  black: 3,     // Preto
+  yellow: 4,    // Amarelo
+  green: 5,     // Verde
+  purple: 6,    // Roxo
+  pink: 7,     // Rosa
+  brown: 8,     // Marrom
+  gray: 9,      // Cinza
 };
 
 export const getNumberForHeart = (color: string): number => {
