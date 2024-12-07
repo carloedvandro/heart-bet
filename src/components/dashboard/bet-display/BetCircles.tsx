@@ -34,44 +34,37 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
     return <span>{numbers.join(", ")}</span>;
   }
 
-  if (!hearts?.length) return <span>N/A</span>;
+  if (!hearts?.length && !numbers?.length) return <span>N/A</span>;
 
-  // Para grupo simples, mostrar todos os números como círculos divididos
-  if (betType === "simple_group") {
-    // Criar pares de cores baseados no coração principal e os outros corações
-    const pairs = [];
-    const mainHeart = hearts[0];
-    
-    // Se tivermos apenas um coração, ele forma par com ele mesmo
-    if (hearts.length === 1) {
-      pairs.push({ firstColor: mainHeart, secondColor: mainHeart });
-    } else {
-      // Para cada coração adicional além do principal, criar um par
-      for (let i = 1; i < hearts.length; i++) {
-        pairs.push({
-          firstColor: mainHeart,
-          secondColor: hearts[i]
-        });
-      }
-    }
-
+  // Para grupo simples, processar os números gerados
+  if (betType === "simple_group" && numbers?.length) {
     return (
       <div className="flex flex-wrap gap-1">
-        {pairs.map((pair, index) => (
-          <SplitCircle 
-            key={`${pair.firstColor}-${pair.secondColor}-${index}`}
-            firstColor={pair.firstColor}
-            secondColor={pair.secondColor}
-          />
-        ))}
+        {numbers.map((num, index) => {
+          // Extrair os dois dígitos do número
+          const firstDigit = Math.floor(num / 10);
+          const secondDigit = num % 10;
+          
+          // Obter as cores correspondentes aos números
+          const firstColor = getHeartForNumber(firstDigit);
+          const secondColor = getHeartForNumber(secondDigit);
+          
+          return (
+            <SplitCircle 
+              key={`${num}-${index}`}
+              firstColor={firstColor}
+              secondColor={secondColor}
+            />
+          );
+        })}
       </div>
     );
   }
 
-  // Para outros tipos de apostas, mostrar círculos individuais para cada cor
+  // Para outros tipos de apostas ou quando não temos números
   return (
     <div className="flex flex-wrap gap-1">
-      {hearts.map((color, index) => (
+      {hearts?.map((color, index) => (
         <SingleCircle key={`${color}-${index}`} color={color} />
       ))}
     </div>
