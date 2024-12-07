@@ -7,18 +7,16 @@ interface PairsTableProps {
 }
 
 const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
-  if (!mainHeart) return null;
-
-  // Cria um array de pares formatados para exibição
-  const pairs = selectedPairs.map((pair, index) => ({
+  // Cria um array de 4 posições para os pares
+  const pairs = Array(4).fill(null).map((_, index) => ({
     id: index + 1,
     mainHeart,
-    pairedHeart: pair,
+    pairedHeart: selectedPairs[index] || null,
   }));
 
   return (
-    <div className="w-full max-w-sm bg-white/90 backdrop-blur rounded-lg shadow-lg p-4 animate-fade-in">
-      <h3 className="text-lg font-semibold mb-4">Pares Formados ({pairs.length}/4)</h3>
+    <div className="w-full bg-white/90 backdrop-blur rounded-lg shadow-lg p-4 animate-fade-in">
+      <h3 className="text-lg font-semibold mb-4">Pares Formados ({selectedPairs.length}/4)</h3>
       <Table>
         <TableHeader>
           <TableRow>
@@ -30,18 +28,22 @@ const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
           {pairs.map(({ id, mainHeart, pairedHeart }) => (
             <TableRow key={id}>
               <TableCell>
-                <Heart
-                  className="w-8 h-8"
-                  fill={`var(--heart-${mainHeart})`}
-                  stroke="black"
-                />
+                {mainHeart && (
+                  <Heart
+                    className="w-8 h-8"
+                    fill={`var(--heart-${mainHeart})`}
+                    stroke="black"
+                  />
+                )}
               </TableCell>
               <TableCell>
-                <Heart
-                  className="w-8 h-8"
-                  fill={`var(--heart-${pairedHeart})`}
-                  stroke="black"
-                />
+                {pairedHeart && (
+                  <Heart
+                    className="w-8 h-8"
+                    fill={`var(--heart-${pairedHeart})`}
+                    stroke="black"
+                  />
+                )}
               </TableCell>
             </TableRow>
           ))}
