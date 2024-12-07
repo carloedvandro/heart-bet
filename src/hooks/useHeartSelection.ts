@@ -37,14 +37,12 @@ export const useHeartSelection = (
         return;
       }
 
-      // Conta quantas vezes este coração específico já foi selecionado
-      const colorCount = selectedHearts.filter(h => h === color).length;
-
-      // Permite até duas seleções do mesmo coração (para pares reflexivos)
-      if (colorCount >= 2) {
-        console.log("❌ Heart already selected twice:", color);
+      // Verifica se este par já existe
+      const existingPair = selectedHearts.slice(1).some(heart => heart === color);
+      if (existingPair) {
+        console.log("❌ Pair already exists:", color);
         playSounds.error();
-        toast.error("Você já selecionou este coração duas vezes");
+        toast.error("Este par já foi formado");
         return;
       }
 

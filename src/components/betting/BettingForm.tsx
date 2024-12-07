@@ -3,7 +3,6 @@ import { useBettingForm } from "./useBettingForm";
 import HeartGrid from "./HeartGrid";
 import SubmitButton from "./SubmitButton";
 import { Bet } from "@/integrations/supabase/custom-types";
-import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
 interface BettingFormProps {
   onBetPlaced: (bet: Bet) => void;
@@ -37,30 +36,22 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
       <div className="mt-4 space-y-2">
         <h3 className="text-sm font-medium text-gray-700">Pares formados:</h3>
         <div className="grid grid-cols-2 gap-2">
-          {pairHearts.map((heart, index) => {
-            const isReflexivePair = heart === mainHeart;
-            return (
+          {pairHearts.map((heart, index) => (
+            <div 
+              key={`${heart}-${index}`} 
+              className="flex items-center gap-2 p-2 bg-gray-100 rounded-md"
+            >
               <div 
-                key={`${heart}-${index}`} 
-                className="flex items-center gap-2 p-2 bg-gray-100 rounded-md"
-              >
-                <div 
-                  className="w-8 h-8 rounded-full border-2 border-gray-300 shadow-sm"
-                  style={{ backgroundColor: `var(--heart-${mainHeart})` }}
-                />
-                <span className="text-xl font-bold">+</span>
-                <div 
-                  className="w-8 h-8 rounded-full border-2 border-gray-300 shadow-sm"
-                  style={{ backgroundColor: `var(--heart-${heart})` }}
-                />
-                {isReflexivePair && (
-                  <span className="ml-2 text-sm text-gray-600">
-                    ({getNumberForHeart(mainHeart)}{getNumberForHeart(heart)})
-                  </span>
-                )}
-              </div>
-            );
-          })}
+                className="w-8 h-8 rounded-full border-2 border-gray-300 shadow-sm"
+                style={{ backgroundColor: `var(--heart-${mainHeart})` }}
+              />
+              <span className="text-xl font-bold">+</span>
+              <div 
+                className="w-8 h-8 rounded-full border-2 border-gray-300 shadow-sm"
+                style={{ backgroundColor: `var(--heart-${heart})` }}
+              />
+            </div>
+          ))}
         </div>
       </div>
     );
