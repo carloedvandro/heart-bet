@@ -25,11 +25,11 @@ export const useHeartSelection = (
 
     // Se já temos o coração principal e este é o segundo coração
     if (selectedHearts.length === 1) {
-      const mainNumber = getNumberForHeart(mainHeart);
+      const firstNumber = getNumberForHeart(mainHeart);
       const secondNumber = getNumberForHeart(color);
       
-      // Formar o número com dois dígitos na ordem exata de seleção
-      const twoDigitNumber = mainNumber * 10 + secondNumber;
+      // Formar o número com dois dígitos mantendo a ordem exata da seleção
+      const twoDigitNumber = firstNumber * 10 + secondNumber;
       
       console.log("🎲 Formed number:", twoDigitNumber);
       
