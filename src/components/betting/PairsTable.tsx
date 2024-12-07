@@ -2,6 +2,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Heart } from "lucide-react";
 import { getNumberForHeart } from "@/utils/heartNumberMapping";
 import { getGroupNumbers } from "@/utils/bichoUtils";
+import { getHeartForNumber } from "@/utils/heartNumberMapping";
 
 interface PairsTableProps {
   mainHeart: string | null;
@@ -21,6 +22,12 @@ const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
   };
 
   const groupNumbers = getGroupNumbersFromHearts();
+
+  // Função para obter o coração correspondente ao segundo dígito do número
+  const getSecondHeartForNumber = (number: number) => {
+    const secondDigit = number % 10;
+    return getHeartForNumber(secondDigit);
+  };
 
   return (
     <div className="w-full bg-white/90 backdrop-blur rounded-lg shadow-lg p-4 animate-fade-in">
@@ -46,13 +53,11 @@ const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
                 )}
               </TableCell>
               <TableCell>
-                {index === 0 && selectedPairs[0] && (
-                  <Heart
-                    className="w-8 h-8"
-                    fill={`var(--heart-${selectedPairs[0]})`}
-                    stroke="black"
-                  />
-                )}
+                <Heart
+                  className="w-8 h-8"
+                  fill={`var(--heart-${getSecondHeartForNumber(number)})`}
+                  stroke="black"
+                />
               </TableCell>
               <TableCell className="font-mono text-lg">
                 {number.toString().padStart(2, '0')}

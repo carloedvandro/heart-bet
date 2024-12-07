@@ -1,24 +1,35 @@
-// Fixed mapping between heart colors and numbers (based on Jogo do Bicho)
-const heartNumberMapping: { [key: string]: number } = {
-  white: 0,     // Branco
-  yellow: 4,    // Amarelo
-  green: 5,     // Verde
-  purple: 6,    // Roxo
-  pink: 7,      // Rosa
-  brown: 8,     // Marrom
-  gray: 9,      // Cinza
-  red: 1,       // Vermelho
-  blue: 2,      // Azul
-  black: 3,     // Preto
+// Mapeamento de cores dos corações para números
+const heartToNumber: Record<string, number> = {
+  "white": 0,
+  "red": 1,
+  "blue": 2,
+  "black": 3,
+  "yellow": 4,
+  "green": 5,
+  "purple": 6,
+  "pink": 7,
+  "brown": 8,
+  "gray": 9,
+};
+
+// Mapeamento inverso de números para cores dos corações
+const numberToHeart: Record<number, string> = {
+  0: "white",
+  1: "red",
+  2: "blue",
+  3: "black",
+  4: "yellow",
+  5: "green",
+  6: "purple",
+  7: "pink",
+  8: "brown",
+  9: "gray",
 };
 
 export const getNumberForHeart = (color: string): number => {
-  return heartNumberMapping[color] ?? 0;
+  return heartToNumber[color] ?? 0;
 };
 
-// Função para obter a cor do coração baseado no número
-export const getHeartForNumber = (number: number): string | null => {
-  const entries = Object.entries(heartNumberMapping);
-  const found = entries.find(([_, value]) => value === number);
-  return found ? found[0] : null;
+export const getHeartForNumber = (number: number): string => {
+  return numberToHeart[number] ?? "white";
 };
