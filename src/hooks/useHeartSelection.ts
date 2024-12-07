@@ -29,14 +29,18 @@ export const useHeartSelection = (
         return;
       }
 
-      // Se já temos o coração principal
+      // Lógica para pares com o coração principal
       const mainNumber = getNumberForHeart(mainHeart);
-      console.log("🎲 Main heart number:", mainNumber);
-
-      // Se já selecionou todos os pares necessários
-      const selectedPairs = selectedHearts.filter(c => c !== mainHeart);
-      console.log("🎭 Current selected pairs:", selectedPairs);
+      const selectedPairs = selectedHearts
+        .filter(h => h !== mainHeart) // Exclui o coração principal da lista
+        .map(pairColor => ({
+          main: mainNumber,
+          pair: getNumberForHeart(pairColor)
+        }));
       
+      console.log("🎭 Current pairs:", selectedPairs);
+
+      // Verifica se já formou todos os pares necessários
       if (selectedPairs.length >= 4) {
         console.log("❌ Maximum pairs reached");
         playSounds.error();
@@ -44,48 +48,42 @@ export const useHeartSelection = (
         return;
       }
 
-      // Verifica os pares existentes
-      const existingPairs = selectedPairs.map(pairColor => {
-        const pairNumber = getNumberForHeart(pairColor);
-        return mainNumber <= pairNumber 
-          ? `${mainNumber}-${pairNumber}`
-          : `${pairNumber}-${mainNumber}`;
-      });
-      
-      console.log("🔍 Existing pairs:", existingPairs);
-
-      // Verifica o novo par que seria formado
       const newPairNumber = getNumberForHeart(color);
-      const newPair = mainNumber <= newPairNumber
-        ? `${mainNumber}-${newPairNumber}`
-        : `${newPairNumber}-${mainNumber}`;
       
-      console.log("🆕 Attempting to form new pair:", newPair);
-
       // Conta quantas vezes cada número já foi usado em pares
-      const numberUsageCount = selectedPairs.reduce((acc, pairColor) => {
-        const num = getNumberForHeart(pairColor);
-        acc[num] = (acc[num] || 0) + 1;
+      const numberUsageCount = selectedPairs.reduce((acc, pair) => {
+        acc[pair.pair] = (acc[pair.pair] || 0) + 1;
         return acc;
       }, {} as Record<number, number>);
 
-      // Verifica se o número já foi usado duas vezes
-      if (numberUsageCount[newPairNumber] >= 2) {
+      console.log("📊 Number usage count:", numberUsageCount);
+
+      // Para pares do mesmo número (ex: 22-22), permite apenas uma vez
+      if (mainNumber === newPairNumber) {
+        const sameNumberPairCount = selectedPairs.filter(
+          pair => pair.pair === newPairNumber
+        ).length;
+
+        if (sameNumberPairCount >= 1) {
+          console.log("❌ Same number pair already exists");
+          playSounds.error();
+          toast.error("Você já formou um par com este mesmo número");
+          return;
+        }
+      } 
+      // Para números diferentes, permite até duas vezes
+      else if (numberUsageCount[newPairNumber] >= 2) {
         console.log("❌ Number already used twice:", newPairNumber);
         playSounds.error();
         toast.error("Este número já foi usado duas vezes em pares");
         return;
       }
 
-      // Verifica se o par já existe
-      if (existingPairs.includes(newPair)) {
-        console.log("❌ Pair already exists");
-        playSounds.error();
-        toast.error("Este par já foi formado");
-        return;
-      }
-
-      console.log("✅ Adding new heart to selection:", color);
+      console.log("✅ Adding new pair:", {
+        main: mainNumber,
+        pair: newPairNumber
+      });
+      
       setSelectedHearts(prev => [...prev, color]);
     } else {
       // Lógica para outros tipos de apostas
