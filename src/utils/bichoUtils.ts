@@ -29,23 +29,35 @@ export const BICHO_GROUPS = [
 
 // Função para encontrar o grupo baseado em um número de dois dígitos
 export const findBichoGroup = (number: number) => {
-  // Tratamento especial para números que começam com 0
-  const adjustedNumber = number < 10 ? number * 10 : number;
-  
+  // Tratamento especial para números repetidos (00, 11, 22, etc.)
+  const isRepeatedNumber = Math.floor(number / 10) === number % 10;
+  if (isRepeatedNumber) {
+    return {
+      start: number,
+      end: number,
+      name: `Milhar ${number}${number}`
+    };
+  }
+
   // Tratamento especial para 0, que pertence ao último grupo (97-00)
-  if (adjustedNumber === 0) {
+  if (number === 0) {
     return BICHO_GROUPS[BICHO_GROUPS.length - 1];
   }
 
   return BICHO_GROUPS.find(group => {
     const start = group.start;
     const end = group.end === 0 ? 100 : group.end;
-    return adjustedNumber >= start && adjustedNumber <= end;
+    return number >= start && number <= end;
   });
 };
 
 // Função para obter todos os números de um grupo
 export const getGroupNumbers = (number: number): number[] => {
+  // Se for um número repetido (00, 11, 22, etc.), retorna apenas ele mesmo
+  if (Math.floor(number / 10) === number % 10) {
+    return [number];
+  }
+
   const group = findBichoGroup(number);
   if (!group) return [];
 
