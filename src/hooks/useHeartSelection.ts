@@ -30,12 +30,12 @@ export const useHeartSelection = (
 
       // Caso o mesmo coração seja clicado novamente (par reflexivo)
       if (color === mainHeart) {
-        // Verifica se já existe um par reflexivo
-        const reflexivePairExists = selectedHearts.filter(
+        // Conta quantas vezes o coração principal já foi selecionado
+        const mainHeartCount = selectedHearts.filter(
           (heart) => heart === mainHeart
-        ).length >= 2;
-        
-        if (reflexivePairExists) {
+        ).length;
+
+        if (mainHeartCount >= 2) {
           console.log("❌ Reflexive pair already exists");
           playSounds.error();
           toast.error("Você já formou o par reflexivo com este coração");
