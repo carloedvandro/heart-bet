@@ -23,6 +23,14 @@ export const useHeartSelection = (
         return;
       }
 
+      // Se o coração clicado é o mesmo que o principal
+      if (color === mainHeart) {
+        console.log("❌ Não é possível usar o coração principal como par");
+        playSounds.error();
+        toast.error("O coração principal não pode ser usado como par");
+        return;
+      }
+
       // Obtém apenas os pares formados (excluindo o coração principal)
       const currentPairs = selectedHearts.slice(1);
       console.log("Current pairs:", currentPairs);
@@ -45,12 +53,7 @@ export const useHeartSelection = (
 
       // Adiciona um novo par
       console.log("✅ Adicionando novo par:", color);
-      // Mantém o coração principal e adiciona apenas um novo par
-      setSelectedHearts(prev => {
-        const newHearts = [mainHeart, ...prev.slice(1), color];
-        console.log("Updated hearts array:", newHearts);
-        return newHearts;
-      });
+      setSelectedHearts([mainHeart, ...currentPairs, color]);
     } else {
       // Lógica para outros tipos de aposta
       setSelectedHearts(prev => {
