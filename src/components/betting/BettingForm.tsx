@@ -3,6 +3,7 @@ import { useBettingForm } from "./useBettingForm";
 import HeartGrid from "./HeartGrid";
 import SubmitButton from "./SubmitButton";
 import { Bet } from "@/integrations/supabase/custom-types";
+import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
 interface BettingFormProps {
   onBetPlaced: (bet: Bet) => void;
@@ -27,36 +28,39 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
   } = useBettingForm(onBetPlaced);
 
   const renderPairs = () => {
-    if (betType !== "simple_group" || !mainHeart) return null;
+    if (betType !== "simple_group" || !mainHeart || selectedHearts.length <= 1) return null;
 
-    const pairs = selectedHearts
-      .filter(heart => heart !== mainHeart)
-      .map((heart, index) => {
-        const isSamePair = heart === mainHeart;
-        return (
-          <div 
-            key={`${heart}-${index}`} 
-            className="flex items-center gap-2 p-2 bg-gray-100 rounded-md"
-          >
-            <div 
-              className="w-8 h-8 rounded-full border-2 border-gray-300 shadow-sm"
-              style={{ backgroundColor: `var(--heart-${mainHeart})` }}
-            />
-            <span className="text-xl font-bold">+</span>
-            <div 
-              className="w-8 h-8 rounded-full border-2 border-gray-300 shadow-sm"
-              style={{ backgroundColor: `var(--heart-${heart})` }}
-            />
-            {isSamePair && <span className="ml-2 text-sm">(Par igual)</span>}
-          </div>
-        );
-      });
+    // Filter out the main heart from the pairs display
+    const pairHearts = selectedHearts.filter((_, index) => index > 0);
 
     return (
       <div className="mt-4 space-y-2">
         <h3 className="text-sm font-medium text-gray-700">Pares formados:</h3>
         <div className="grid grid-cols-2 gap-2">
-          {pairs}
+          {pairHearts.map((heart, index) => {
+            const isReflexivePair = heart === mainHeart;
+            return (
+              <div 
+                key={`${heart}-${index}`} 
+                className="flex items-center gap-2 p-2 bg-gray-100 rounded-md"
+              >
+                <div 
+                  className="w-8 h-8 rounded-full border-2 border-gray-300 shadow-sm"
+                  style={{ backgroundColor: `var(--heart-${mainHeart})` }}
+                />
+                <span className="text-xl font-bold">+</span>
+                <div 
+                  className="w-8 h-8 rounded-full border-2 border-gray-300 shadow-sm"
+                  style={{ backgroundColor: `var(--heart-${heart})` }}
+                />
+                {isReflexivePair && (
+                  <span className="ml-2 text-sm text-gray-600">
+                    ({getNumberForHeart(mainHeart)}{getNumberForHeart(heart)})
+                  </span>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
     );
