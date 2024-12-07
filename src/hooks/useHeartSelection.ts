@@ -29,14 +29,14 @@ export const useHeartSelection = (
       }
 
       // Get current pairs (excluding main heart)
-      const currentPairs = selectedHearts.filter(heart => heart !== mainHeart);
+      const currentPairs = selectedHearts.slice(1); // Ignore first element (main heart)
       console.log("📊 Current pairs:", currentPairs);
 
       // Handle reflexive pair (clicking main heart again)
       if (color === mainHeart) {
-        const reflexivePairExists = selectedHearts.filter(heart => heart === mainHeart).length > 1;
+        const hasReflexivePair = selectedHearts.filter(h => h === mainHeart).length > 1;
         
-        if (reflexivePairExists) {
+        if (hasReflexivePair) {
           console.log("❌ Reflexive pair already exists");
           playSounds.error();
           toast.error("Você já formou o par reflexivo com este coração");
@@ -48,7 +48,7 @@ export const useHeartSelection = (
         return;
       }
 
-      // Check if maximum pairs reached (4 non-main pairs)
+      // Check if maximum pairs reached (4 pairs)
       if (currentPairs.length >= 4) {
         console.log("❌ Maximum pairs reached");
         playSounds.error();
@@ -56,7 +56,7 @@ export const useHeartSelection = (
         return;
       }
 
-      // Check for duplicate non-reflexive pair
+      // Check for duplicate pair
       if (currentPairs.includes(color)) {
         console.log("❌ Pair already exists:", color);
         playSounds.error();
@@ -64,7 +64,7 @@ export const useHeartSelection = (
         return;
       }
 
-      // Add new non-reflexive pair
+      // Add new pair
       console.log("✅ Adding new pair:", color);
       setSelectedHearts(prev => [...prev, color]);
     } else {
