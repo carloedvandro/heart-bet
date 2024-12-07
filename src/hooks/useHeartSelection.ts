@@ -14,7 +14,7 @@ export const useHeartSelection = (
     console.log("Current state:", { betType, mainHeart, selectedHearts });
 
     if (betType === "simple_group") {
-      // Primeira seleção - definindo o coração principal
+      // Se não há coração principal selecionado
       if (!mainHeart) {
         console.log("🎈 Setting main heart:", color);
         setMainHeart(color);
@@ -24,11 +24,11 @@ export const useHeartSelection = (
       }
 
       // Obtém apenas os pares formados (excluindo o coração principal)
-      const pairs = selectedHearts.slice(1);
-      console.log("Current pairs:", pairs);
+      const currentPairs = selectedHearts.slice(1);
+      console.log("Current pairs:", currentPairs);
 
       // Verifica se atingiu o máximo de pares (4 pares)
-      if (pairs.length >= 4) {
+      if (currentPairs.length >= 4) {
         console.log("❌ Máximo de pares atingido");
         playSounds.error();
         toast.error("Você já selecionou todos os corações necessários");
@@ -36,7 +36,7 @@ export const useHeartSelection = (
       }
 
       // Verifica se o coração já foi usado em algum par
-      if (pairs.includes(color)) {
+      if (currentPairs.includes(color)) {
         console.log("❌ Coração já usado em um par");
         playSounds.error();
         toast.error("Este coração já foi usado em um par");
@@ -45,8 +45,10 @@ export const useHeartSelection = (
 
       // Adiciona um novo par
       console.log("✅ Adicionando novo par:", color);
-      const newPairs = [...pairs, color];
-      setSelectedHearts([mainHeart, ...newPairs]);
+      // Mantém o coração principal e adiciona o novo par
+      const updatedHearts = [mainHeart, ...currentPairs, color];
+      console.log("Updated hearts array:", updatedHearts);
+      setSelectedHearts(updatedHearts);
     } else {
       // Lógica para outros tipos de aposta
       setSelectedHearts(prev => {
