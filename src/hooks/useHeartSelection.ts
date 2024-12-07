@@ -44,28 +44,44 @@ export const useHeartSelection = (
         return;
       }
 
-      // Verifica se o par já existe
+      // Verifica os pares existentes
       const existingPairs = selectedPairs.map(pairColor => {
         const pairNumber = getNumberForHeart(pairColor);
-        return `${mainNumber}-${pairNumber}`;
+        return mainNumber <= pairNumber 
+          ? `${mainNumber}-${pairNumber}`
+          : `${pairNumber}-${mainNumber}`;
       });
       
       console.log("🔍 Existing pairs:", existingPairs);
 
       // Verifica o novo par que seria formado
       const newPairNumber = getNumberForHeart(color);
-      const newPair = `${mainNumber}-${newPairNumber}`;
+      const newPair = mainNumber <= newPairNumber
+        ? `${mainNumber}-${newPairNumber}`
+        : `${newPairNumber}-${mainNumber}`;
       
       console.log("🆕 Attempting to form new pair:", newPair);
 
-      // Conta quantas vezes o coração principal já foi usado em pares
-      const mainHeartPairCount = selectedPairs.filter(h => h === mainHeart).length;
+      // Conta quantas vezes cada número já foi usado em pares
+      const numberUsageCount = selectedPairs.reduce((acc, pairColor) => {
+        const num = getNumberForHeart(pairColor);
+        acc[num] = (acc[num] || 0) + 1;
+        return acc;
+      }, {} as Record<number, number>);
 
-      // Permite até dois pares com o mesmo coração principal
-      if (color === mainHeart && mainHeartPairCount >= 2) {
-        console.log("❌ Maximum pairs with main heart reached");
+      // Verifica se o número já foi usado duas vezes
+      if (numberUsageCount[newPairNumber] >= 2) {
+        console.log("❌ Number already used twice:", newPairNumber);
         playSounds.error();
-        toast.error("Máximo de 2 pares com o mesmo coração atingido");
+        toast.error("Este número já foi usado duas vezes em pares");
+        return;
+      }
+
+      // Verifica se o par já existe
+      if (existingPairs.includes(newPair)) {
+        console.log("❌ Pair already exists");
+        playSounds.error();
+        toast.error("Este par já foi formado");
         return;
       }
 
