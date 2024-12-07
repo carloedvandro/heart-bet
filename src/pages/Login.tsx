@@ -20,30 +20,31 @@ export default function Login() {
         }
 
         if (session) {
-          console.log("Session found:", session);
+          console.log("Session found, checking profile for user:", session.user.id);
           
-          // Verify if profile exists
-          const { data: profile, error: profileError } = await supabase
+          // First check if profile exists
+          const { data: existingProfile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
             .maybeSingle();
 
           if (profileError) {
-            console.error("Error fetching profile:", profileError);
+            console.error("Error checking profile:", profileError);
             toast.error("Erro ao verificar perfil");
             return;
           }
 
           // If no profile exists, create one
-          if (!profile) {
-            console.log("Creating new profile for user:", session.user.id);
+          if (!existingProfile) {
+            console.log("No profile found, creating new profile for user:", session.user.id);
             const { error: createError } = await supabase
               .from('profiles')
               .insert([
                 {
                   id: session.user.id,
                   email: session.user.email,
+                  is_admin: false // explicitly set default value
                 }
               ]);
 
@@ -52,6 +53,9 @@ export default function Login() {
               toast.error("Erro ao criar perfil");
               return;
             }
+            console.log("Profile created successfully");
+          } else {
+            console.log("Existing profile found");
           }
 
           // Navigate to dashboard after ensuring profile exists
