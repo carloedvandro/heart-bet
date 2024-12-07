@@ -28,13 +28,18 @@ export const useHeartSelection = (
         return;
       }
 
+      // Verifica se já atingiu o limite de 4 pares
+      const nonMainHearts = selectedHearts.filter(heart => heart !== mainHeart);
+      if (nonMainHearts.length >= 4) {
+        console.log("❌ Maximum selections reached");
+        playSounds.error();
+        toast.error("Você já selecionou todos os corações necessários");
+        return;
+      }
+
       // Caso o mesmo coração principal seja clicado novamente (par reflexivo)
       if (color === mainHeart) {
-        const mainHeartCount = selectedHearts.filter(
-          (heart) => heart === mainHeart
-        ).length;
-
-        // Permitir apenas 1 par reflexivo
+        const mainHeartCount = selectedHearts.filter(heart => heart === mainHeart).length;
         if (mainHeartCount >= 2) {
           console.log("❌ Reflexive pair already exists");
           playSounds.error();
@@ -42,38 +47,27 @@ export const useHeartSelection = (
           return;
         }
 
-        // Adicionar o par reflexivo
         console.log("✅ Adding reflexive pair:", color);
-        setSelectedHearts((prev) => [...prev, color]);
+        setSelectedHearts(prev => [...prev, color]);
         return;
       }
 
-      // Verifica se já atingiu o limite de 4 pares
-      const pairs = selectedHearts.filter((heart) => heart !== mainHeart);
-      if (pairs.length >= 4) {
-        console.log("❌ Maximum selections reached");
-        playSounds.error();
-        toast.error("Você já selecionou todos os corações necessários");
-        return;
-      }
-
-      // Verifica se o par já existe (apenas para não reflexivos)
-      const existingPair = pairs.includes(color);
-      if (existingPair) {
+      // Verifica se o par já existe
+      if (selectedHearts.includes(color)) {
         console.log("❌ Pair already exists:", color);
         playSounds.error();
         toast.error("Este par já foi formado");
         return;
       }
 
-      // Adiciona o novo coração à lista de pares
+      // Adiciona o novo coração à lista
       console.log("✅ Adding new pair:", color);
-      setSelectedHearts((prev) => [...prev, color]);
+      setSelectedHearts(prev => [...prev, color]);
     } else {
       // Lógica para outros tipos de apostas
-      setSelectedHearts((prev) => {
+      setSelectedHearts(prev => {
         if (prev.includes(color)) {
-          return prev.filter((c) => c !== color);
+          return prev.filter(c => c !== color);
         }
         if (prev.length >= 4) {
           playSounds.error();
