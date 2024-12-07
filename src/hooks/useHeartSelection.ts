@@ -58,19 +58,6 @@ export const useHeartSelection = (
         return;
       }
 
-      // Se está tentando usar o coração principal com ele mesmo
-      if (color === mainHeart) {
-        const selfPair = `${mainNumber}${mainNumber}`;
-        if (!existingPairs.includes(selfPair)) {
-          // Permite usar o coração principal com ele mesmo apenas uma vez
-          setSelectedHearts(prev => [...prev, color]);
-        } else {
-          playSounds.error();
-          toast.error("Par igual já foi formado");
-        }
-        return;
-      }
-
       // Adiciona o novo par
       setSelectedHearts(prev => [...prev, color]);
     } else {
