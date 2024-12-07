@@ -1,4 +1,3 @@
-import { Heart } from "lucide-react";
 import { getHeartForNumber } from "@/utils/heartNumberMapping";
 
 const SplitCircle = ({ firstColor, secondColor }: { firstColor: string, secondColor: string }) => (
@@ -37,52 +36,48 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
 
   if (!hearts?.length && !numbers?.length) return <span>N/A</span>;
 
+  // Para grupo simples, mostrar todos os números como círculos divididos
   if (betType === "simple_group") {
     if (!numbers?.length) return <span>N/A</span>;
     
-    // Para cada número de dois dígitos, extrair os dígitos individuais
-    const pairs = numbers.map(num => {
-      const firstDigit = Math.floor(num / 10);
-      const secondDigit = num % 10;
-      return {
-        firstColor: getHeartForNumber(firstDigit),
-        secondColor: getHeartForNumber(secondDigit)
-      };
-    });
-
+    // Para cada número de dois dígitos, extrair os dígitos individuais e criar círculos divididos
     return (
-      <>
-        {pairs.map((pair, index) => (
-          <SplitCircle 
-            key={`${pair.firstColor}-${pair.secondColor}-${index}`}
-            firstColor={pair.firstColor}
-            secondColor={pair.secondColor}
-          />
-        ))}
-      </>
+      <div className="flex flex-wrap gap-1">
+        {numbers.map((num, index) => {
+          const firstDigit = Math.floor(num / 10);
+          const secondDigit = num % 10;
+          return (
+            <SplitCircle 
+              key={`${num}-${index}`}
+              firstColor={getHeartForNumber(firstDigit)}
+              secondColor={getHeartForNumber(secondDigit)}
+            />
+          );
+        })}
+      </div>
     );
   }
 
-  // Para outros tipos de apostas, mostrar círculos individuais
+  // Para outros tipos de apostas, mostrar círculos individuais para cada número
   if (numbers?.length) {
     return (
-      <>
+      <div className="flex flex-wrap gap-1">
         {numbers.map((num, index) => (
           <SingleCircle 
             key={`${num}-${index}`} 
             color={getHeartForNumber(num)}
           />
         ))}
-      </>
+      </div>
     );
   }
 
   // Fallback para mostrar as cores originais se disponíveis
   return (
-    <>
+    <div className="flex flex-wrap gap-1">
       {hearts?.map((color, index) => (
         <SingleCircle key={`${color}-${index}`} color={color} />
       ))}
-    </>
+    </div>
   );
 };
