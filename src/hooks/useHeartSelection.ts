@@ -44,9 +44,14 @@ export const useHeartSelection = (
         return;
       }
 
-      // Verifica se o par já existe
+      // Verifica se o par já existe (incluindo pares iguais)
       const existingPairs = selectedPairs.map(pairColor => {
         const pairNumber = getNumberForHeart(pairColor);
+        // Para pares iguais, retorna o número duplicado (ex: "55")
+        if (mainNumber === pairNumber) {
+          return `${mainNumber}${mainNumber}`;
+        }
+        // Para pares diferentes, mantém a ordem crescente
         return mainNumber < pairNumber 
           ? `${mainNumber}${pairNumber}` 
           : `${pairNumber}${mainNumber}`;
@@ -56,9 +61,12 @@ export const useHeartSelection = (
 
       // Verifica o novo par que seria formado
       const newPairNumber = getNumberForHeart(color);
-      const newPair = mainNumber < newPairNumber 
-        ? `${mainNumber}${newPairNumber}` 
-        : `${newPairNumber}${mainNumber}`;
+      // Para pares iguais
+      const newPair = mainNumber === newPairNumber
+        ? `${mainNumber}${mainNumber}`
+        : mainNumber < newPairNumber 
+          ? `${mainNumber}${newPairNumber}` 
+          : `${newPairNumber}${mainNumber}`;
       
       console.log("🆕 Attempting to form new pair:", newPair);
 
