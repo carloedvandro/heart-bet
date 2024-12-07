@@ -30,43 +30,26 @@ interface BetCirclesProps {
 }
 
 export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProps) => {
-  if (isAdmin && numbers?.length) {
-    return <span>{numbers.join(", ")}</span>;
-  }
+  console.log("BetCircles - numbers:", numbers);
+  console.log("BetCircles - hearts:", hearts);
+  console.log("BetCircles - betType:", betType);
 
   if (!hearts?.length && !numbers?.length) return <span>N/A</span>;
 
-  // Para grupo simples, processar os números gerados
+  // Para grupo simples, mostrar todos os números gerados
   if (betType === "simple_group" && numbers?.length) {
-    return (
-      <div className="flex flex-wrap gap-1">
-        {numbers.map((num, index) => {
-          // Extrair os dois dígitos do número
-          const firstDigit = Math.floor(num / 10);
-          const secondDigit = num % 10;
-          
-          // Obter as cores correspondentes aos números
-          const firstColor = getHeartForNumber(firstDigit);
-          const secondColor = getHeartForNumber(secondDigit);
-          
-          return (
-            <SplitCircle 
-              key={`${num}-${index}`}
-              firstColor={firstColor}
-              secondColor={secondColor}
-            />
-          );
-        })}
-      </div>
-    );
+    return <span>{numbers.join(", ")}</span>;
   }
 
-  // Para outros tipos de apostas ou quando não temos números
-  return (
-    <div className="flex flex-wrap gap-1">
-      {hearts?.map((color, index) => (
-        <SingleCircle key={`${color}-${index}`} color={color} />
-      ))}
-    </div>
-  );
+  // Para outros tipos de apostas, mostrar os números correspondentes aos corações
+  if (hearts?.length) {
+    const heartNumbers = hearts.map(heart => {
+      const colors = Object.entries(getHeartForNumber);
+      const number = colors.find(([_, color]) => color === heart)?.[0];
+      return number || "N/A";
+    });
+    return <span>{heartNumbers.join(", ")}</span>;
+  }
+
+  return <span>N/A</span>;
 };
