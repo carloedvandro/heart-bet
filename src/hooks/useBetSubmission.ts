@@ -37,6 +37,25 @@ export const useBetSubmission = (
     return profile?.balance >= betAmount;
   };
 
+  const generateNumbers = (hearts: string[], mainHeart: string | null, betType: BetType): number[] => {
+    if (betType === "simple_group") {
+      // Para grupo simples, combinar o coração principal com cada outro coração
+      const otherHearts = hearts.filter(h => h !== mainHeart);
+      const mainNumber = getNumberForHeart(mainHeart!);
+      
+      return otherHearts.map(heart => {
+        const pairNumber = getNumberForHeart(heart);
+        // Garantir que o número menor sempre venha primeiro
+        return mainNumber < pairNumber 
+          ? mainNumber * 10 + pairNumber 
+          : pairNumber * 10 + mainNumber;
+      });
+    }
+    
+    // Para outros tipos de apostas, converter cada coração em seu número correspondente
+    return hearts.map(heart => getNumberForHeart(heart));
+  };
+
   const handleSubmit = async () => {
     if (!session?.user) {
       playSounds.error();
@@ -55,18 +74,8 @@ export const useBetSubmission = (
       return;
     }
 
-    // Para grupo simples, criar as 4 dezenas combinando o coração principal com cada par
-    const numbers = betType === "simple_group" 
-      ? selectedHearts
-          .filter(color => color !== mainHeart)
-          .map(color => {
-            const mainNumber = getNumberForHeart(mainHeart!);
-            const pairNumber = getNumberForHeart(color);
-            return mainNumber < pairNumber 
-              ? mainNumber * 10 + pairNumber 
-              : pairNumber * 10 + mainNumber;
-          })
-      : selectedHearts.map(color => getNumberForHeart(color));
+    const numbers = generateNumbers(selectedHearts, mainHeart, betType);
+    console.log("Generated numbers:", numbers);
 
     try {
       const { data: bet, error } = await supabase

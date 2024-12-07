@@ -30,21 +30,30 @@ interface BetCirclesProps {
 }
 
 export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProps) => {
-  if (isAdmin) {
-    return <span>{numbers?.join(", ") || "N/A"}</span>;
+  if (isAdmin && numbers?.length) {
+    return <span>{numbers.join(", ")}</span>;
   }
 
-  // Se não houver hearts nem numbers, retorna N/A
   if (!hearts?.length) return <span>N/A</span>;
 
   // Para grupo simples, mostrar todos os números como círculos divididos
   if (betType === "simple_group") {
-    // Usar os hearts para criar os pares
+    // Criar pares de cores baseados no coração principal e os outros corações
+    const pairs = [];
     const mainHeart = hearts[0];
-    const pairs = hearts.slice(1).map(secondHeart => ({
-      firstColor: mainHeart,
-      secondColor: secondHeart
-    }));
+    
+    // Se tivermos apenas um coração, ele forma par com ele mesmo
+    if (hearts.length === 1) {
+      pairs.push({ firstColor: mainHeart, secondColor: mainHeart });
+    } else {
+      // Para cada coração adicional além do principal, criar um par
+      for (let i = 1; i < hearts.length; i++) {
+        pairs.push({
+          firstColor: mainHeart,
+          secondColor: hearts[i]
+        });
+      }
+    }
 
     return (
       <div className="flex flex-wrap gap-1">
