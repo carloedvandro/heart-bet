@@ -27,21 +27,26 @@ export const BICHO_GROUPS = [
   { start: 97, end: 0, name: "Vaca" }, // 97-00
 ];
 
-// Função para encontrar o grupo baseado em um número
+// Função para encontrar o grupo baseado em um número de dois dígitos
 export const findBichoGroup = (number: number) => {
+  // Tratamento especial para números que começam com 0
+  const adjustedNumber = number < 10 ? number * 10 : number;
+  
   // Tratamento especial para 0, que pertence ao último grupo (97-00)
-  if (number === 0) {
+  if (adjustedNumber === 0) {
     return BICHO_GROUPS[BICHO_GROUPS.length - 1];
   }
 
-  return BICHO_GROUPS.find(group => 
-    number >= group.start && number <= (group.end === 0 ? 100 : group.end)
-  );
+  return BICHO_GROUPS.find(group => {
+    const start = group.start;
+    const end = group.end === 0 ? 100 : group.end;
+    return adjustedNumber >= start && adjustedNumber <= end;
+  });
 };
 
 // Função para obter todos os números de um grupo
-export const getGroupNumbers = (startNumber: number): number[] => {
-  const group = findBichoGroup(startNumber);
+export const getGroupNumbers = (number: number): number[] => {
+  const group = findBichoGroup(number);
   if (!group) return [];
 
   if (group.end === 0) { // Caso especial para o grupo 97-00
