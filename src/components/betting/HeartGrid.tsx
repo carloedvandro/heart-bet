@@ -46,7 +46,7 @@ const HeartGrid = ({ selectedHearts, mainHeart, onHeartClick }: HeartGridProps) 
     const pairs = selectedHearts.slice(1);
     if (pairs.includes(color)) return true;
     
-    // Se já temos 4 pares e o coração não é o principal, deve estar desabilitado
+    // Se já temos 4 pares, deve estar desabilitado (exceto o principal)
     if (pairs.length >= 4 && color !== mainHeart) return true;
     
     return false;
