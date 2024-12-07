@@ -45,16 +45,6 @@ export const useBetSubmission = (
       return;
     }
 
-    if (betType === "simple_group") {
-      // Verificar se temos o coração principal e 4 pares
-      const pairsCount = selectedHearts.filter(c => c !== mainHeart).length;
-      if (!mainHeart || pairsCount !== 4) {
-        playSounds.error();
-        toast.error("Para grupo simples, você precisa selecionar um coração principal e 4 corações para formar pares");
-        return;
-      }
-    }
-
     setIsSubmitting(true);
 
     const hasBalance = await checkBalance(session.user.id);
