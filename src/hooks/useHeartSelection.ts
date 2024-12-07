@@ -19,26 +19,12 @@ export const useHeartSelection = (
         console.log("🎈 Setting main heart:", color);
         setMainHeart(color);
         setSelectedHearts([color]);
-        toast.info("Agora escolha 4 corações para formar os pares");
+        toast.info("Agora escolha os corações para formar os pares");
         return;
       }
 
       // Obtém os pares já formados (excluindo o coração principal)
       const currentPairs = selectedHearts.slice(1);
-
-      // Trata o par reflexivo (clicando no coração principal novamente)
-      if (color === mainHeart) {
-        if (currentPairs.includes(mainHeart)) {
-          console.log("❌ Par reflexivo já existe");
-          playSounds.error();
-          toast.error("Você já formou o par reflexivo com este coração");
-          return;
-        }
-
-        console.log("✅ Adicionando par reflexivo");
-        setSelectedHearts(prev => [...prev, color]);
-        return;
-      }
 
       // Verifica se atingiu o máximo de pares (4 pares)
       if (currentPairs.length >= 4) {
@@ -49,7 +35,8 @@ export const useHeartSelection = (
       }
 
       // Verifica se o par já existe
-      if (currentPairs.includes(color)) {
+      const pairExists = currentPairs.includes(color);
+      if (pairExists) {
         console.log("❌ Par já existe");
         playSounds.error();
         toast.error("Este par já foi formado");

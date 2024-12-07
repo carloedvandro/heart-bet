@@ -9,7 +9,7 @@ interface PairsTableProps {
 const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
   if (!mainHeart) return null;
 
-  // Agrupa os pares em conjuntos de dois
+  // Cria um array de pares formatados para exibição
   const pairs = selectedPairs.map((pair, index) => ({
     id: index,
     mainHeart,

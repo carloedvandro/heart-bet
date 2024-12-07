@@ -24,7 +24,9 @@ const HeartGrid = ({ selectedHearts, mainHeart, onHeartClick }: HeartGridProps) 
   // Atualiza os pares selecionados quando selectedHearts muda
   useEffect(() => {
     if (selectedHearts.length > 1) {
-      setSelectedPairs(selectedHearts.slice(1));
+      // Pega apenas os pares (exclui o coração principal)
+      const pairs = selectedHearts.slice(1);
+      setSelectedPairs(pairs);
     } else {
       setSelectedPairs([]);
     }
@@ -35,6 +37,12 @@ const HeartGrid = ({ selectedHearts, mainHeart, onHeartClick }: HeartGridProps) 
     const intervalId = setInterval(shuffleHearts, 3000);
     return () => clearInterval(intervalId);
   }, []);
+
+  const isHeartDisabled = (color: string) => {
+    if (!mainHeart) return false;
+    if (color === mainHeart) return selectedPairs.includes(mainHeart);
+    return selectedPairs.includes(color);
+  };
 
   return (
     <div className="flex flex-col md:flex-row gap-8 items-start animate-fade-in">
@@ -53,11 +61,7 @@ const HeartGrid = ({ selectedHearts, mainHeart, onHeartClick }: HeartGridProps) 
               selected={selectedHearts.includes(color)}
               isMain={color === mainHeart}
               onClick={() => onHeartClick(color)}
-              disabled={
-                mainHeart &&
-                color !== mainHeart &&
-                selectedPairs.includes(color)
-              }
+              disabled={isHeartDisabled(color)}
             />
           ))}
         </div>
