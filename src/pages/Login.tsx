@@ -38,14 +38,15 @@ export default function Login() {
           // If no profile exists, create one
           if (!existingProfile) {
             console.log("No profile found, creating new profile for user:", session.user.id);
+            
             const { error: createError } = await supabase
               .from('profiles')
               .insert([
                 {
                   id: session.user.id,
                   email: session.user.email,
-                  is_admin: false, // explicitly set default value
-                  balance: 0 // set initial balance
+                  balance: 0,
+                  is_admin: false
                 }
               ]);
 
@@ -54,9 +55,10 @@ export default function Login() {
               toast.error("Erro ao criar perfil");
               return;
             }
+            
             console.log("Profile created successfully");
           } else {
-            console.log("Existing profile found");
+            console.log("Existing profile found:", existingProfile);
           }
 
           // Navigate to dashboard after ensuring profile exists
