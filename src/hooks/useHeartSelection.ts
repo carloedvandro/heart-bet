@@ -20,11 +20,8 @@ export const useHeartSelection = (
       }
 
       // Se já temos o coração principal
-      const pairsCount = selectedHearts.filter(c => c !== mainHeart).length;
       const selectedPairs = selectedHearts.filter(c => c !== mainHeart);
-
-      // Verifica se já usou o coração principal com ele mesmo
-      const usedWithItself = selectedPairs.includes(mainHeart);
+      const pairsCount = selectedPairs.length;
 
       // Se já selecionou todos os pares necessários
       if (pairsCount >= 4) {
@@ -40,7 +37,8 @@ export const useHeartSelection = (
 
       // Se está tentando usar o coração principal com ele mesmo
       if (color === mainHeart) {
-        if (!usedWithItself) {
+        const timesUsed = selectedPairs.filter(c => c === mainHeart).length;
+        if (timesUsed === 0) {
           // Permite usar o coração principal com ele mesmo apenas uma vez
           setSelectedHearts(prev => [...prev, color]);
         } else {
