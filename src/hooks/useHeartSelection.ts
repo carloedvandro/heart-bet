@@ -23,14 +23,6 @@ export const useHeartSelection = (
         return;
       }
 
-      // Se o coração clicado é o mesmo que o principal
-      if (color === mainHeart) {
-        console.log("❌ Não é possível usar o coração principal como par");
-        playSounds.error();
-        toast.error("O coração principal não pode ser usado como par");
-        return;
-      }
-
       // Obtém apenas os pares formados (excluindo o coração principal)
       const currentPairs = selectedHearts.slice(1);
       console.log("Current pairs:", currentPairs);
@@ -43,11 +35,13 @@ export const useHeartSelection = (
         return;
       }
 
-      // Se o coração clicado já está em um par, não permite adicionar novamente
+      // Se o coração clicado já está em um par, remove ele
       if (currentPairs.includes(color)) {
-        console.log("❌ Coração já usado em um par");
-        playSounds.error();
-        toast.error("Este coração já foi usado em um par");
+        console.log("🗑️ Removendo par:", color);
+        setSelectedHearts([
+          mainHeart,
+          ...currentPairs.filter(heart => heart !== color)
+        ]);
         return;
       }
 
