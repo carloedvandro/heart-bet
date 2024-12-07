@@ -11,9 +11,18 @@ export const useHeartSelection = (
   setSelectedHearts: React.Dispatch<React.SetStateAction<string[]>>
 ) => {
   const handleHeartClick = (color: string) => {
+    console.log("🎯 Heart clicked:", color);
+    console.log("📍 Current state:", {
+      betType,
+      mainHeart,
+      selectedHearts,
+      selectedHeartCount: selectedHearts.length
+    });
+
     if (betType === "simple_group") {
       // Se ainda não temos um coração principal
       if (!mainHeart) {
+        console.log("🎈 Setting main heart:", color);
         setMainHeart(color);
         setSelectedHearts([color]);
         toast.info("Agora escolha 4 corações para formar os pares");
@@ -21,44 +30,46 @@ export const useHeartSelection = (
       }
 
       // Se já temos o coração principal
-      const selectedPairs = selectedHearts.filter(c => c !== mainHeart);
-      const pairsCount = selectedPairs.length;
+      const mainNumber = getNumberForHeart(mainHeart);
+      console.log("🎲 Main heart number:", mainNumber);
 
       // Se já selecionou todos os pares necessários
-      if (pairsCount >= 4) {
-        if (!selectedHearts.includes(color)) {
-          playSounds.error();
-          toast.error("Você já selecionou todos os pares necessários");
-          return;
-        }
-        // Permite remover um coração já selecionado
-        setSelectedHearts(prev => prev.filter(c => c !== color));
+      const selectedPairs = selectedHearts.filter(c => c !== mainHeart);
+      console.log("🎭 Current selected pairs:", selectedPairs);
+      
+      if (selectedPairs.length >= 4) {
+        console.log("❌ Maximum pairs reached");
+        playSounds.error();
+        toast.error("Você já selecionou todos os pares necessários");
         return;
       }
 
       // Verifica se o par já existe
       const existingPairs = selectedPairs.map(pairColor => {
-        const mainNumber = getNumberForHeart(mainHeart);
         const pairNumber = getNumberForHeart(pairColor);
         return mainNumber < pairNumber 
           ? `${mainNumber}${pairNumber}` 
           : `${pairNumber}${mainNumber}`;
       });
+      
+      console.log("🔍 Existing pairs:", existingPairs);
 
-      // Verifica se o novo par já existe
-      const mainNumber = getNumberForHeart(mainHeart);
+      // Verifica o novo par que seria formado
       const newPairNumber = getNumberForHeart(color);
       const newPair = mainNumber < newPairNumber 
         ? `${mainNumber}${newPairNumber}` 
         : `${newPairNumber}${mainNumber}`;
+      
+      console.log("🆕 Attempting to form new pair:", newPair);
 
       if (existingPairs.includes(newPair)) {
+        console.log("❌ Pair already exists");
         playSounds.error();
         toast.error("Este par já foi formado");
         return;
       }
 
-      // Adiciona o novo par
+      console.log("✅ Adding new heart to selection:", color);
       setSelectedHearts(prev => [...prev, color]);
     } else {
       // Lógica para outros tipos de apostas
