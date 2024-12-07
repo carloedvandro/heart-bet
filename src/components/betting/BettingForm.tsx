@@ -29,8 +29,8 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
   const renderPairs = () => {
     if (betType !== "simple_group" || !mainHeart || selectedHearts.length <= 1) return null;
 
-    // Filter out the main heart from the pairs display
-    const pairHearts = selectedHearts.filter((_, index) => index > 0);
+    // Filter valid pairs (excluding main heart)
+    const pairHearts = selectedHearts.filter(heart => heart !== mainHeart);
 
     return (
       <div className="mt-4 space-y-2">
@@ -38,7 +38,7 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
         <div className="grid grid-cols-2 gap-2">
           {pairHearts.map((heart, index) => (
             <div 
-              key={`${heart}-${index}`} 
+              key={`${mainHeart}-${heart}-${index}`}
               className="flex items-center gap-2 p-2 bg-gray-100 rounded-md"
             >
               <div 

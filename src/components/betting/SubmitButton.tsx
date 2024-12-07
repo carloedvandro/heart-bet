@@ -16,15 +16,17 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
     if (isSubmitting) return false;
 
     if (betType === "simple_group") {
-      // Verifica se temos um coração principal
+      // Validate main heart
       if (!mainHeart) return false;
-      
-      // Filtra os pares (excluindo o coração principal)
-      const pairs = selectedHearts.filter(heart => heart !== mainHeart);
+
+      // Filter valid pairs (excluding main heart)
+      const pairs = selectedHearts.filter((heart) => heart !== mainHeart);
+
+      // We need exactly 4 pairs to enable the button
       return pairs.length === 4;
     }
 
-    // Para outros tipos de aposta, mantemos a lógica original
+    // Logic for other bet types
     return selectedHearts.length === 4;
   };
 
