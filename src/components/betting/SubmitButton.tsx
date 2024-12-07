@@ -18,7 +18,7 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
       selectedHearts,
       totalHearts: selectedHearts.length,
       hasMainHeart: Boolean(mainHeart),
-      pairsCount: selectedHearts.filter(heart => heart !== mainHeart).length
+      pairsCount: selectedHearts.length - (mainHeart ? 1 : 0)
     });
 
     if (!session) return false;
@@ -27,9 +27,8 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
     if (betType === "simple_group") {
       // Para grupo simples, precisamos de:
       // 1. Um coração principal selecionado
-      // 2. Exatamente 4 corações diferentes do principal para formar os pares
-      const pairsCount = selectedHearts.filter(heart => heart !== mainHeart).length;
-      return Boolean(mainHeart) && pairsCount === 4;
+      // 2. Exatamente 4 pares (que podem ser gerados automaticamente)
+      return Boolean(mainHeart) && selectedHearts.length === 5; // Principal + 4 pares = 5 corações
     }
 
     // Para outros tipos de aposta
@@ -44,10 +43,12 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
       if (betType === "simple_group") {
         if (!mainHeart) return "Selecione 1 coração principal";
         
-        const pairsCount = selectedHearts.filter(heart => heart !== mainHeart).length;
-        if (pairsCount === 0) return "Selecione 4 pares";
-        if (pairsCount < 4) return `Selecione mais ${4 - pairsCount} par(es)`;
-        if (pairsCount > 4) return "Remova alguns pares (máximo 4)";
+        const totalSelected = selectedHearts.length;
+        const pairsNeeded = 4 - (totalSelected - 1);
+        
+        if (totalSelected === 1) return "Selecione 4 pares";
+        if (pairsNeeded > 0) return `Selecione mais ${pairsNeeded} par(es)`;
+        if (totalSelected > 5) return "Remova alguns pares (máximo 4)";
       } else {
         return "Selecione 4 corações";
       }
