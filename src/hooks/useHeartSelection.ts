@@ -1,6 +1,7 @@
 import { toast } from "sonner";
 import { BetType } from "@/types/betting";
 import { playSounds } from "@/utils/soundEffects";
+import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
 export const useHeartSelection = (
   betType: BetType,
@@ -35,20 +36,42 @@ export const useHeartSelection = (
         return;
       }
 
+      // Verifica se o par já existe
+      const existingPairs = selectedPairs.map(pairColor => {
+        const mainNumber = getNumberForHeart(mainHeart);
+        const pairNumber = getNumberForHeart(pairColor);
+        return mainNumber < pairNumber 
+          ? `${mainNumber}${pairNumber}` 
+          : `${pairNumber}${mainNumber}`;
+      });
+
+      // Verifica se o novo par já existe
+      const mainNumber = getNumberForHeart(mainHeart);
+      const newPairNumber = getNumberForHeart(color);
+      const newPair = mainNumber < newPairNumber 
+        ? `${mainNumber}${newPairNumber}` 
+        : `${newPairNumber}${mainNumber}`;
+
+      if (existingPairs.includes(newPair)) {
+        playSounds.error();
+        toast.error("Este par já foi formado");
+        return;
+      }
+
       // Se está tentando usar o coração principal com ele mesmo
       if (color === mainHeart) {
-        const timesUsed = selectedPairs.filter(c => c === mainHeart).length;
-        if (timesUsed === 0) {
+        const selfPair = `${mainNumber}${mainNumber}`;
+        if (!existingPairs.includes(selfPair)) {
           // Permite usar o coração principal com ele mesmo apenas uma vez
           setSelectedHearts(prev => [...prev, color]);
         } else {
           playSounds.error();
-          toast.error("Este coração já foi usado com ele mesmo");
+          toast.error("Par igual já foi formado");
         }
         return;
       }
 
-      // Adiciona o coração selecionado aos pares
+      // Adiciona o novo par
       setSelectedHearts(prev => [...prev, color]);
     } else {
       // Lógica para outros tipos de apostas
