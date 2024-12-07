@@ -29,6 +29,13 @@ const SplitCircle = ({ firstColor, secondColor }: { firstColor: string, secondCo
   </div>
 );
 
+const SingleCircle = ({ color }: { color: string }) => (
+  <div 
+    className="w-4 h-4 rounded-full border border-gray-300 inline-block mr-1"
+    style={{ backgroundColor: `var(--heart-${color})` }}
+  />
+);
+
 export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
   const session = useSession();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -62,21 +69,25 @@ export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
     if (isAdmin) {
       return bet.numbers?.join(", ") || "N/A";
     }
-    return bet.hearts?.map((color, index, array) => {
-      if (index % 2 === 0) {
-        const nextColor = array[index + 1];
-        if (nextColor) {
-          return (
-            <SplitCircle 
-              key={`${color}-${nextColor}`}
-              firstColor={color}
-              secondColor={nextColor}
-            />
-          );
-        }
-      }
-      return null;
-    }).filter(Boolean);
+
+    if (!bet.hearts?.length) return "N/A";
+
+    // Se for grupo simples, o primeiro coração é o principal
+    if (bet.bet_type === "simple_group") {
+      const mainHeart = bet.hearts[0];
+      return bet.hearts.slice(1).map((pairHeart, index) => (
+        <SplitCircle 
+          key={`${mainHeart}-${pairHeart}-${index}`}
+          firstColor={mainHeart}
+          secondColor={pairHeart}
+        />
+      ));
+    }
+
+    // Para outros tipos de aposta, mostrar círculos individuais
+    return bet.hearts.map((color, index) => (
+      <SingleCircle key={`${color}-${index}`} color={color} />
+    ));
   };
 
   return (
