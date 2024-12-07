@@ -29,26 +29,27 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
   const renderPairs = () => {
     if (betType !== "simple_group" || !mainHeart || selectedHearts.length <= 1) return null;
 
-    // Skip the first heart (main heart) when displaying pairs
-    const pairs = selectedHearts.slice(1);
+    // Exibe todos os pares formados, incluindo pares reflexivos
+    const pairs = selectedHearts.map((heart, index) => ({
+      main: mainHeart,
+      pair: heart,
+      key: `${mainHeart}-${heart}-${index}`,
+    }));
 
     return (
       <div className="mt-4 space-y-2">
         <h3 className="text-sm font-medium text-gray-700">Pares formados:</h3>
         <div className="grid grid-cols-2 gap-2">
-          {pairs.map((heart, index) => (
-            <div 
-              key={`${mainHeart}-${heart}-${index}`}
-              className="flex items-center gap-2 p-2 bg-gray-100 rounded-md"
-            >
-              <div 
+          {pairs.map(({ main, pair, key }) => (
+            <div key={key} className="flex items-center gap-2 p-2 bg-gray-100 rounded-md">
+              <div
                 className="w-8 h-8 rounded-full border-2 border-gray-300 shadow-sm"
-                style={{ backgroundColor: `var(--heart-${mainHeart})` }}
+                style={{ backgroundColor: `var(--heart-${main})` }}
               />
               <span className="text-xl font-bold">+</span>
-              <div 
+              <div
                 className="w-8 h-8 rounded-full border-2 border-gray-300 shadow-sm"
-                style={{ backgroundColor: `var(--heart-${heart})` }}
+                style={{ backgroundColor: `var(--heart-${pair})` }}
               />
             </div>
           ))}
