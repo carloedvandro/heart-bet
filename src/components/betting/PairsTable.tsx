@@ -9,31 +9,18 @@ interface PairsTableProps {
 }
 
 const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
-  // Obtém o número do coração principal
-  const mainNumber = mainHeart ? getNumberForHeart(mainHeart) : null;
-  
-  // Obtém todos os números do grupo se houver um coração principal
-  const groupNumbers = mainNumber ? getGroupNumbers(mainNumber) : [];
-
-  // Cria um array de 4 posições para os pares
-  const pairs = groupNumbers.map((number, index) => {
-    const pairedHeart = selectedPairs[index] || null;
-    let numberPair = null;
-
-    if (mainHeart && pairedHeart) {
-      const mainNumber = getNumberForHeart(mainHeart);
-      const pairNumber = getNumberForHeart(pairedHeart);
-      numberPair = `${number}`;
+  // Obtém os números do grupo quando temos dois corações selecionados
+  const getGroupNumbersFromHearts = () => {
+    if (mainHeart && selectedPairs.length > 0) {
+      const firstNumber = getNumberForHeart(mainHeart);
+      const secondNumber = getNumberForHeart(selectedPairs[0]);
+      const twoDigitNumber = firstNumber * 10 + secondNumber;
+      return getGroupNumbers(twoDigitNumber);
     }
+    return [];
+  };
 
-    return {
-      id: index + 1,
-      mainHeart,
-      pairedHeart,
-      numberPair,
-      groupNumber: number
-    };
-  });
+  const groupNumbers = getGroupNumbersFromHearts();
 
   return (
     <div className="w-full bg-white/90 backdrop-blur rounded-lg shadow-lg p-4 animate-fade-in">
@@ -47,8 +34,8 @@ const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {pairs.map(({ id, mainHeart, pairedHeart, groupNumber }) => (
-            <TableRow key={id}>
+          {groupNumbers.map((number, index) => (
+            <TableRow key={index}>
               <TableCell>
                 {mainHeart && (
                   <Heart
@@ -59,16 +46,16 @@ const PairsTable = ({ mainHeart, selectedPairs }: PairsTableProps) => {
                 )}
               </TableCell>
               <TableCell>
-                {pairedHeart && (
+                {index === 0 && selectedPairs[0] && (
                   <Heart
                     className="w-8 h-8"
-                    fill={`var(--heart-${pairedHeart})`}
+                    fill={`var(--heart-${selectedPairs[0]})`}
                     stroke="black"
                   />
                 )}
               </TableCell>
               <TableCell className="font-mono text-lg">
-                {groupNumber.toString().padStart(2, '0')}
+                {number.toString().padStart(2, '0')}
               </TableCell>
             </TableRow>
           ))}

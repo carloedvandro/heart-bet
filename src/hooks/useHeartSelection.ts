@@ -19,7 +19,7 @@ export const useHeartSelection = (
       console.log("🎈 Setting main heart:", color);
       setMainHeart(color);
       setSelectedHearts([color]);
-      toast.info("Agora escolha o segundo coração para formar o par");
+      playSounds.click();
       return;
     }
 
@@ -28,7 +28,7 @@ export const useHeartSelection = (
       const firstNumber = getNumberForHeart(mainHeart);
       const secondNumber = getNumberForHeart(color);
       
-      // Formar o número com dois dígitos mantendo a ordem exata da seleção
+      // Formar o número com dois dígitos
       const twoDigitNumber = firstNumber * 10 + secondNumber;
       
       console.log("🎲 Formed number:", twoDigitNumber);
@@ -37,9 +37,10 @@ export const useHeartSelection = (
       const groupNumbers = getGroupNumbers(twoDigitNumber);
       console.log("🎯 Group numbers:", groupNumbers);
       
-      // Atualizar a seleção com os dois corações na ordem de seleção
+      // Atualizar a seleção com os dois corações
       setSelectedHearts([mainHeart, color]);
-      toast.success(`Grupo formado: ${groupNumbers.join(", ")}`);
+      playSounds.click();
+      toast.success(`Grupo formado: ${groupNumbers.map(n => n.toString().padStart(2, '0')).join(", ")}`);
       return;
     }
   };
