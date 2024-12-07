@@ -42,7 +42,7 @@ export const useHeartSelection = (
           return;
         }
 
-        // Adiciona o par reflexivo
+        // Adiciona apenas um par reflexivo
         console.log("✅ Adding reflexive pair:", color);
         setSelectedHearts((prev) => [...prev, color]);
         return;
