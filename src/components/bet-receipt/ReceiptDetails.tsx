@@ -3,9 +3,7 @@ import { getBetTypeName, getDrawPeriodName } from "@/utils/betFormatters";
 import { calculatePrize, Position } from "@/types/betting";
 import { Bet } from "@/integrations/supabase/custom-types";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useSession } from "@supabase/auth-helpers-react";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useAdminStatus } from "@/hooks/useAdminStatus";
 
 interface ReceiptDetailsProps {
   bet: Bet;
@@ -14,33 +12,7 @@ interface ReceiptDetailsProps {
 const ReceiptDetails = ({ bet }: ReceiptDetailsProps) => {
   const potentialPrize = calculatePrize(bet.bet_type, bet.position as Position, Number(bet.amount));
   const isMobile = useIsMobile();
-  const session = useSession();
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      try {
-        if (!session?.user?.id) return;
-
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', session.user.id)
-          .maybeSingle();
-        
-        if (error) {
-          console.error('Error fetching admin status:', error);
-          return;
-        }
-
-        setIsAdmin(!!profile?.is_admin);
-      } catch (error) {
-        console.error('Error in checkAdminStatus:', error);
-      }
-    };
-
-    checkAdminStatus();
-  }, [session?.user?.id]);
+  const { isAdmin } = useAdminStatus();
 
   const textSizeClass = isMobile ? "text-xs" : "text-sm";
 

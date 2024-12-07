@@ -5,11 +5,9 @@ import { format } from "date-fns";
 import { calculatePrize, Position } from "@/types/betting";
 import { getBetTypeName, getDrawPeriodName } from "@/utils/betFormatters";
 import { Receipt } from "lucide-react";
-import { useSession } from "@supabase/auth-helpers-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
 import { BetCircles } from "./bet-display/BetCircles";
 import { PrizeStatus } from "./bet-display/PrizeStatus";
+import { useAdminStatus } from "@/hooks/useAdminStatus";
 
 interface BetTableRowProps {
   bet: Bet;
@@ -17,33 +15,7 @@ interface BetTableRowProps {
 }
 
 export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
-  const session = useSession();
-  const [isAdmin, setIsAdmin] = useState(false);
-
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      try {
-        if (!session?.user?.id) return;
-
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', session.user.id)
-          .maybeSingle();
-        
-        if (error) {
-          console.error('Error fetching admin status:', error);
-          return;
-        }
-
-        setIsAdmin(!!profile?.is_admin);
-      } catch (error) {
-        console.error('Error in checkAdminStatus:', error);
-      }
-    };
-
-    checkAdminStatus();
-  }, [session?.user?.id]);
+  const { isAdmin } = useAdminStatus();
 
   return (
     <TableRow>
