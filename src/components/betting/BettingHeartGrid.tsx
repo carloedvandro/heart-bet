@@ -32,7 +32,7 @@ const BettingHeartGrid = memo(({ betType }: BettingHeartGridProps) => {
   const getMaxSelections = (type: BetType) => {
     switch (type) {
       case "simple_group":
-        return 1;
+        return 2;
       case "dozen":
         return 2;
       case "hundred":
@@ -40,7 +40,7 @@ const BettingHeartGrid = memo(({ betType }: BettingHeartGridProps) => {
       case "thousand":
         return 4;
       default:
-        return 1;
+        return 2;
     }
   };
 
@@ -49,7 +49,7 @@ const BettingHeartGrid = memo(({ betType }: BettingHeartGridProps) => {
     
     if (selectedHearts.length < maxSelections) {
       setSelectedHearts(prev => [...prev, color]);
-      if (betType === "simple_group") {
+      if (betType === "simple_group" && selectedHearts.length === 0) {
         setMainHeart(color);
       }
     }
@@ -66,6 +66,12 @@ const BettingHeartGrid = memo(({ betType }: BettingHeartGridProps) => {
 
     return () => clearInterval(interval);
   }, []);
+
+  // Reset selections when bet type changes
+  useEffect(() => {
+    setSelectedHearts([]);
+    setMainHeart(null);
+  }, [betType]);
 
   return (
     <div className="flex flex-col gap-8 items-center animate-fade-in">
