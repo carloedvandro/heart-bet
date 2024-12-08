@@ -9,7 +9,7 @@ interface AudioPlayerProps {
   audioUrl?: string;
 }
 
-export const AudioPlayer = ({ showPlayer, audioUrl = "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_sentena.mp3" }: AudioPlayerProps) => {
+export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -21,6 +21,7 @@ export const AudioPlayer = ({ showPlayer, audioUrl = "https://mwdaxgwuztccxfgbus
   const cleanupAudio = () => {
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.currentTime = 0;
       audioRef.current = null;
     }
     setIsPlaying(false);
@@ -34,6 +35,12 @@ export const AudioPlayer = ({ showPlayer, audioUrl = "https://mwdaxgwuztccxfgbus
       cleanupAudio();
     };
   }, [audioUrl]);
+
+  useEffect(() => {
+    if (!showPlayer) {
+      cleanupAudio();
+    }
+  }, [showPlayer]);
 
   useEffect(() => {
     if (audioRef.current) {
@@ -53,28 +60,30 @@ export const AudioPlayer = ({ showPlayer, audioUrl = "https://mwdaxgwuztccxfgbus
   }, [audioRef.current]);
 
   const playRules = () => {
-    if (!audioRef.current) {
+    if (!audioRef.current && audioUrl) {
       audioRef.current = new Audio(audioUrl);
       audioRef.current.volume = 0.7;
       audioRef.current.playbackRate = Number(playbackSpeed);
     }
 
-    setIsPlaying(true);
-    setIsPaused(false);
-    
-    audioRef.current.play()
-      .catch(error => {
-        console.error("Error playing audio:", error);
+    if (audioRef.current) {
+      setIsPlaying(true);
+      setIsPaused(false);
+      
+      audioRef.current.play()
+        .catch(error => {
+          console.error("Error playing audio:", error);
+          setIsPlaying(false);
+          setIsPaused(false);
+        });
+
+      audioRef.current.onended = () => {
         setIsPlaying(false);
         setIsPaused(false);
-      });
-
-    audioRef.current.onended = () => {
-      setIsPlaying(false);
-      setIsPaused(false);
-      audioRef.current = null;
-      setCurrentTime(0);
-    };
+        audioRef.current = null;
+        setCurrentTime(0);
+      };
+    }
   };
 
   const handlePlayPause = () => {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bet } from "@/integrations/supabase/custom-types";
 import BettingForm from "./betting/BettingForm";
 import BetReceipt from "./BetReceipt";
@@ -26,6 +26,17 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   const [pendingBet, setPendingBet] = useState<Bet | null>(null);
   const [currentBetType, setCurrentBetType] = useState<BetType>("simple_group");
   const { clearCombinations } = useTemporaryBetState();
+
+  // Cleanup audio when component unmounts
+  useEffect(() => {
+    return () => {
+      const audio = document.querySelector('audio');
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+      }
+    };
+  }, []);
 
   const handleReset = () => {
     setLastBet(null);
@@ -71,19 +82,20 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
 
   return (
     <div className="flex flex-col items-center space-y-8 p-8">
-      <AudioPlayer 
-        showPlayer={!lastBet} 
-        audioUrl={getAudioUrl(currentBetType)}
-      />
-      
       {lastBet ? (
         <BetReceipt bet={lastBet} onReset={handleReset} />
       ) : (
-        <BettingForm 
-          onBetPlaced={handleBetPlaced} 
-          initialBetType={currentBetType}
-          key={pendingBet ? undefined : 'new-bet'} 
-        />
+        <>
+          <BettingForm 
+            onBetPlaced={handleBetPlaced} 
+            initialBetType={currentBetType}
+            key={pendingBet ? undefined : 'new-bet'} 
+          />
+          <AudioPlayer 
+            showPlayer={!lastBet} 
+            audioUrl={getAudioUrl(currentBetType)}
+          />
+        </>
       )}
 
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
