@@ -46,6 +46,18 @@ export const useHeartSelection = (
       return true;
     }
 
+    // Para aposta do tipo milhar (thousand), permitir exatamente 4 seleções
+    if (betType === "thousand") {
+      if (selectedHearts.length >= 4) {
+        toast.error("Máximo de 4 corações para milhar");
+        return false;
+      }
+      
+      setSelectedHearts([...selectedHearts, color]);
+      playSounds.click();
+      return true;
+    }
+
     // Lógica para outros tipos de aposta
     if (selectedHearts.includes(color)) {
       setSelectedHearts(selectedHearts.filter(h => h !== color));
