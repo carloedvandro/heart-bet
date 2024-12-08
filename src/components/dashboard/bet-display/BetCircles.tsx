@@ -34,14 +34,17 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
   console.log("BetCircles - hearts:", hearts);
   console.log("BetCircles - betType:", betType);
 
-  if (!hearts?.length && !numbers?.length) return <span>N/A</span>;
+  // Se não houver números nem corações, retorna N/A
+  if (!numbers?.length && !hearts?.length) {
+    return <span>N/A</span>;
+  }
 
-  // Para grupo simples, mostrar todos os números gerados
-  if (betType === "simple_group" && numbers?.length) {
+  // Se houver números, mostra eles
+  if (numbers?.length) {
     return <span>{numbers.join(", ")}</span>;
   }
 
-  // Para outros tipos de apostas, mostrar os números correspondentes aos corações
+  // Se não houver números mas houver corações, mostra os números correspondentes aos corações
   if (hearts?.length) {
     const heartNumbers = hearts.map(heart => {
       const colors = Object.entries(getHeartForNumber);
