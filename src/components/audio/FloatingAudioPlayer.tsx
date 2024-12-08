@@ -28,7 +28,7 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
   } = useAudioPlayer(audioUrl);
 
   const handleClose = () => {
-    cleanup();
+    cleanup(); // Chama a função cleanup que agora reseta todos os estados
     onClose();
   };
 

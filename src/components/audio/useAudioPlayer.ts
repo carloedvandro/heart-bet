@@ -131,7 +131,11 @@ export const useAudioPlayer = (audioUrl: string) => {
   const cleanup = () => {
     if (audioRef.current) {
       audioRef.current.pause();
+      audioRef.current.currentTime = 0; // Reset a posição do áudio para o início
       setIsPlaying(false);
+      setCurrentTime(0); // Reset o estado do tempo atual
+      setIsMuted(false); // Reset o estado do mute
+      setVolume(1); // Reset o volume para o padrão
     }
   };
 
