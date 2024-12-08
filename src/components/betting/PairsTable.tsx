@@ -12,14 +12,14 @@ const PairsTable = ({ mainHeart, selectedPairs, betType = "simple_group" }: Pair
     if (betType === "dozen") {
       return `Dezena (${selectedPairs.length}/2)`;
     }
-    // Para grupo simples, contamos o coração principal e o segundo coração
-    const totalSelected = mainHeart ? selectedPairs.length + 1 : selectedPairs.length;
+    
+    // Para grupo simples, contamos o coração principal como uma seleção
+    const totalSelected = mainHeart ? 1 + (selectedPairs.length > 0 ? 1 : 0) : 0;
     return `Números do Grupo (${totalSelected}/2)`;
   };
 
   const renderPairs = () => {
     if (betType === "dozen") {
-      // Para dezena, mostramos todos os números selecionados
       return (
         <div className="grid grid-cols-1 gap-2">
           {selectedPairs.map((heart, index) => (
@@ -38,15 +38,17 @@ const PairsTable = ({ mainHeart, selectedPairs, betType = "simple_group" }: Pair
 
     // Para grupo simples
     if (mainHeart) {
+      const mainNumber = getNumberForHeart(mainHeart);
+      const secondNumber = selectedPairs.length > 0 ? getNumberForHeart(selectedPairs[0]) : "-";
+      const combination = selectedPairs.length > 0 
+        ? `${mainNumber}${secondNumber}`
+        : "-";
+
       return (
         <div className="grid grid-cols-3 gap-2 py-2 border-t border-gray-100">
-          <div>{getNumberForHeart(mainHeart)}</div>
-          <div>{selectedPairs.length > 0 ? getNumberForHeart(selectedPairs[0]) : "-"}</div>
-          <div>
-            {mainHeart && selectedPairs.length > 0
-              ? `${getNumberForHeart(mainHeart)}${getNumberForHeart(selectedPairs[0])}`
-              : "-"}
-          </div>
+          <div>{mainNumber}</div>
+          <div>{secondNumber}</div>
+          <div>{combination}</div>
         </div>
       );
     }
