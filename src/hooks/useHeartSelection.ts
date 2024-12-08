@@ -17,34 +17,71 @@ export const useHeartSelection = (
   const handleHeartClick = (color: string) => {
     console.log("🎯 Heart clicked:", color);
 
-    if (!mainHeart) {
-      console.log("🎈 Setting main heart:", color);
-      setMainHeart(color);
-      setSelectedHearts([color]);
+    // Lógica para grupo simples
+    if (betType === "simple_group") {
+      if (!mainHeart) {
+        console.log("🎈 Setting main heart:", color);
+        setMainHeart(color);
+        setSelectedHearts([color]);
+        playSounds.click();
+        return;
+      }
+
+      if (selectedHearts.length === 1) {
+        const firstNumber = getNumberForHeart(mainHeart);
+        const secondNumber = getNumberForHeart(color);
+        const twoDigitNumber = firstNumber * 10 + secondNumber;
+        
+        console.log("🎲 First number:", firstNumber);
+        console.log("🎲 Second number:", secondNumber);
+        console.log("🎲 Formed number:", twoDigitNumber);
+        
+        const groupNumbers = getGroupNumbers(twoDigitNumber);
+        console.log("🎯 Group numbers:", groupNumbers);
+        
+        setSelectedHearts([mainHeart, color]);
+        setCombinations(groupNumbers);
+        playSounds.click();
+        toast.success(`Grupo formado: ${groupNumbers.map(n => n.toString().padStart(2, '0')).join(", ")}`);
+        return;
+      }
+    }
+
+    // Lógica para dezena
+    if (betType === "dozen") {
+      if (selectedHearts.length >= 2) {
+        toast.error("Máximo de 2 corações para dezena");
+        return;
+      }
+
+      const newSelectedHearts = [...selectedHearts, color];
+      setSelectedHearts(newSelectedHearts);
+      playSounds.click();
+
+      if (newSelectedHearts.length === 2) {
+        const firstNumber = getNumberForHeart(newSelectedHearts[0]);
+        const secondNumber = getNumberForHeart(newSelectedHearts[1]);
+        const twoDigitNumber = firstNumber * 10 + secondNumber;
+        setCombinations([twoDigitNumber]);
+        toast.success(`Dezena formada: ${twoDigitNumber.toString().padStart(2, '0')}`);
+      }
+      return;
+    }
+
+    // Lógica para outros tipos de aposta
+    if (selectedHearts.includes(color)) {
+      setSelectedHearts(selectedHearts.filter(h => h !== color));
       playSounds.click();
       return;
     }
 
-    if (selectedHearts.length === 1) {
-      const firstNumber = getNumberForHeart(mainHeart);
-      const secondNumber = getNumberForHeart(color);
-      
-      // Formar o número de dois dígitos mantendo a ordem de seleção
-      const twoDigitNumber = firstNumber * 10 + secondNumber;
-      
-      console.log("🎲 First number:", firstNumber);
-      console.log("🎲 Second number:", secondNumber);
-      console.log("🎲 Formed number:", twoDigitNumber);
-      
-      const groupNumbers = getGroupNumbers(twoDigitNumber);
-      console.log("🎯 Group numbers:", groupNumbers);
-      
-      setSelectedHearts([mainHeart, color]);
-      setCombinations(groupNumbers);
-      playSounds.click();
-      toast.success(`Grupo formado: ${groupNumbers.map(n => n.toString().padStart(2, '0')).join(", ")}`);
+    if (selectedHearts.length >= 4) {
+      toast.error("Máximo de 4 corações");
       return;
     }
+
+    setSelectedHearts([...selectedHearts, color]);
+    playSounds.click();
   };
 
   return { handleHeartClick };

@@ -24,13 +24,13 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
     if (isSubmitting) return false;
 
     if (betType === "simple_group") {
-      // Para grupo simples, precisamos de:
-      // 1. Um coração principal selecionado
-      // 2. Pelo menos 1 par (os outros serão gerados automaticamente)
       return Boolean(mainHeart) && selectedHearts.length >= 2;
     }
 
-    // Para outros tipos de aposta
+    if (betType === "dozen") {
+      return selectedHearts.length === 2;
+    }
+
     return selectedHearts.length === 4;
   };
 
@@ -42,6 +42,8 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
       if (betType === "simple_group") {
         if (!mainHeart) return "Selecione 1 coração principal";
         if (selectedHearts.length === 1) return "Selecione pelo menos 1 par";
+      } else if (betType === "dozen") {
+        return `Selecione ${2 - selectedHearts.length} coração(ões)`;
       } else {
         return "Selecione 4 corações";
       }
