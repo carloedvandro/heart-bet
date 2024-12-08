@@ -17,6 +17,24 @@ export const AudioPlayer = ({ showPlayer, audioUrl = "https://mwdaxgwuztccxfgbus
   const [playbackSpeed, setPlaybackSpeed] = useState("1");
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Cleanup function to stop audio and reset state
+  const cleanupAudio = () => {
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current = null;
+    }
+    setIsPlaying(false);
+    setIsPaused(false);
+    setCurrentTime(0);
+  };
+
+  // Cleanup on unmount or when audioUrl changes
+  useEffect(() => {
+    return () => {
+      cleanupAudio();
+    };
+  }, [audioUrl]);
+
   useEffect(() => {
     if (audioRef.current) {
       const updateTime = () => {
