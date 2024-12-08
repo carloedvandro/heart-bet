@@ -5,9 +5,9 @@ import SubmitButton from "./SubmitButton";
 import { Bet } from "@/integrations/supabase/custom-types";
 import { BetType } from "@/types/betting";
 import { Button } from "../ui/button";
-import { Eraser, Volume2 } from "lucide-react";
+import { Eraser, Pause, Play, Volume2 } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useState, useRef } from "react";
 
 interface BettingFormProps {
   onBetPlaced: (bet: Bet) => void;
@@ -16,6 +16,9 @@ interface BettingFormProps {
 
 const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  
   const {
     selectedHearts,
     mainHeart,
@@ -40,20 +43,39 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
   };
 
   const playRules = () => {
-    const audio = new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Primeiro_selecione_um_coracao_para_formar_o_grupo2.mp3");
-    audio.volume = 0.7;
+    if (!audioRef.current) {
+      audioRef.current = new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Primeiro_selecione_um_coracao_para_formar_o_grupo2.mp3");
+      audioRef.current.volume = 0.7;
+    }
+
     setIsPlaying(true);
+    setIsPaused(false);
     
-    audio.play()
+    audioRef.current.play()
       .catch(error => {
         console.error("Error playing audio:", error);
         toast.error("Erro ao reproduzir áudio das regras");
         setIsPlaying(false);
+        setIsPaused(false);
       });
 
-    audio.onended = () => {
+    audioRef.current.onended = () => {
       setIsPlaying(false);
+      setIsPaused(false);
+      audioRef.current = null;
     };
+  };
+
+  const handlePlayPause = () => {
+    if (!audioRef.current) return;
+
+    if (isPaused) {
+      audioRef.current.play();
+      setIsPaused(false);
+    } else {
+      audioRef.current.pause();
+      setIsPaused(true);
+    }
   };
 
   return (
@@ -70,15 +92,33 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
       />
 
       {betType === "simple_group" && (
-        <Button
-          variant="outline"
-          onClick={playRules}
-          disabled={isPlaying}
-          className="w-full max-w-[300px] gap-2 mb-4"
-        >
-          <Volume2 className="w-4 h-4" />
-          {isPlaying ? "Reproduzindo..." : "Clique aqui para ouvir as regras do jogo"}
-        </Button>
+        <div className="flex gap-2 w-full max-w-[300px] mb-4">
+          <Button
+            variant="outline"
+            onClick={isPlaying ? handlePlayPause : playRules}
+            disabled={false}
+            className="flex-1 gap-2"
+          >
+            {isPlaying ? (
+              isPaused ? (
+                <>
+                  <Play className="w-4 h-4" />
+                  Continuar
+                </>
+              ) : (
+                <>
+                  <Pause className="w-4 h-4" />
+                  Pausar
+                </>
+              )
+            ) : (
+              <>
+                <Volume2 className="w-4 h-4" />
+                Ouvir regras
+              </>
+            )}
+          </Button>
+        </div>
       )}
 
       <BettingHeartGrid 
