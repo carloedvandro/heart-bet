@@ -36,6 +36,7 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
     };
   }, [audioUrl]);
 
+  // Cleanup when showPlayer changes to false
   useEffect(() => {
     if (!showPlayer) {
       cleanupAudio();
@@ -122,7 +123,7 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
   if (!showPlayer) return null;
 
   return (
-    <div className="flex flex-col gap-2 w-full max-w-[300px] mb-4">
+    <div className="flex flex-col gap-2 w-full max-w-[300px]">
       <div className="flex gap-2">
         <Button
           variant="outline"
