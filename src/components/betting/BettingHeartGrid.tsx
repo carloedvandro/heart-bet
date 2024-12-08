@@ -48,20 +48,19 @@ const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betTyp
               </TableRow>
             </TableHeader>
             <TableBody>
-              {selectedHearts.map((heart, index) => (
-                <TableRow key={index}>
-                  <TableCell className="text-center text-lg font-semibold">
-                    {getNumberForHeart(heart)}
-                  </TableCell>
-                </TableRow>
-              ))}
-              {selectedHearts.length === 0 && (
-                <TableRow>
-                  <TableCell className="text-center text-gray-500">
-                    Selecione os corações
-                  </TableCell>
-                </TableRow>
-              )}
+              <TableRow>
+                <TableCell className="text-center text-lg font-semibold">
+                  {selectedHearts.length === 0 ? (
+                    <span className="text-gray-500">Selecione os corações</span>
+                  ) : (
+                    <div className="flex justify-center gap-1">
+                      {selectedHearts.map((heart, index) => (
+                        <span key={index}>{getNumberForHeart(heart)}</span>
+                      ))}
+                    </div>
+                  )}
+                </TableCell>
+              </TableRow>
             </TableBody>
           </Table>
         </div>
