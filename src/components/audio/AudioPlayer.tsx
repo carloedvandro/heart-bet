@@ -16,8 +16,8 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
   const [duration, setDuration] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState("1");
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
 
-  // Cleanup function to stop audio and reset state
   const cleanupAudio = () => {
     if (audioRef.current) {
       audioRef.current.pause();
@@ -30,27 +30,26 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
     setDuration(0);
   };
 
-  // Cleanup on unmount or when audioUrl changes
   useEffect(() => {
     return () => {
       cleanupAudio();
     };
   }, [audioUrl]);
 
-  // Cleanup when showPlayer changes to false
   useEffect(() => {
     if (!showPlayer) {
       cleanupAudio();
     }
   }, [showPlayer]);
 
-  // Setup audio event listeners
   useEffect(() => {
     if (audioRef.current) {
       const audio = audioRef.current;
 
       const updateTime = () => {
-        setCurrentTime(audio.currentTime);
+        if (!isDragging) {
+          setCurrentTime(audio.currentTime);
+        }
       };
 
       const handleLoadedMetadata = () => {
@@ -73,7 +72,7 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
         audio.removeEventListener('ended', handleEnded);
       };
     }
-  }, [audioRef.current]);
+  }, [audioRef.current, isDragging]);
 
   const playRules = () => {
     cleanupAudio();
@@ -119,6 +118,14 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
       audioRef.current.currentTime = newTime;
       setCurrentTime(newTime);
     }
+  };
+
+  const handleSliderDragStart = () => {
+    setIsDragging(true);
+  };
+
+  const handleSliderDragEnd = () => {
+    setIsDragging(false);
   };
 
   const handleSpeedChange = (value: string) => {
@@ -185,6 +192,8 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
             max={duration}
             step={0.1}
             onValueChange={handleSliderChange}
+            onPointerDown={handleSliderDragStart}
+            onPointerUp={handleSliderDragEnd}
             className="w-full"
           />
           <div className="flex justify-between text-sm text-gray-500">
