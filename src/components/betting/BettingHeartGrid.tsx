@@ -11,15 +11,19 @@ interface BettingHeartGridProps {
 }
 
 const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betType }: BettingHeartGridProps) => {
-  const [shuffledHearts, setShuffledHearts] = useState(HEART_COLORS);
+  // Explicitly type the state with the same type as HEART_COLORS
+  const [shuffledHearts, setShuffledHearts] = useState([...HEART_COLORS]);
 
   const shuffleHearts = () => {
-    const newHearts = [...HEART_COLORS];
-    for (let i = newHearts.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [newHearts[i], newHearts[j]] = [newHearts[j], newHearts[i]];
-    }
-    setShuffledHearts(newHearts);
+    setShuffledHearts(hearts => {
+      // Create a new array to shuffle
+      const newHearts = [...hearts];
+      for (let i = newHearts.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newHearts[i], newHearts[j]] = [newHearts[j], newHearts[i]];
+      }
+      return newHearts;
+    });
   };
 
   // Embaralhar corações inicialmente
