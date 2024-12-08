@@ -87,7 +87,7 @@ const BetForm = ({
         <Label className="text-sm font-medium">Valor da Aposta (R$)</Label>
         <Input
           type="number"
-          min="1"
+          min="10"
           step="1"
           value={betAmount}
           onChange={(e) => handleAmountChange(Number(e.target.value))}
