@@ -52,6 +52,12 @@ export const useHeartSelection = (
         setSelectedHearts([mainHeart, color]);
         setCombinations(groupNumbers);
         playSounds.click();
+
+        // Formatação correta para exibição no toast, garantindo que 00 seja mostrado corretamente
+        const formattedNumber = firstNumber === 0 && secondNumber === 0 
+          ? "00"
+          : twoDigitNumber.toString().padStart(2, '0');
+
         toast.success(`Grupo formado: ${groupNumbers.map(n => n.toString().padStart(2, '0')).join(", ")}`);
         return;
       }
