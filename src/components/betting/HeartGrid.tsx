@@ -1,4 +1,4 @@
-import { HEART_COLORS } from "@/types/betting";
+import { HEART_COLORS, BetType } from "@/types/betting";
 import HeartButton from "../HeartButton";
 import { useEffect, useState } from "react";
 import PairsTable from "./PairsTable";
@@ -7,9 +7,10 @@ interface HeartGridProps {
   selectedHearts: string[];
   mainHeart: string | null;
   onHeartClick: (color: string) => void;
+  betType: BetType;
 }
 
-const HeartGrid = ({ selectedHearts, mainHeart, onHeartClick }: HeartGridProps) => {
+const HeartGrid = ({ selectedHearts, mainHeart, onHeartClick, betType }: HeartGridProps) => {
   const [shuffledHearts, setShuffledHearts] = useState<string[]>([...HEART_COLORS.map(h => h.color)]);
 
   // Função para embaralhar o array de corações
@@ -28,7 +29,11 @@ const HeartGrid = ({ selectedHearts, mainHeart, onHeartClick }: HeartGridProps) 
     <div className="flex flex-col gap-8 items-center animate-fade-in">
       {/* Tabela de Pares */}
       <div className="w-full max-w-md">
-        <PairsTable mainHeart={mainHeart} selectedPairs={selectedHearts.slice(1)} />
+        <PairsTable 
+          mainHeart={mainHeart} 
+          selectedPairs={selectedHearts.slice(1)} 
+          betType={betType}
+        />
       </div>
 
       {/* Grade de Corações */}

@@ -43,6 +43,7 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
         selectedHearts={selectedHearts}
         mainHeart={mainHeart}
         onHeartClick={handleHeartClick}
+        betType={betType}
       />
 
       <SubmitButton
