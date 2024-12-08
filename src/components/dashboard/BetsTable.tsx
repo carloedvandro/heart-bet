@@ -19,6 +19,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
+  const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 10;
   const session = useSession();
 
@@ -45,7 +46,10 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       if (error) throw error;
       
       setBets(data || []);
-      setHasMore(count ? count > (currentPage + 1) * itemsPerPage : false);
+      if (count) {
+        setTotalItems(count);
+        setHasMore(count > (currentPage + 1) * itemsPerPage);
+      }
     } catch (error) {
       console.error("Error fetching bets:", error);
       toast.error("Erro ao carregar apostas");
@@ -70,6 +74,8 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
     }
   };
 
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+
   if (loading) return <p className="text-center p-4">Carregando suas apostas...</p>;
   if (!session?.user?.id) return <p className="text-center p-4">Você precisa estar logado para ver suas apostas.</p>;
 
@@ -89,25 +95,30 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
         <>
           <BetsTableContent bets={bets} />
           
-          <div className="flex justify-center gap-4 mt-4">
-            <Button
-              variant="outline"
-              onClick={handlePreviousPage}
-              disabled={currentPage === 0}
-              className="gap-2"
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Anterior
-            </Button>
-            <Button
-              variant="outline"
-              onClick={handleNextPage}
-              disabled={!hasMore}
-              className="gap-2"
-            >
-              Próxima
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+          <div className="flex flex-col items-center gap-2">
+            <div className="text-sm text-muted-foreground">
+              Página {currentPage + 1} de {totalPages}
+            </div>
+            <div className="flex justify-center gap-4">
+              <Button
+                variant="outline"
+                onClick={handlePreviousPage}
+                disabled={currentPage === 0}
+                className="gap-2"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Anterior
+              </Button>
+              <Button
+                variant="outline"
+                onClick={handleNextPage}
+                disabled={!hasMore}
+                className="gap-2"
+              >
+                Próxima
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </>
       )}
