@@ -17,7 +17,7 @@ export function AudioControl() {
     if (!audioRef.current) {
       const audio = new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/background.mp3");
       audio.loop = true;
-      audio.volume = 0.05;
+      audio.volume = 0.15;
       audioRef.current = audio;
       setIsInitialized(true);
     }
@@ -53,9 +53,9 @@ export function AudioControl() {
 
     // Monitor volume changes
     const handleVolumeChange = () => {
-      if (!isMuted && audio.volume !== 0.05) {
-        console.log("Adjusting volume to 5%");
-        audio.volume = 0.05;
+      if (!isMuted && audio.volume !== 0.15) {
+        console.log("Adjusting volume to 15%");
+        audio.volume = 0.15;
       }
     };
 
