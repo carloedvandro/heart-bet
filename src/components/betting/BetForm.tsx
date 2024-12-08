@@ -1,8 +1,8 @@
 import { BetType, DrawPeriod, Position } from "@/types/betting";
-import { BetTypeSelect } from "./bet-form/BetTypeSelect";
-import { PositionSelect } from "./bet-form/PositionSelect";
-import { DrawPeriodSelect } from "./bet-form/DrawPeriodSelect";
-import { BetAmountInput } from "./bet-form/BetAmountInput";
+import { BetTypeSelect } from "../bet-form/BetTypeSelect";
+import { PositionSelect } from "../bet-form/PositionSelect";
+import { DrawPeriodSelect } from "../bet-form/DrawPeriodSelect";
+import { BetAmountInput } from "../bet-form/BetAmountInput";
 
 interface BetFormProps {
   betType: BetType;
