@@ -1,108 +1,73 @@
-import { memo } from "react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BetType } from "@/types/betting";
 import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
 interface PairsTableProps {
   mainHeart: string | null;
   selectedPairs: string[];
-  betType?: BetType;
+  betType: BetType;
 }
 
-const PairsTable = memo(({ mainHeart, selectedPairs, betType = "simple_group" }: PairsTableProps) => {
-  console.log("PairsTable render - selectedPairs:", selectedPairs);
-  console.log("PairsTable render - mainHeart:", mainHeart);
-  console.log("PairsTable render - betType:", betType);
-
-  const getTableTitle = () => {
-    if (betType === "dozen") {
-      // Para dezenas, incluímos todos os corações na contagem
-      const allSelectedHearts = [...selectedPairs];
-      if (mainHeart) allSelectedHearts.push(mainHeart);
-      console.log("Total selected hearts:", allSelectedHearts.length);
-      return `Dezena (${allSelectedHearts.length}/2)`;
-    }
-    // Para grupos, contamos o coração principal + pares
-    const totalSelected = mainHeart ? selectedPairs.length + 1 : 0;
-    return `Números do Grupo (${totalSelected}/2)`;
-  };
-
-  const renderDozenContent = () => {
-    // Se não houver corações selecionados, mostra mensagem inicial
-    const allSelectedHearts = [...selectedPairs];
-    if (mainHeart) allSelectedHearts.push(mainHeart);
-
-    if (allSelectedHearts.length === 0) {
-      return (
-        <div className="text-center py-2 border-t border-gray-100 text-gray-400">
-          Selecione os números da dezena
-        </div>
-      );
-    }
-
-    // Converte os corações em números
-    const numbers = allSelectedHearts.map(getNumberForHeart);
-    console.log("Dozen numbers:", numbers);
-
-    // Formata a dezena
-    const formattedDozens = numbers.map(n => n.toString()).join("");
-
+const PairsTable = ({ mainHeart, selectedPairs, betType }: PairsTableProps) => {
+  // Se for aposta do tipo dezena, mostra a tabela de dezenas
+  if (betType === "dozen") {
     return (
-      <div className="text-center py-2 border-t border-gray-100">
-        <div className="font-bold text-2xl">
-          {formattedDozens}
-        </div>
-        {numbers.length === 2 && (
-          <div className="text-sm text-gray-500 mt-1">
-            Dezena formada: {formattedDozens}
-          </div>
-        )}
-      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="text-center">Dezena</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow>
+            <TableCell className="text-center text-lg font-semibold">
+              {mainHeart || selectedPairs.length === 0 ? (
+                <span className="text-gray-500">Selecione os corações</span>
+              ) : (
+                <div className="flex justify-center">
+                  {[mainHeart, ...selectedPairs].map((heart, index) => (
+                    <span key={index}>{getNumberForHeart(heart)}</span>
+                  ))}
+                </div>
+              )}
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
     );
-  };
+  }
 
-  const renderGroupContent = () => {
-    if (!mainHeart) {
-      return (
-        <div className="text-center py-2 border-t border-gray-100 text-gray-400">
-          Selecione o número principal
-        </div>
-      );
-    }
-    
-    const mainNumber = getNumberForHeart(mainHeart);
-    const pairNumber = selectedPairs[0] ? getNumberForHeart(selectedPairs[0]) : "-";
-    const combination = selectedPairs[0] ? `${mainNumber}${pairNumber}` : mainNumber;
-
-    return (
-      <div className="grid grid-cols-3 gap-2 py-2 border-t border-gray-100">
-        <div className="text-center font-medium">{mainNumber}</div>
-        <div className="text-center font-medium">{pairNumber}</div>
-        <div className="text-center font-bold text-lg">{combination}</div>
-      </div>
-    );
-  };
-
+  // Para grupo simples, mantém a tabela original
   return (
-    <div className="bg-white rounded-lg shadow p-4 w-full">
-      <h3 className="text-lg font-bold mb-4 text-center">{getTableTitle()}</h3>
-      {betType === "dozen" ? (
-        <div className="grid grid-cols-1 gap-4 text-sm text-gray-600">
-          {renderDozenContent()}
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-3 gap-4 text-sm text-gray-600">
-            <div className="text-center font-medium">Principal</div>
-            <div className="text-center font-medium">Par</div>
-            <div className="text-center font-medium">Combinação</div>
-          </div>
-          {renderGroupContent()}
-        </>
-      )}
-    </div>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="text-center">Grupo</TableHead>
+          <TableHead className="text-center">Par</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        <TableRow>
+          <TableCell className="text-center text-lg font-semibold">
+            {mainHeart ? (
+              <span>{getNumberForHeart(mainHeart)}</span>
+            ) : (
+              <span className="text-gray-500">Selecione o primeiro coração</span>
+            )}
+          </TableCell>
+          <TableCell className="text-center text-lg font-semibold">
+            {selectedPairs.length > 0 ? (
+              selectedPairs.map((pair, index) => (
+                <span key={index}>{getNumberForHeart(pair)}</span>
+              ))
+            ) : (
+              <span className="text-gray-500">Selecione o segundo coração</span>
+            )}
+          </TableCell>
+        </TableRow>
+      </TableBody>
+    </Table>
   );
-});
-
-PairsTable.displayName = 'PairsTable';
+};
 
 export default PairsTable;
