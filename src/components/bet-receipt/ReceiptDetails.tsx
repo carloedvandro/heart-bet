@@ -23,12 +23,12 @@ const ReceiptDetails = ({ bet }: ReceiptDetailsProps) => {
   };
 
   const renderSequence = () => {
-    // Se tivermos números, sempre mostrá-los independente do tipo de aposta
-    if (bet.numbers?.length) {
+    // Mostrar números apenas para milhar (thousand)
+    if (bet.bet_type === 'thousand' && bet.numbers?.length) {
       return bet.numbers.map(formatNumber).join(", ");
     }
 
-    // Se não tivermos números mas tivermos corações, mostrar os corações
+    // Para todos os outros tipos, mostrar corações
     if (bet.hearts?.length) {
       return (
         <div className="flex gap-1 flex-wrap">

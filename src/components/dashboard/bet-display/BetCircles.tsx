@@ -20,13 +20,13 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
     return parsedNum.toString().padStart(2, '0');
   };
 
-  // Sempre mostrar os números se disponíveis
-  if (numbers?.length) {
-    console.log("Showing numbers:", numbers);
+  // Mostrar números apenas para milhar (thousand)
+  if (betType === 'thousand' && numbers?.length) {
+    console.log("Showing numbers for thousand:", numbers);
     return <span>{numbers.map(formatNumber).join(", ")}</span>;
   }
 
-  // Fallback para exibição dos corações
+  // Para todos os outros tipos, mostrar corações
   if (hearts?.length) {
     return (
       <div className="flex gap-1 flex-wrap">
