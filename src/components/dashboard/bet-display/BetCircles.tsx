@@ -30,29 +30,41 @@ interface BetCirclesProps {
 }
 
 export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProps) => {
-  console.log("BetCircles - numbers:", numbers);
-  console.log("BetCircles - hearts:", hearts);
-  console.log("BetCircles - betType:", betType);
+  console.log("=== BetCircles Component Debug ===");
+  console.log("Input props:", {
+    hearts,
+    betType,
+    isAdmin,
+    numbers
+  });
+  console.log("Hearts array length:", hearts?.length);
+  console.log("Numbers array length:", numbers?.length);
 
   // Se não houver números nem corações, retorna N/A
   if (!numbers?.length && !hearts?.length) {
+    console.log("Returning N/A - No numbers and no hearts");
     return <span>N/A</span>;
   }
 
   // Se houver números, mostra eles
   if (numbers?.length) {
+    console.log("Showing numbers:", numbers);
     return <span>{numbers.join(", ")}</span>;
   }
 
   // Se não houver números mas houver corações, mostra os números correspondentes aos corações
   if (hearts?.length) {
+    console.log("Converting hearts to numbers");
     const heartNumbers = hearts.map(heart => {
       const colors = Object.entries(getHeartForNumber);
       const number = colors.find(([_, color]) => color === heart)?.[0];
+      console.log(`Converting heart ${heart} to number ${number}`);
       return number || "N/A";
     });
+    console.log("Final heart numbers:", heartNumbers);
     return <span>{heartNumbers.join(", ")}</span>;
   }
 
+  console.log("Fallback N/A - No condition met");
   return <span>N/A</span>;
 };
