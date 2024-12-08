@@ -69,6 +69,7 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
         betAmount={betAmount}
         position={position}
         key={`${betType}-${resetKey}`}
+        onClearSelection={handleClearSelection}
       />
 
       <div className="flex justify-center mt-4">

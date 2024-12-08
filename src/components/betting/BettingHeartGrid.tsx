@@ -1,57 +1,60 @@
-import { HEART_COLORS, BetType } from "@/types/betting";
+import { memo, useState, useEffect } from "react";
+import { HEART_COLORS } from "@/types/betting";
 import HeartButton from "../HeartButton";
-import { memo, useEffect, useState } from "react";
-import PairsTable from "./PairsTable";
+import { useSession } from "@supabase/auth-helpers-react";
+import { useBetSubmission } from "@/hooks/useBetSubmission";
+import SubmitButton from "./SubmitButton";
+import { useTemporaryBetState } from "@/hooks/useTemporaryBetState";
 
 interface BettingHeartGridProps {
-  betType: BetType;
+  betType: string;
   drawPeriod: string;
   betAmount: number;
   position: number;
   onClearSelection?: () => void;
 }
 
-const BettingHeartGrid = memo(({ betType, onClearSelection }: BettingHeartGridProps) => {
+const BettingHeartGrid = memo(({ 
+  betType, 
+  drawPeriod, 
+  betAmount, 
+  position,
+  onClearSelection 
+}: BettingHeartGridProps) => {
   const [shuffledHearts, setShuffledHearts] = useState([...HEART_COLORS]);
   const [isShuffling, setIsShuffling] = useState(false);
   const [selectedHearts, setSelectedHearts] = useState<string[]>([]);
   const [mainHeart, setMainHeart] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const session = useSession();
+  const { combinations } = useTemporaryBetState();
 
   const shuffleHearts = () => {
     setIsShuffling(true);
-    setShuffledHearts(hearts => {
-      const newHearts = [...hearts];
-      for (let i = newHearts.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [newHearts[i], newHearts[j]] = [newHearts[j], newHearts[i]];
-      }
-      return newHearts;
-    });
+    const shuffled = [...shuffledHearts];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    setShuffledHearts(shuffled);
     setTimeout(() => setIsShuffling(false), 500);
   };
 
-  const getMaxSelections = (type: BetType) => {
-    switch (type) {
-      case "simple_group":
-        return 2;
-      case "dozen":
-        return 2;
-      case "hundred":
-        return 3;
-      case "thousand":
-        return 4;
-      default:
-        return 2;
-    }
-  };
-
   const handleHeartClick = (color: string) => {
-    const maxSelections = getMaxSelections(betType);
-    
-    if (selectedHearts.length < maxSelections) {
-      setSelectedHearts(prev => [...prev, color]);
-      if (betType === "simple_group" && selectedHearts.length === 0) {
+    if (isShuffling) return;
+
+    if (betType === "simple_group") {
+      if (!mainHeart) {
         setMainHeart(color);
+        setSelectedHearts([color]);
+      } else {
+        if (!selectedHearts.includes(color)) {
+          setSelectedHearts([...selectedHearts, color]);
+        }
+      }
+    } else {
+      if (!selectedHearts.includes(color)) {
+        setSelectedHearts([...selectedHearts, color]);
       }
     }
   };
@@ -77,44 +80,51 @@ const BettingHeartGrid = memo(({ betType, onClearSelection }: BettingHeartGridPr
   useEffect(() => {
     const interval = setInterval(() => {
       shuffleHearts();
-    }, 10000);
+    }, 30000);
 
     return () => clearInterval(interval);
   }, []);
 
+  const { handleSubmit } = useBetSubmission(
+    session,
+    selectedHearts,
+    mainHeart,
+    betType,
+    drawPeriod,
+    betAmount,
+    position,
+    isSubmitting,
+    setIsSubmitting,
+    () => {}
+  );
+
   return (
     <div className="flex flex-col gap-8 items-center animate-fade-in">
-      <div className="w-full max-w-md">
-        <PairsTable 
-          mainHeart={mainHeart} 
-          selectedPairs={selectedHearts} 
-          betType={betType}
-        />
-      </div>
-
-      <div className="grid grid-cols-5 gap-4 w-full">
-        {shuffledHearts.map((heartColor, index) => (
-          <div
-            key={heartColor.color}
-            className={isShuffling ? "animate-deal-card" : ""}
-            style={{
-              animationDelay: `${index * 50}ms`
-            }}
-          >
-            <HeartButton
-              color={heartColor.color}
-              selected={selectedHearts.includes(heartColor.color)}
-              isMain={heartColor.color === mainHeart}
-              onClick={() => handleHeartClick(heartColor.color)}
-              disabled={selectedHearts.length >= getMaxSelections(betType)}
-            />
-          </div>
+      <div className="grid grid-cols-5 gap-4 p-4 rounded-lg bg-white/50 backdrop-blur-sm shadow-lg">
+        {shuffledHearts.map(({ color }) => (
+          <HeartButton
+            key={color}
+            color={color}
+            isSelected={selectedHearts.includes(color)}
+            isMain={mainHeart === color}
+            onClick={() => handleHeartClick(color)}
+            disabled={isShuffling}
+          />
         ))}
       </div>
+
+      <SubmitButton
+        session={session}
+        selectedHearts={selectedHearts}
+        mainHeart={mainHeart}
+        betType={betType}
+        isSubmitting={isSubmitting}
+        onSubmit={handleSubmit}
+      />
     </div>
   );
 });
 
-BettingHeartGrid.displayName = 'BettingHeartGrid';
+BettingHeartGrid.displayName = "BettingHeartGrid";
 
 export default BettingHeartGrid;
