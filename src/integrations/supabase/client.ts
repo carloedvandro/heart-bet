@@ -14,13 +14,27 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
   while (attempt < MAX_RETRIES) {
     try {
+      // Ensure we're not overwriting existing headers
+      const headers = {
+        ...init?.headers,
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+      };
+
       const response = await fetch(url, {
         ...init,
-        headers: {
-          ...init?.headers,
-          'Content-Type': 'application/json'
-        }
+        headers
       });
+
+      if (!response.ok) {
+        console.error('Response not OK:', {
+          status: response.status,
+          statusText: response.statusText,
+          url: response.url
+        });
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       return response;
     } catch (error) {
       attempt++;
@@ -32,10 +46,12 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       
       // Wait with exponential backoff before retrying
       await new Promise(resolve => 
-        setTimeout(resolve, Math.min(attempt * 1000, 3000))
+        setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt - 1), 5000))
       );
     }
   }
+
+  throw new Error('Max retries reached');
 };
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
