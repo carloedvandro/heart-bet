@@ -14,11 +14,14 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
   while (attempt < MAX_RETRIES) {
     try {
-      // Ensure we're not overwriting existing headers
+      // Ensure we're setting all required headers
       const headers = {
         ...init?.headers,
         'apikey': supabaseKey,
         'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Prefer': 'return=minimal'
       };
 
       const response = await fetch(url, {
@@ -30,7 +33,8 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         console.error('Response not OK:', {
           status: response.status,
           statusText: response.statusText,
-          url: response.url
+          url: response.url,
+          headers: Object.fromEntries(response.headers.entries())
         });
         throw new Error(`HTTP error! status: ${response.status}`);
       }
