@@ -28,19 +28,7 @@ const HeartButton = ({ color, selected, isMain, onClick, disabled }: HeartButton
         "group relative transition-all duration-300 ease-in-out",
         "focus:outline-none",
         "disabled:opacity-50 disabled:cursor-not-allowed",
-        selected && "animate-heart-beat",
-        selected && cn(
-          "relative",
-          "before:absolute before:inset-0",
-          "before:content-['']",
-          "before:rounded-full",
-          "before:border-4",
-          "before:border-heart-pink",
-          "before:aspect-square",
-          isMobile 
-            ? "before:w-[calc(100%+12px)] before:-left-[6px] before:-top-[6px]" 
-            : "before:w-[calc(100%+20px)] before:-left-[10px] before:-top-[10px]"
-        )
+        selected && "animate-heart-beat"
       )}
       style={{
         border: "none",
@@ -49,8 +37,20 @@ const HeartButton = ({ color, selected, isMain, onClick, disabled }: HeartButton
         transition: "transform 0.3s ease-in-out",
       }}
     >
+      {/* Container para o anel de seleção */}
+      <div
+        className={cn(
+          "absolute -inset-3 rounded-full transition-opacity",
+          "border-4 border-heart-pink",
+          selected ? "opacity-100" : "opacity-0",
+          isMobile ? "scale-90" : "scale-100"
+        )}
+      />
+      
+      {/* Ícone do coração */}
       <Heart
         className={cn(
+          "relative z-10",
           "transition-all duration-300",
           "fill-current",
           "stroke-black stroke-1 group-hover:scale-105",
