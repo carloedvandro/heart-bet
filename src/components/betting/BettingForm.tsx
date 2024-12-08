@@ -7,7 +7,8 @@ import { BetType } from "@/types/betting";
 import { Button } from "../ui/button";
 import { Eraser, Pause, Play, Volume2 } from "lucide-react";
 import { toast } from "sonner";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import { Slider } from "../ui/slider";
 
 interface BettingFormProps {
   onBetPlaced: (bet: Bet) => void;
@@ -17,6 +18,8 @@ interface BettingFormProps {
 const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   
   const {
@@ -36,6 +39,23 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
     handleSubmit,
     clearSelection
   } = useBettingForm(onBetPlaced, initialBetType);
+
+  useEffect(() => {
+    if (audioRef.current) {
+      const updateTime = () => {
+        setCurrentTime(audioRef.current?.currentTime || 0);
+      };
+
+      audioRef.current.addEventListener('timeupdate', updateTime);
+      audioRef.current.addEventListener('loadedmetadata', () => {
+        setDuration(audioRef.current?.duration || 0);
+      });
+
+      return () => {
+        audioRef.current?.removeEventListener('timeupdate', updateTime);
+      };
+    }
+  }, [audioRef.current]);
 
   const handleClearSelection = () => {
     clearSelection();
@@ -63,6 +83,7 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
       setIsPlaying(false);
       setIsPaused(false);
       audioRef.current = null;
+      setCurrentTime(0);
     };
   };
 
@@ -76,6 +97,20 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
       audioRef.current.pause();
       setIsPaused(true);
     }
+  };
+
+  const handleSliderChange = (value: number[]) => {
+    if (audioRef.current) {
+      const newTime = value[0];
+      audioRef.current.currentTime = newTime;
+      setCurrentTime(newTime);
+    }
+  };
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
   return (
@@ -92,7 +127,7 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
       />
 
       {betType === "simple_group" && (
-        <div className="flex gap-2 w-full max-w-[300px] mb-4">
+        <div className="flex flex-col gap-2 w-full max-w-[300px] mb-4">
           <Button
             variant="outline"
             onClick={isPlaying ? handlePlayPause : playRules}
@@ -118,6 +153,22 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
               </>
             )}
           </Button>
+
+          {isPlaying && (
+            <div className="w-full space-y-2">
+              <Slider
+                value={[currentTime]}
+                max={duration}
+                step={0.1}
+                onValueChange={handleSliderChange}
+                className="w-full"
+              />
+              <div className="flex justify-between text-sm text-gray-500">
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
