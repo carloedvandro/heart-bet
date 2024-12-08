@@ -86,14 +86,14 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
         <BetReceipt bet={lastBet} onReset={handleReset} />
       ) : (
         <>
+          <AudioPlayer 
+            showPlayer={!lastBet} 
+            audioUrl={getAudioUrl(currentBetType)}
+          />
           <BettingForm 
             onBetPlaced={handleBetPlaced} 
             initialBetType={currentBetType}
             key={pendingBet ? undefined : 'new-bet'} 
-          />
-          <AudioPlayer 
-            showPlayer={!lastBet} 
-            audioUrl={getAudioUrl(currentBetType)}
           />
         </>
       )}
