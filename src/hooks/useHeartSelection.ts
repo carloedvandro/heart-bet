@@ -1,9 +1,7 @@
-import { toast } from "sonner";
 import { BetType } from "@/types/betting";
 import { playSounds } from "@/utils/soundEffects";
-import { getNumberForHeart } from "@/utils/heartNumberMapping";
-import { getGroupNumbers } from "@/utils/bichoUtils";
-import { useTemporaryBetState } from "./useTemporaryBetState";
+import { useSimpleGroupSelection } from "./heart-selection/useSimpleGroupSelection";
+import { useDozenSelection } from "./heart-selection/useDozenSelection";
 
 export const useHeartSelection = (
   betType: BetType,
@@ -12,114 +10,44 @@ export const useHeartSelection = (
   setMainHeart: (heart: string | null) => void,
   setSelectedHearts: React.Dispatch<React.SetStateAction<string[]>>
 ) => {
-  const setCombinations = useTemporaryBetState((state) => state.setCombinations);
+  const handleSimpleGroupSelection = useSimpleGroupSelection(
+    mainHeart,
+    selectedHearts,
+    setMainHeart,
+    setSelectedHearts
+  );
+
+  const handleDozenSelection = useDozenSelection(
+    selectedHearts,
+    setSelectedHearts
+  );
 
   const handleHeartClick = (color: string) => {
     console.log("🎯 Heart clicked:", color);
 
-    // Lógica para grupo simples
     if (betType === "simple_group") {
-      // Se não há coração principal selecionado
-      if (!mainHeart) {
-        console.log("🎈 Setting main heart:", color);
-        setMainHeart(color);
-        setSelectedHearts([color]);
-        playSounds.click();
-        toast.info("Agora escolha outro coração para formar o grupo. Você pode escolher o mesmo coração novamente!");
-        return;
-      }
-
-      // Se já tem coração principal e está selecionando o segundo coração
-      if (selectedHearts.length === 1) {
-        const firstNumber = getNumberForHeart(mainHeart);
-        const secondNumber = getNumberForHeart(color);
-        
-        console.log("🎲 First number:", firstNumber);
-        console.log("🎲 Second number:", secondNumber);
-        
-        // Tratamento especial para quando ambos os números são zero
-        let twoDigitNumber;
-        if (firstNumber === 0 && secondNumber === 0) {
-          twoDigitNumber = 0;
-          console.log("🎲 Special case: both numbers are zero");
-        } else {
-          // Para outros casos, formamos o número normalmente
-          twoDigitNumber = firstNumber * 10 + secondNumber;
-        }
-        
-        console.log("🎲 Final two digit number:", twoDigitNumber);
-        
-        const groupNumbers = getGroupNumbers(twoDigitNumber);
-        console.log("🎯 Group numbers:", groupNumbers);
-        
-        setSelectedHearts([mainHeart, color]);
-        setCombinations(groupNumbers);
-        playSounds.click();
-
-        // Formatação especial para o toast
-        const formattedNumber = firstNumber === 0 && secondNumber === 0 
-          ? "00"
-          : twoDigitNumber.toString().padStart(2, '0');
-
-        toast.success(`Grupo formado: ${groupNumbers.map(n => {
-          // Formatação especial para exibição dos números do grupo
-          if (n === 0) return "00";
-          return n.toString().padStart(2, '0');
-        }).join(", ")}`);
-        return;
-      }
-
-      // Se tentar selecionar mais de 2 corações no grupo simples
-      if (selectedHearts.length >= 2) {
-        toast.error("Máximo de 2 corações para grupo simples");
-        return;
-      }
+      return handleSimpleGroupSelection(color);
     }
 
-    // Lógica para dezena
     if (betType === "dozen") {
-      if (selectedHearts.length >= 2) {
-        toast.error("Máximo de 2 corações para dezena");
-        return;
-      }
-
-      const newSelectedHearts = [...selectedHearts, color];
-      setSelectedHearts(newSelectedHearts);
-      playSounds.click();
-
-      if (newSelectedHearts.length === 2) {
-        const firstNumber = getNumberForHeart(newSelectedHearts[0]);
-        const secondNumber = getNumberForHeart(newSelectedHearts[1]);
-        
-        // Tratamento especial para dezena 00
-        let twoDigitNumber;
-        if (firstNumber === 0 && secondNumber === 0) {
-          twoDigitNumber = 0;
-        } else {
-          twoDigitNumber = firstNumber * 10 + secondNumber;
-        }
-        
-        setCombinations([twoDigitNumber]);
-        const formattedNumber = twoDigitNumber === 0 ? "00" : twoDigitNumber.toString().padStart(2, '0');
-        toast.success(`Dezena formada: ${formattedNumber}`);
-      }
-      return;
+      return handleDozenSelection(color);
     }
 
     // Lógica para outros tipos de aposta
     if (selectedHearts.includes(color)) {
       setSelectedHearts(selectedHearts.filter(h => h !== color));
       playSounds.click();
-      return;
+      return true;
     }
 
     if (selectedHearts.length >= 4) {
       toast.error("Máximo de 4 corações");
-      return;
+      return false;
     }
 
     setSelectedHearts([...selectedHearts, color]);
     playSounds.click();
+    return true;
   };
 
   return { handleHeartClick };
