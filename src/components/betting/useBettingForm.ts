@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useBettingState } from "@/hooks/useBettingState";
 import { useHeartSelection } from "@/hooks/useHeartSelection";
 import { useBetSubmission } from "@/hooks/useBetSubmission";
+import { useCallback } from "react";
 
 export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
   const session = useSession();
@@ -46,12 +47,12 @@ export const useBettingForm = (onBetPlaced: (bet: Bet) => void) => {
     onBetPlaced
   );
 
-  const handleBetTypeChange = (newBetType: BetType) => {
+  const handleBetTypeChange = useCallback((newBetType: BetType) => {
     setBetType(newBetType);
     setSelectedHearts([]);
     setMainHeart(null);
     toast.info(`Seleção de corações resetada para ${newBetType === "simple_group" ? "grupo simples" : "nova aposta"}`);
-  };
+  }, [setBetType, setSelectedHearts, setMainHeart]);
 
   return {
     selectedHearts,

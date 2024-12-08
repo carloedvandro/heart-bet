@@ -1,3 +1,4 @@
+import { memo } from "react";
 import { BetType } from "@/types/betting";
 import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
@@ -7,57 +8,49 @@ interface PairsTableProps {
   betType?: BetType;
 }
 
-const PairsTable = ({ mainHeart, selectedPairs, betType = "simple_group" }: PairsTableProps) => {
-  console.log("PairsTable props:", { mainHeart, selectedPairs, betType });
-
+const PairsTable = memo(({ mainHeart, selectedPairs, betType = "simple_group" }: PairsTableProps) => {
   const getTableTitle = () => {
     if (betType === "dozen") {
       return `Dezena (${selectedPairs.length}/2)`;
     }
-    
     const totalSelected = mainHeart ? selectedPairs.length + 1 : 0;
     return `Números do Grupo (${totalSelected}/2)`;
   };
 
-  const renderPairs = () => {
-    if (betType === "dozen") {
-      const numbers = selectedPairs.map(heart => getNumberForHeart(heart));
-      const combination = numbers.length === 2 ? `${numbers[0]}${numbers[1]}` : "";
-      
-      return (
-        <div className="grid grid-cols-1 gap-2">
-          {numbers.map((number, index) => (
-            <div key={index} className="text-center py-2 border-t border-gray-100 font-medium">
-              {number}
-            </div>
-          ))}
-          {combination && (
-            <div className="text-center py-2 border-t border-gray-100 font-bold text-lg">
-              {combination}
-            </div>
-          )}
-        </div>
-      );
-    }
+  const renderDozenContent = () => {
+    const numbers = selectedPairs.map(getNumberForHeart);
+    const combination = numbers.length === 2 ? `${numbers[0]}${numbers[1]}` : "";
+    
+    return (
+      <div className="grid grid-cols-1 gap-2">
+        {numbers.map((number, index) => (
+          <div key={index} className="text-center py-2 border-t border-gray-100 font-medium">
+            {number}
+          </div>
+        ))}
+        {combination && (
+          <div className="text-center py-2 border-t border-gray-100 font-bold text-lg">
+            {combination}
+          </div>
+        )}
+      </div>
+    );
+  };
 
-    // Para grupo simples
-    if (mainHeart) {
-      const mainNumber = getNumberForHeart(mainHeart);
-      const pairNumber = selectedPairs.length > 0 ? getNumberForHeart(selectedPairs[0]) : "-";
-      const combination = selectedPairs.length > 0 ? `${mainNumber}${pairNumber}` : mainNumber;
+  const renderGroupContent = () => {
+    if (!mainHeart) return null;
+    
+    const mainNumber = getNumberForHeart(mainHeart);
+    const pairNumber = selectedPairs[0] ? getNumberForHeart(selectedPairs[0]) : "-";
+    const combination = selectedPairs[0] ? `${mainNumber}${pairNumber}` : mainNumber;
 
-      console.log("Rendering group numbers:", { mainNumber, pairNumber, combination });
-
-      return (
-        <div className="grid grid-cols-3 gap-2 py-2 border-t border-gray-100">
-          <div className="text-center font-medium">{mainNumber}</div>
-          <div className="text-center font-medium">{pairNumber}</div>
-          <div className="text-center font-bold text-lg">{combination}</div>
-        </div>
-      );
-    }
-
-    return null;
+    return (
+      <div className="grid grid-cols-3 gap-2 py-2 border-t border-gray-100">
+        <div className="text-center font-medium">{mainNumber}</div>
+        <div className="text-center font-medium">{pairNumber}</div>
+        <div className="text-center font-bold text-lg">{combination}</div>
+      </div>
+    );
   };
 
   return (
@@ -72,9 +65,11 @@ const PairsTable = ({ mainHeart, selectedPairs, betType = "simple_group" }: Pair
           </>
         )}
       </div>
-      {renderPairs()}
+      {betType === "dozen" ? renderDozenContent() : renderGroupContent()}
     </div>
   );
-};
+});
+
+PairsTable.displayName = 'PairsTable';
 
 export default PairsTable;

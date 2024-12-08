@@ -1,6 +1,6 @@
 import { HEART_COLORS, BetType } from "@/types/betting";
 import HeartButton from "../HeartButton";
-import { useEffect, useState } from "react";
+import { memo } from "react";
 import PairsTable from "./PairsTable";
 
 interface HeartGridProps {
@@ -10,21 +10,7 @@ interface HeartGridProps {
   betType: BetType;
 }
 
-const HeartGrid = ({ selectedHearts, mainHeart, onHeartClick, betType }: HeartGridProps) => {
-  const [shuffledHearts, setShuffledHearts] = useState<string[]>([...HEART_COLORS.map(h => h.color)]);
-
-  // Função para embaralhar o array de corações
-  const shuffleHearts = () => {
-    const shuffled = [...HEART_COLORS.map(h => h.color)].sort(() => Math.random() - 0.5);
-    setShuffledHearts(shuffled);
-  };
-
-  useEffect(() => {
-    shuffleHearts();
-    const intervalId = setInterval(shuffleHearts, 3000);
-    return () => clearInterval(intervalId);
-  }, []);
-
+const HeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betType }: HeartGridProps) => {
   return (
     <div className="flex flex-col gap-8 items-center animate-fade-in">
       {/* Tabela de Pares */}
@@ -38,19 +24,21 @@ const HeartGrid = ({ selectedHearts, mainHeart, onHeartClick, betType }: HeartGr
 
       {/* Grade de Corações */}
       <div className="grid grid-cols-5 gap-4">
-        {shuffledHearts.map((color) => (
+        {HEART_COLORS.map((heartColor) => (
           <HeartButton
-            key={`${color}-${Date.now()}`}
-            color={color}
-            selected={selectedHearts.includes(color)}
-            isMain={color === mainHeart}
-            onClick={() => onHeartClick(color)}
+            key={heartColor.color}
+            color={heartColor.color}
+            selected={selectedHearts.includes(heartColor.color)}
+            isMain={heartColor.color === mainHeart}
+            onClick={() => onHeartClick(heartColor.color)}
             disabled={false}
           />
         ))}
       </div>
     </div>
   );
-};
+});
+
+HeartGrid.displayName = 'HeartGrid';
 
 export default HeartGrid;
