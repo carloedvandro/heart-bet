@@ -27,6 +27,7 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
     setIsPlaying(false);
     setIsPaused(false);
     setCurrentTime(0);
+    setDuration(0);
   };
 
   // Cleanup on unmount or when audioUrl changes
@@ -61,30 +62,29 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
   }, [audioRef.current]);
 
   const playRules = () => {
-    cleanupAudio(); // Limpa o áudio anterior antes de criar um novo
+    cleanupAudio();
 
     if (audioUrl) {
       audioRef.current = new Audio(audioUrl);
       audioRef.current.volume = 0.7;
       audioRef.current.playbackRate = Number(playbackSpeed);
-    }
-
-    if (audioRef.current) {
-      setIsPlaying(true);
-      setIsPaused(false);
       
       audioRef.current.play()
+        .then(() => {
+          setIsPlaying(true);
+          setIsPaused(false);
+        })
         .catch(error => {
           console.error("Error playing audio:", error);
           setIsPlaying(false);
           setIsPaused(false);
+          cleanupAudio();
         });
 
       audioRef.current.onended = () => {
         setIsPlaying(false);
         setIsPaused(false);
-        audioRef.current = null;
-        setCurrentTime(0);
+        cleanupAudio();
       };
     }
   };
@@ -93,8 +93,12 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
     if (!audioRef.current) return;
 
     if (isPaused) {
-      audioRef.current.play();
-      setIsPaused(false);
+      audioRef.current.play()
+        .then(() => setIsPaused(false))
+        .catch(error => {
+          console.error("Error resuming audio:", error);
+          cleanupAudio();
+        });
     } else {
       audioRef.current.pause();
       setIsPaused(true);

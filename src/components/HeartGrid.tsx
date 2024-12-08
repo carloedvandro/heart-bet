@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Bet } from "@/integrations/supabase/custom-types";
 import BettingForm from "./betting/BettingForm";
 import BetReceipt from "./BetReceipt";
-import { AudioPlayer } from "./audio/AudioPlayer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,37 +55,16 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
     handleReset();
   };
 
-  const getAudioUrl = (betType: BetType) => {
-    switch (betType) {
-      case "simple_group":
-        return "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_do_grupo_simples.mp3";
-      case "dozen":
-        return "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_dezena.mp3";
-      case "hundred":
-        return "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_sentena.mp3";
-      default:
-        return "";
-    }
-  };
-
   return (
     <div className="flex flex-col items-center space-y-8 p-8">
       {lastBet ? (
         <BetReceipt bet={lastBet} onReset={handleReset} />
       ) : (
-        <>
-          <BettingForm 
-            onBetPlaced={handleBetPlaced} 
-            initialBetType={currentBetType}
-            key={pendingBet ? undefined : 'new-bet'} 
-          >
-            <AudioPlayer 
-              showPlayer={true}
-              audioUrl={getAudioUrl(currentBetType)}
-              key={`audio-${currentBetType}`}
-            />
-          </BettingForm>
-        </>
+        <BettingForm 
+          onBetPlaced={handleBetPlaced} 
+          initialBetType={currentBetType}
+          key={pendingBet ? undefined : 'new-bet'} 
+        />
       )}
 
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
