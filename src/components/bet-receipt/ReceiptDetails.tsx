@@ -23,8 +23,12 @@ const ReceiptDetails = ({ bet }: ReceiptDetailsProps) => {
   };
 
   const renderSequence = () => {
-    // Mostrar números para milhar e grupo simples
-    if ((bet.bet_type === 'thousand' || bet.bet_type === 'simple_group') && bet.numbers?.length) {
+    // Mostrar números apenas para grupo simples e milhar
+    if (bet.bet_type === 'simple_group' && bet.numbers?.length) {
+      return bet.numbers.map(formatNumber).join(", ");
+    }
+
+    if (bet.bet_type === 'thousand' && bet.numbers?.length) {
       return bet.numbers.map(formatNumber).join(", ");
     }
 

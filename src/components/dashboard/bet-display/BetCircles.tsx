@@ -20,10 +20,16 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
     return parsedNum.toString().padStart(2, '0');
   };
 
-  // Mostrar números para milhar e grupo simples
-  if (betType === 'thousand' || betType === 'simple_group') {
-    console.log("Showing numbers for thousand or simple_group:", numbers);
-    return <span>{numbers?.map(formatNumber).join(", ")}</span>;
+  // Mostrar números apenas para grupo simples
+  if (betType === 'simple_group' && numbers?.length) {
+    console.log("Showing numbers for simple_group:", numbers);
+    return <span>{numbers.map(formatNumber).join(", ")}</span>;
+  }
+
+  // Para milhar, manter o comportamento original
+  if (betType === 'thousand' && numbers?.length) {
+    console.log("Showing numbers for thousand:", numbers);
+    return <span>{numbers.map(formatNumber).join(", ")}</span>;
   }
 
   // Para todos os outros tipos, mostrar corações
