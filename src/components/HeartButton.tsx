@@ -29,19 +29,17 @@ const HeartButton = ({ color, selected, isMain, onClick, disabled }: HeartButton
         "focus:outline-none",
         "disabled:opacity-50 disabled:cursor-not-allowed",
         selected && "animate-heart-beat",
-        isMain && cn(
+        selected && cn(
           "relative",
-          "after:content-['']",
-          "after:absolute",
-          "after:top-1/2",
-          "after:left-1/2",
-          "after:-translate-x-1/2",
-          "after:-translate-y-1/2",
-          "after:rounded-full",
-          "after:border-4",
-          "after:border-heart-pink",
-          "after:aspect-square",
-          isMobile ? "after:w-[calc(100%+12px)]" : "after:w-[calc(100%+20px)]"
+          "before:absolute before:inset-0",
+          "before:content-['']",
+          "before:rounded-full",
+          "before:border-4",
+          "before:border-heart-pink",
+          "before:aspect-square",
+          isMobile 
+            ? "before:w-[calc(100%+12px)] before:-left-[6px] before:-top-[6px]" 
+            : "before:w-[calc(100%+20px)] before:-left-[10px] before:-top-[10px]"
         )
       )}
       style={{
