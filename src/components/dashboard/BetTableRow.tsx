@@ -39,7 +39,7 @@ export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
           hearts={bet.hearts}
           betType={bet.bet_type}
           isAdmin={isAdmin}
-          numbers={bet.numbers}
+          numbers={bet.numbers.map(Number)}
         />
       </TableCell>
       <TableCell>
@@ -49,7 +49,7 @@ export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
         R$ {calculatePrize(bet.bet_type, bet.position as Position, Number(bet.amount)).toFixed(2)}
       </TableCell>
       <TableCell>
-        {isAdmin && bet.drawn_numbers ? bet.drawn_numbers.join(", ") : "Aguardando sorteio"}
+        {isAdmin && bet.drawn_numbers ? bet.drawn_numbers.map(Number).join(", ") : "Aguardando sorteio"}
       </TableCell>
       <TableCell>
         <PrizeStatus prizeAmount={bet.prize_amount} isWinner={bet.is_winner} />

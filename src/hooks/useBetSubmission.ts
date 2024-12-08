@@ -64,7 +64,7 @@ export const useBetSubmission = (
         .insert({
           user_id: session.user.id,
           hearts: selectedHearts,
-          numbers: combinations,
+          numbers: combinations.map(String),
           bet_type: betType,
           draw_period: drawPeriod,
           amount: betAmount,
