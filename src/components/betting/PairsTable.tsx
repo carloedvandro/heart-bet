@@ -13,12 +13,11 @@ const PairsTable = memo(({ mainHeart, selectedPairs, betType = "simple_group" }:
   console.log("PairsTable render - betType:", betType);
 
   const getTableTitle = () => {
-    const totalSelected = betType === "dozen" 
-      ? selectedPairs.length
-      : (mainHeart ? selectedPairs.length + 1 : 0);
-      
-    const maxSelections = betType === "dozen" ? 2 : 2;
-    return `${betType === "dozen" ? "Dezena" : "Números do Grupo"} (${totalSelected}/${maxSelections})`;
+    if (betType === "dozen") {
+      return `Dezena (${selectedPairs.length}/2)`;
+    }
+    const totalSelected = mainHeart ? selectedPairs.length + 1 : 0;
+    return `Números do Grupo (${totalSelected}/2)`;
   };
 
   const renderDozenContent = () => {
