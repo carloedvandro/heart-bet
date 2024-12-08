@@ -42,10 +42,12 @@ export const useAudioPlayer = (audioUrl: string | undefined, showPlayer: boolean
       };
 
       const handleLoadedMetadata = () => {
+        console.log("Audio duration loaded:", audio.duration);
         setDuration(audio.duration);
       };
 
       const handleEnded = () => {
+        console.log("Audio playback ended");
         setIsPlaying(false);
         setIsPaused(false);
         setCurrentTime(0);
@@ -104,7 +106,7 @@ export const useAudioPlayer = (audioUrl: string | undefined, showPlayer: boolean
   const handleTimeChange = (newTime: number[]) => {
     console.log("Changing time to:", newTime[0]);
     if (audioRef.current && newTime.length > 0) {
-      const time = newTime[0];
+      const time = Math.min(newTime[0], duration);
       audioRef.current.currentTime = time;
       setCurrentTime(time);
     }

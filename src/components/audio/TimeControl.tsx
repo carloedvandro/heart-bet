@@ -22,12 +22,14 @@ export const TimeControl = ({
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  console.log("TimeControl render:", { currentTime, duration });
+
   return (
     <div className="w-full space-y-2">
       <Slider
         defaultValue={[0]}
         value={[currentTime]}
-        max={duration || 100}
+        max={duration}
         min={0}
         step={0.1}
         onValueChange={onTimeChange}
