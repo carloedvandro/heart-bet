@@ -13,6 +13,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { useTemporaryBetState } from "@/hooks/useTemporaryBetState";
+import { BetType } from "@/types/betting";
 
 interface HeartGridProps {
   onBetPlaced?: () => void;
@@ -22,6 +23,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   const [lastBet, setLastBet] = useState<Bet | null>(null);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [pendingBet, setPendingBet] = useState<Bet | null>(null);
+  const [currentBetType, setCurrentBetType] = useState<BetType>("simple_group");
   const { clearCombinations } = useTemporaryBetState();
 
   const handleReset = () => {
@@ -34,6 +36,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   const handleBetPlaced = (bet: Bet) => {
     console.log("New bet placed:", bet);
     setPendingBet(bet);
+    setCurrentBetType(bet.bet_type as BetType);
     setShowConfirmDialog(true);
     if (onBetPlaced) {
       onBetPlaced();
@@ -57,7 +60,11 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
       {lastBet ? (
         <BetReceipt bet={lastBet} onReset={handleReset} />
       ) : (
-        <BettingForm onBetPlaced={handleBetPlaced} key={pendingBet ? undefined : 'new-bet'} />
+        <BettingForm 
+          onBetPlaced={handleBetPlaced} 
+          initialBetType={currentBetType}
+          key={pendingBet ? undefined : 'new-bet'} 
+        />
       )}
 
       <AlertDialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>

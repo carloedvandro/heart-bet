@@ -3,12 +3,14 @@ import { useBettingForm } from "./useBettingForm";
 import BettingHeartGrid from "./BettingHeartGrid";
 import SubmitButton from "./SubmitButton";
 import { Bet } from "@/integrations/supabase/custom-types";
+import { BetType } from "@/types/betting";
 
 interface BettingFormProps {
   onBetPlaced: (bet: Bet) => void;
+  initialBetType?: BetType;
 }
 
-const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
+const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
   const {
     selectedHearts,
     mainHeart,
@@ -24,7 +26,7 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
     setBetAmount,
     setPosition,
     handleSubmit
-  } = useBettingForm(onBetPlaced);
+  } = useBettingForm(onBetPlaced, initialBetType);
 
   return (
     <>
