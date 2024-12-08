@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Bet } from "@/integrations/supabase/custom-types";
-import { BetType } from "@/types/betting";
+import { BetType, DrawPeriod, Position } from "@/types/betting";
 import BetForm from "./BetForm";
 import BettingHeartGrid from "./BettingHeartGrid";
 import { Button } from "../ui/button";
@@ -15,9 +15,9 @@ interface BettingFormProps {
 
 const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFormProps) => {
   const [betType, setBetType] = useState<BetType>(initialBetType);
-  const [drawPeriod, setDrawPeriod] = useState<string>("morning");
+  const [drawPeriod, setDrawPeriod] = useState<DrawPeriod>("morning");
   const [betAmount, setBetAmount] = useState<number>(10);
-  const [position, setPosition] = useState<number>(1);
+  const [position, setPosition] = useState<Position>(1);
 
   const getAudioUrl = (betType: BetType) => {
     switch (betType) {
@@ -69,7 +69,6 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
 
       <BettingHeartGrid
         betType={betType}
-        onBetPlaced={onBetPlaced}
         drawPeriod={drawPeriod}
         betAmount={betAmount}
         position={position}

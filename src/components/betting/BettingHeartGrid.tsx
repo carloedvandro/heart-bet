@@ -4,15 +4,17 @@ import { memo, useEffect, useState } from "react";
 import PairsTable from "./PairsTable";
 
 interface BettingHeartGridProps {
-  selectedHearts: string[];
-  mainHeart: string | null;
-  onHeartClick: (color: string) => void;
   betType: BetType;
+  drawPeriod: string;
+  betAmount: number;
+  position: number;
 }
 
-const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betType }: BettingHeartGridProps) => {
+const BettingHeartGrid = memo(({ betType }: BettingHeartGridProps) => {
   const [shuffledHearts, setShuffledHearts] = useState([...HEART_COLORS]);
   const [isShuffling, setIsShuffling] = useState(false);
+  const [selectedHearts, setSelectedHearts] = useState<string[]>([]);
+  const [mainHeart, setMainHeart] = useState<string | null>(null);
 
   const shuffleHearts = () => {
     setIsShuffling(true);
@@ -24,16 +26,24 @@ const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betTyp
       }
       return newHearts;
     });
-    // Reset shuffling state after animation completes
     setTimeout(() => setIsShuffling(false), 500);
   };
 
-  // Embaralhar corações inicialmente
+  const handleHeartClick = (color: string) => {
+    if (selectedHearts.includes(color)) {
+      setSelectedHearts(prev => prev.filter(h => h !== color));
+      if (mainHeart === color) {
+        setMainHeart(null);
+      }
+    } else {
+      setSelectedHearts(prev => [...prev, color]);
+    }
+  };
+
   useEffect(() => {
     shuffleHearts();
   }, []);
 
-  // Embaralhar corações a cada 10 segundos
   useEffect(() => {
     const interval = setInterval(() => {
       shuffleHearts();
@@ -44,7 +54,6 @@ const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betTyp
 
   return (
     <div className="flex flex-col gap-8 items-center animate-fade-in">
-      {/* Tabela de Visualização */}
       <div className="w-full max-w-md">
         <PairsTable 
           mainHeart={mainHeart} 
@@ -53,7 +62,6 @@ const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betTyp
         />
       </div>
 
-      {/* Grade de Corações */}
       <div className="grid grid-cols-5 gap-4 w-full">
         {shuffledHearts.map((heartColor, index) => (
           <div
@@ -67,7 +75,7 @@ const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betTyp
               color={heartColor.color}
               selected={selectedHearts.includes(heartColor.color)}
               isMain={heartColor.color === mainHeart}
-              onClick={() => onHeartClick(heartColor.color)}
+              onClick={() => handleHeartClick(heartColor.color)}
               disabled={false}
             />
           </div>
