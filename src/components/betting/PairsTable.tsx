@@ -20,10 +20,11 @@ const PairsTable = ({ mainHeart, selectedPairs, betType = "simple_group" }: Pair
 
   const renderPairs = () => {
     if (betType === "dozen") {
+      // Para dezena, mostramos todos os números selecionados e sua combinação
       return (
         <div className="grid grid-cols-1 gap-2">
           {selectedPairs.map((heart, index) => (
-            <div key={index} className="text-center py-2 border-t border-gray-100">
+            <div key={heart} className="text-center py-2 border-t border-gray-100">
               {getNumberForHeart(heart)}
             </div>
           ))}
@@ -40,14 +41,16 @@ const PairsTable = ({ mainHeart, selectedPairs, betType = "simple_group" }: Pair
     if (mainHeart) {
       const mainNumber = getNumberForHeart(mainHeart);
       const secondNumber = selectedPairs.length > 0 ? getNumberForHeart(selectedPairs[0]) : "-";
+      
+      // Formatar a combinação apenas quando tivermos ambos os números
       const combination = selectedPairs.length > 0 
         ? `${mainNumber}${secondNumber}`
         : mainNumber;
 
       return (
         <div className="grid grid-cols-3 gap-2 py-2 border-t border-gray-100">
-          <div className="text-center">{mainNumber}</div>
-          <div className="text-center">{secondNumber}</div>
+          <div className="text-center font-medium">{mainNumber}</div>
+          <div className="text-center font-medium">{secondNumber}</div>
           <div className="text-center font-semibold">{combination}</div>
         </div>
       );
@@ -58,13 +61,13 @@ const PairsTable = ({ mainHeart, selectedPairs, betType = "simple_group" }: Pair
 
   return (
     <div className="bg-white rounded-lg shadow p-4 w-full">
-      <h3 className="text-lg font-medium mb-4">{getTableTitle()}</h3>
+      <h3 className="text-lg font-medium mb-4 text-center">{getTableTitle()}</h3>
       <div className={`grid ${betType === "dozen" ? "grid-cols-1" : "grid-cols-3"} gap-4 text-sm text-gray-600`}>
         {betType !== "dozen" && (
           <>
-            <div className="text-center">Principal</div>
-            <div className="text-center">Par</div>
-            <div className="text-center">Combinação</div>
+            <div className="text-center font-medium">Principal</div>
+            <div className="text-center font-medium">Par</div>
+            <div className="text-center font-medium">Combinação</div>
           </>
         )}
       </div>
