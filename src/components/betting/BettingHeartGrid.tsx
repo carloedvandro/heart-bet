@@ -5,6 +5,7 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { useBetSubmission } from "@/hooks/useBetSubmission";
 import SubmitButton from "./SubmitButton";
 import { useTemporaryBetState } from "@/hooks/useTemporaryBetState";
+import PairsTable from "./PairsTable";
 
 interface BettingHeartGridProps {
   betType: BetType;
@@ -59,7 +60,6 @@ const BettingHeartGrid = memo(({
     }
   };
 
-  // Removido o useEffect que chamava clearSelections na montagem
   useEffect(() => {
     if (betType) {
       setSelectedHearts([]);
@@ -103,7 +103,13 @@ const BettingHeartGrid = memo(({
 
   return (
     <div className="flex flex-col gap-8 items-center animate-fade-in">
-      <div className="grid grid-cols-5 gap-4 p-4 rounded-lg bg-white/50 backdrop-blur-sm shadow-lg">
+      <PairsTable 
+        mainHeart={mainHeart}
+        selectedPairs={selectedHearts}
+        betType={betType}
+      />
+
+      <div className="grid grid-cols-5 gap-4 p-4">
         {shuffledHearts.map(({ color }) => (
           <HeartButton
             key={color}
