@@ -29,10 +29,11 @@ export const useHeartSelection = (
       const firstNumber = getNumberForHeart(mainHeart);
       const secondNumber = getNumberForHeart(color);
       
-      const twoDigitNumber = firstNumber < secondNumber 
-        ? firstNumber * 10 + secondNumber
-        : secondNumber * 10 + firstNumber;
+      // Formar o número de dois dígitos mantendo a ordem de seleção
+      const twoDigitNumber = firstNumber * 10 + secondNumber;
       
+      console.log("🎲 First number:", firstNumber);
+      console.log("🎲 Second number:", secondNumber);
       console.log("🎲 Formed number:", twoDigitNumber);
       
       const groupNumbers = getGroupNumbers(twoDigitNumber);
