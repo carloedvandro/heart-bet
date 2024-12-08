@@ -23,47 +23,9 @@ const ReceiptDetails = ({ bet }: ReceiptDetailsProps) => {
   };
 
   const renderSequence = () => {
-    // Mostrar números apenas para milhar (thousand)
-    if (bet.bet_type === 'thousand' && bet.numbers?.length) {
+    // Mostrar números para milhar e grupo simples
+    if ((bet.bet_type === 'thousand' || bet.bet_type === 'simple_group') && bet.numbers?.length) {
       return bet.numbers.map(formatNumber).join(", ");
-    }
-
-    // Para grupo simples, mostrar círculo dividido ou único
-    if (bet.bet_type === 'simple_group' && bet.hearts?.length === 2) {
-      const [firstColor, secondColor] = bet.hearts;
-      const isSameColor = firstColor === secondColor;
-
-      if (isSameColor) {
-        return (
-          <div className="flex gap-1">
-            <span
-              className="inline-block w-4 h-4 rounded-full border border-gray-300"
-              style={{ backgroundColor: `var(--heart-${firstColor})` }}
-              title={`${firstColor}`}
-            />
-          </div>
-        );
-      } else {
-        return (
-          <div className="flex gap-1">
-            <div
-              className="inline-block w-4 h-4 rounded-full border border-gray-300 overflow-hidden"
-              title={`${firstColor}-${secondColor}`}
-            >
-              <div className="flex h-full">
-                <div
-                  className="w-1/2 h-full"
-                  style={{ backgroundColor: `var(--heart-${firstColor})` }}
-                />
-                <div
-                  className="w-1/2 h-full"
-                  style={{ backgroundColor: `var(--heart-${secondColor})` }}
-                />
-              </div>
-            </div>
-          </div>
-        );
-      }
     }
 
     // Para todos os outros tipos, mostrar corações
