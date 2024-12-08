@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
 import { Pause, Play, Volume2 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
+import { SpeedControl } from "./SpeedControl";
+import { TimeControl } from "./TimeControl";
 
 interface AudioPlayerProps {
   showPlayer: boolean;
@@ -10,136 +10,19 @@ interface AudioPlayerProps {
 }
 
 export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [isPaused, setIsPaused] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [playbackSpeed, setPlaybackSpeed] = useState("1");
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-
-  const cleanupAudio = () => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.currentTime = 0;
-      audioRef.current = null;
-    }
-    setIsPlaying(false);
-    setIsPaused(false);
-    setCurrentTime(0);
-    setDuration(0);
-  };
-
-  useEffect(() => {
-    return () => {
-      cleanupAudio();
-    };
-  }, [audioUrl]);
-
-  useEffect(() => {
-    if (!showPlayer) {
-      cleanupAudio();
-    }
-  }, [showPlayer]);
-
-  useEffect(() => {
-    if (audioRef.current) {
-      const audio = audioRef.current;
-
-      const updateTime = () => {
-        if (!isDragging) {
-          setCurrentTime(audio.currentTime);
-        }
-      };
-
-      const handleLoadedMetadata = () => {
-        setDuration(audio.duration);
-      };
-
-      const handleEnded = () => {
-        setIsPlaying(false);
-        setIsPaused(false);
-        setCurrentTime(0);
-      };
-
-      audio.addEventListener('timeupdate', updateTime);
-      audio.addEventListener('loadedmetadata', handleLoadedMetadata);
-      audio.addEventListener('ended', handleEnded);
-
-      return () => {
-        audio.removeEventListener('timeupdate', updateTime);
-        audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
-        audio.removeEventListener('ended', handleEnded);
-      };
-    }
-  }, [audioRef.current, isDragging]);
-
-  const playRules = () => {
-    cleanupAudio();
-
-    if (audioUrl) {
-      audioRef.current = new Audio(audioUrl);
-      audioRef.current.volume = 0.7;
-      audioRef.current.playbackRate = Number(playbackSpeed);
-      
-      audioRef.current.play()
-        .then(() => {
-          setIsPlaying(true);
-          setIsPaused(false);
-        })
-        .catch(error => {
-          console.error("Error playing audio:", error);
-          setIsPlaying(false);
-          setIsPaused(false);
-          cleanupAudio();
-        });
-    }
-  };
-
-  const handlePlayPause = () => {
-    if (!audioRef.current) return;
-
-    if (isPaused) {
-      audioRef.current.play()
-        .then(() => setIsPaused(false))
-        .catch(error => {
-          console.error("Error resuming audio:", error);
-          cleanupAudio();
-        });
-    } else {
-      audioRef.current.pause();
-      setIsPaused(true);
-    }
-  };
-
-  const handleSliderChange = (value: number[]) => {
-    if (audioRef.current) {
-      const newTime = value[0];
-      audioRef.current.currentTime = newTime;
-      setCurrentTime(newTime);
-    }
-  };
-
-  const handleSliderDragStart = () => {
-    setIsDragging(true);
-  };
-
-  const handleSliderDragEnd = () => {
-    setIsDragging(false);
-  };
-
-  const handleSpeedChange = (value: string) => {
-    setPlaybackSpeed(value);
-    if (audioRef.current) {
-      audioRef.current.playbackRate = Number(value);
-    }
-  };
-
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-  };
+  const {
+    isPlaying,
+    isPaused,
+    currentTime,
+    duration,
+    playbackSpeed,
+    isDragging,
+    setIsDragging,
+    playRules,
+    handlePlayPause,
+    handleTimeChange,
+    handleSpeedChange,
+  } = useAudioPlayer(audioUrl, showPlayer);
 
   if (!showPlayer) return null;
 
@@ -172,35 +55,21 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
         </Button>
 
         {isPlaying && (
-          <Select value={playbackSpeed} onValueChange={handleSpeedChange}>
-            <SelectTrigger className="w-24">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">1x</SelectItem>
-              <SelectItem value="2">2x</SelectItem>
-              <SelectItem value="3">3x</SelectItem>
-            </SelectContent>
-          </Select>
+          <SpeedControl 
+            playbackSpeed={playbackSpeed} 
+            onSpeedChange={handleSpeedChange} 
+          />
         )}
       </div>
 
       {isPlaying && (
-        <div className="w-full space-y-2">
-          <Slider
-            value={[currentTime]}
-            max={duration}
-            step={0.1}
-            onValueChange={handleSliderChange}
-            onPointerDown={handleSliderDragStart}
-            onPointerUp={handleSliderDragEnd}
-            className="w-full"
-          />
-          <div className="flex justify-between text-sm text-gray-500">
-            <span>{formatTime(currentTime)}</span>
-            <span>{formatTime(duration)}</span>
-          </div>
-        </div>
+        <TimeControl
+          currentTime={currentTime}
+          duration={duration}
+          onTimeChange={(values) => handleTimeChange(values[0])}
+          onDragStart={() => setIsDragging(true)}
+          onDragEnd={() => setIsDragging(false)}
+        />
       )}
     </div>
   );
