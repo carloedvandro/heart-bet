@@ -23,21 +23,28 @@ const ReceiptDetails = ({ bet }: ReceiptDetailsProps) => {
   };
 
   const renderSequence = () => {
-    if (isAdmin) {
-      return bet.numbers?.map(formatNumber).join(", ") || "N/A";
+    // Se tivermos números, sempre mostrá-los independente do tipo de aposta
+    if (bet.numbers?.length) {
+      return bet.numbers.map(formatNumber).join(", ");
     }
-    return (
-      <div className="flex gap-1 flex-wrap">
-        {bet.hearts?.map((color, index) => (
-          <span
-            key={`${color}-${index}`}
-            className="inline-block w-4 h-4 rounded-full border border-gray-300"
-            style={{ backgroundColor: `var(--heart-${color})` }}
-            title={color}
-          />
-        ))}
-      </div>
-    );
+
+    // Se não tivermos números mas tivermos corações, mostrar os corações
+    if (bet.hearts?.length) {
+      return (
+        <div className="flex gap-1 flex-wrap">
+          {bet.hearts.map((color, index) => (
+            <span
+              key={`${color}-${index}`}
+              className="inline-block w-4 h-4 rounded-full border border-gray-300"
+              style={{ backgroundColor: `var(--heart-${color})` }}
+              title={color}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    return "N/A";
   };
 
   return (
