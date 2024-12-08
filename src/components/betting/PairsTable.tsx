@@ -9,6 +9,9 @@ interface PairsTableProps {
 }
 
 const PairsTable = memo(({ mainHeart, selectedPairs, betType = "simple_group" }: PairsTableProps) => {
+  console.log("PairsTable render - selectedPairs:", selectedPairs);
+  console.log("PairsTable render - betType:", betType);
+
   const getTableTitle = () => {
     const totalSelected = betType === "dozen" 
       ? selectedPairs.length
@@ -19,6 +22,7 @@ const PairsTable = memo(({ mainHeart, selectedPairs, betType = "simple_group" }:
   };
 
   const renderDozenContent = () => {
+    // Se não houver pares selecionados, mostra mensagem inicial
     if (selectedPairs.length === 0) {
       return (
         <div className="text-center py-2 border-t border-gray-100 text-gray-400">
@@ -27,11 +31,15 @@ const PairsTable = memo(({ mainHeart, selectedPairs, betType = "simple_group" }:
       );
     }
 
+    // Converte os corações em números
     const numbers = selectedPairs.map(getNumberForHeart);
+    console.log("Dozen numbers:", numbers);
+
+    // Formata a dezena
     const formattedDozens = numbers.length === 2 
       ? `${numbers[0]}${numbers[1]}`
       : numbers[0];
-    
+
     return (
       <div className="text-center py-2 border-t border-gray-100">
         <div className="font-bold text-2xl">
