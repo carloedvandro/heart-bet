@@ -22,6 +22,7 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
   const { clearCombinations } = useTemporaryBetState();
   const [resetKey, setResetKey] = useState(0);
   const hasCleared = useRef(false);
+  const [isPlayerOpen, setIsPlayerOpen] = useState(false);
 
   const getAudioUrl = (betType: BetType) => {
     switch (betType) {
@@ -55,15 +56,24 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
     }
   };
 
+  const handleBetTypeChange = (newBetType: BetType) => {
+    setBetType(newBetType);
+    setIsPlayerOpen(false); // Fecha o player quando muda o tipo de aposta
+  };
+
   return (
     <>
       <div className="flex justify-end items-center mb-4">
-        <ListenRulesButton audioUrl={getAudioUrl(betType)} />
+        <ListenRulesButton 
+          audioUrl={getAudioUrl(betType)} 
+          isOpen={isPlayerOpen}
+          onOpenChange={setIsPlayerOpen}
+        />
       </div>
 
       <BetForm
         betType={betType}
-        setBetType={setBetType}
+        setBetType={handleBetTypeChange}
         drawPeriod={drawPeriod}
         setDrawPeriod={setDrawPeriod}
         betAmount={betAmount}
