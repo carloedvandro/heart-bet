@@ -7,6 +7,7 @@ import { BetType } from "@/types/betting";
 import { Button } from "../ui/button";
 import { Eraser, Volume2 } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
 
 interface BettingFormProps {
   onBetPlaced: (bet: Bet) => void;
@@ -14,6 +15,7 @@ interface BettingFormProps {
 }
 
 const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
+  const [isPlaying, setIsPlaying] = useState(false);
   const {
     selectedHearts,
     mainHeart,
@@ -40,10 +42,18 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
   const playRules = () => {
     const audio = new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Primeiro_selecione_um_coracao_para_formar_o_grupo2.mp3");
     audio.volume = 0.7;
-    audio.play().catch(error => {
-      console.error("Error playing audio:", error);
-      toast.error("Erro ao reproduzir áudio das regras");
-    });
+    setIsPlaying(true);
+    
+    audio.play()
+      .catch(error => {
+        console.error("Error playing audio:", error);
+        toast.error("Erro ao reproduzir áudio das regras");
+        setIsPlaying(false);
+      });
+
+    audio.onended = () => {
+      setIsPlaying(false);
+    };
   };
 
   return (
@@ -63,10 +73,11 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
         <Button
           variant="outline"
           onClick={playRules}
+          disabled={isPlaying}
           className="w-full max-w-[300px] gap-2 mb-4"
         >
           <Volume2 className="w-4 h-4" />
-          Clique aqui para ouvir as regras do jogo
+          {isPlaying ? "Reproduzindo..." : "Clique aqui para ouvir as regras do jogo"}
         </Button>
       )}
 
