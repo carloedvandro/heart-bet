@@ -1,5 +1,5 @@
 import BetForm from "../BetForm";
-import { useBettingForm } from "./useBettingForm";
+import { useBettingForm } from "@/hooks/useBettingForm";
 import BettingHeartGrid from "./BettingHeartGrid";
 import SubmitButton from "./SubmitButton";
 import { Bet } from "@/integrations/supabase/custom-types";
