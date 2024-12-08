@@ -37,6 +37,7 @@ export const AudioPlayer = ({ showPlayer }: AudioPlayerProps) => {
     if (!audioRef.current) {
       audioRef.current = new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Primeiro_selecione_um_coracao_para_formar_o_grupo3.mp3");
       audioRef.current.volume = 0.7;
+      audioRef.current.playbackRate = Number(playbackSpeed);
     }
 
     setIsPlaying(true);
@@ -120,16 +121,18 @@ export const AudioPlayer = ({ showPlayer }: AudioPlayerProps) => {
           )}
         </Button>
 
-        <Select value={playbackSpeed} onValueChange={handleSpeedChange}>
-          <SelectTrigger className="w-24">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1">1x</SelectItem>
-            <SelectItem value="2">2x</SelectItem>
-            <SelectItem value="3">3x</SelectItem>
-          </SelectContent>
-        </Select>
+        {isPlaying && (
+          <Select value={playbackSpeed} onValueChange={handleSpeedChange}>
+            <SelectTrigger className="w-24">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">1x</SelectItem>
+              <SelectItem value="2">2x</SelectItem>
+              <SelectItem value="3">3x</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
 
       {isPlaying && (
