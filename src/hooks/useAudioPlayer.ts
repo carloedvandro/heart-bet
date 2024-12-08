@@ -102,12 +102,12 @@ export const useAudioPlayer = (audioUrl: string | undefined, showPlayer: boolean
   };
 
   const handleTimeChange = (newTime: number[]) => {
+    console.log("Time change:", newTime);
     if (audioRef.current && newTime.length > 0) {
       const time = Math.floor(newTime[0]);
       audioRef.current.currentTime = time;
       setCurrentTime(time);
 
-      // Se o áudio estava tocando antes de arrastar, continue tocando
       if (isPlaying && !isPaused) {
         audioRef.current.play()
           .catch(error => {

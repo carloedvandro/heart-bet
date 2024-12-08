@@ -66,7 +66,7 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
         <TimeControl
           currentTime={currentTime}
           duration={duration}
-          onTimeChange={(values) => handleTimeChange(values[0])}
+          onTimeChange={handleTimeChange}
           onDragStart={() => setIsDragging(true)}
           onDragEnd={() => setIsDragging(false)}
         />
