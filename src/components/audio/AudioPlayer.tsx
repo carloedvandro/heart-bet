@@ -9,7 +9,7 @@ interface AudioPlayerProps {
   audioUrl?: string;
 }
 
-export const AudioPlayer = ({ showPlayer, audioUrl = "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_dezena.mp3" }: AudioPlayerProps) => {
+export const AudioPlayer = ({ showPlayer, audioUrl = "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_do_grupo_simples.mp3" }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
