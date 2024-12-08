@@ -24,6 +24,8 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
 
     const handleLoadedMetadata = () => {
       setDuration(audio.duration);
+      setCurrentTime(0);
+      setIsPlaying(false);
     };
 
     const handleTimeUpdate = () => {
@@ -35,6 +37,10 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
       setCurrentTime(0);
     };
 
+    // Reset state when audio source changes
+    setIsPlaying(false);
+    setCurrentTime(0);
+
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleEnded);
@@ -44,7 +50,7 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, []);
+  }, [audioUrl]); // Added audioUrl as dependency to reset state when audio changes
 
   useEffect(() => {
     if (!audioRef.current) return;
@@ -57,7 +63,13 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
     if (isPlaying) {
       audioRef.current.pause();
     } else {
-      audioRef.current.play();
+      const playPromise = audioRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.error("Error playing audio:", error);
+          setIsPlaying(false);
+        });
+      }
     }
     setIsPlaying(!isPlaying);
   };
