@@ -7,8 +7,6 @@ import { BetType } from "@/types/betting";
 import { Button } from "../ui/button";
 import { Eraser } from "lucide-react";
 import { toast } from "sonner";
-import { AudioPlayer } from "../audio/AudioPlayer";
-import { useEffect } from "react";
 
 interface BettingFormProps {
   onBetPlaced: (bet: Bet) => void;
@@ -39,30 +37,6 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
     toast.info("Seleção de corações limpa");
   };
 
-  const getAudioUrl = (betType: BetType) => {
-    switch (betType) {
-      case "simple_group":
-        return "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_do_grupo_simples.mp3";
-      case "dozen":
-        return "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_dezena.mp3";
-      case "hundred":
-        return "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_sentena.mp3";
-      default:
-        return "";
-    }
-  };
-
-  // Cleanup audio when component unmounts or bet type changes
-  useEffect(() => {
-    return () => {
-      const audio = document.querySelector('audio');
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-    };
-  }, [betType]);
-
   return (
     <>
       <BetForm
@@ -74,12 +48,6 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
         setBetAmount={setBetAmount}
         position={position}
         setPosition={setPosition}
-      />
-
-      <AudioPlayer 
-        showPlayer={true}
-        audioUrl={getAudioUrl(betType)}
-        key={`audio-${betType}`}
       />
 
       <BettingHeartGrid 
