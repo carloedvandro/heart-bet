@@ -44,19 +44,33 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
     }
   }, [showPlayer]);
 
+  // Setup audio event listeners
   useEffect(() => {
     if (audioRef.current) {
+      const audio = audioRef.current;
+
       const updateTime = () => {
-        setCurrentTime(audioRef.current?.currentTime || 0);
+        setCurrentTime(audio.currentTime);
       };
 
-      audioRef.current.addEventListener('timeupdate', updateTime);
-      audioRef.current.addEventListener('loadedmetadata', () => {
-        setDuration(audioRef.current?.duration || 0);
-      });
+      const handleLoadedMetadata = () => {
+        setDuration(audio.duration);
+      };
+
+      const handleEnded = () => {
+        setIsPlaying(false);
+        setIsPaused(false);
+        setCurrentTime(0);
+      };
+
+      audio.addEventListener('timeupdate', updateTime);
+      audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+      audio.addEventListener('ended', handleEnded);
 
       return () => {
-        audioRef.current?.removeEventListener('timeupdate', updateTime);
+        audio.removeEventListener('timeupdate', updateTime);
+        audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+        audio.removeEventListener('ended', handleEnded);
       };
     }
   }, [audioRef.current]);
@@ -80,12 +94,6 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
           setIsPaused(false);
           cleanupAudio();
         });
-
-      audioRef.current.onended = () => {
-        setIsPlaying(false);
-        setIsPaused(false);
-        cleanupAudio();
-      };
     }
   };
 
