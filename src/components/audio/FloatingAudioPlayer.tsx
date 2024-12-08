@@ -73,14 +73,22 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
     
     try {
       if (isPlaying) {
-        await audioRef.current.pause();
+        audioRef.current.pause();
         setIsPlaying(false);
       } else {
+        // Primeiro, vamos garantir que o áudio está carregado
+        if (audioRef.current.readyState < 2) {
+          await new Promise((resolve) => {
+            audioRef.current!.addEventListener('canplay', resolve, { once: true });
+          });
+        }
+        
         await audioRef.current.play();
+        console.log("Áudio iniciou a reprodução");
         setIsPlaying(true);
       }
     } catch (error) {
-      console.error("Error playing audio:", error);
+      console.error("Erro ao reproduzir áudio:", error);
       setIsPlaying(false);
     }
   };
@@ -126,7 +134,13 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
         </Button>
       </div>
 
-      <audio ref={audioRef} src={audioUrl} preload="metadata" />
+      <audio 
+        ref={audioRef} 
+        src={audioUrl} 
+        preload="metadata"
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+      />
 
       <div className="space-y-4">
         <div className="flex items-center justify-center space-x-2">
