@@ -10,20 +10,30 @@ interface PairsTableProps {
 const PairsTable = ({ mainHeart, selectedPairs, betType = "simple_group" }: PairsTableProps) => {
   const getTableTitle = () => {
     if (betType === "dozen") {
-      const selectedCount = selectedPairs.length;
-      return `Dezena (${selectedCount}/2)`;
+      return `Dezena (${selectedPairs.length}/2)`;
     }
+    // Para grupo simples, contamos o coração principal e o segundo coração
     const totalSelected = mainHeart ? selectedPairs.length + 1 : selectedPairs.length;
     return `Números do Grupo (${totalSelected}/2)`;
   };
 
   const renderPairs = () => {
     if (betType === "dozen") {
-      return selectedPairs.map((heart, index) => (
-        <div key={index} className="grid grid-cols-1 gap-2 py-2 border-t border-gray-100">
-          <div className="text-center">{getNumberForHeart(heart)}</div>
+      // Para dezena, mostramos todos os números selecionados
+      return (
+        <div className="grid grid-cols-1 gap-2">
+          {selectedPairs.map((heart, index) => (
+            <div key={index} className="text-center py-2 border-t border-gray-100">
+              {getNumberForHeart(heart)}
+            </div>
+          ))}
+          {selectedPairs.length === 2 && (
+            <div className="text-center py-2 border-t border-gray-100 font-semibold">
+              {getNumberForHeart(selectedPairs[0])}{getNumberForHeart(selectedPairs[1])}
+            </div>
+          )}
         </div>
-      ));
+      );
     }
 
     // Para grupo simples
