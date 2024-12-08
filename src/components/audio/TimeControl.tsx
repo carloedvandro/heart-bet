@@ -25,14 +25,15 @@ export const TimeControl = ({
   return (
     <div className="w-full space-y-2">
       <Slider
+        defaultValue={[0]}
         value={[currentTime]}
         max={duration || 100}
         min={0}
-        step={1}
+        step={0.1}
         onValueChange={onTimeChange}
         onPointerDown={onDragStart}
         onPointerUp={onDragEnd}
-        className="w-full cursor-pointer hover:cursor-grab active:cursor-grabbing"
+        className="w-full cursor-pointer"
       />
       <div className="flex justify-between text-sm text-gray-500">
         <span>{formatTime(currentTime)}</span>
