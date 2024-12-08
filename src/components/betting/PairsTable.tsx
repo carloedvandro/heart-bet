@@ -15,17 +15,17 @@ const PairsTable = ({ mainHeart, selectedPairs, betType }: PairsTableProps) => {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="text-center">Dezena</TableHead>
+            <TableHead className="text-center">Números</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           <TableRow>
             <TableCell className="text-center text-lg font-semibold">
-              {mainHeart || selectedPairs.length === 0 ? (
+              {selectedPairs.length === 0 ? (
                 <span className="text-gray-500">Selecione os corações</span>
               ) : (
-                <div className="flex justify-center">
-                  {[mainHeart, ...selectedPairs].map((heart, index) => (
+                <div className="flex justify-center gap-1">
+                  {selectedPairs.map((heart, index) => (
                     <span key={index}>{getNumberForHeart(heart)}</span>
                   ))}
                 </div>
