@@ -106,6 +106,14 @@ export const useAudioPlayer = (audioUrl: string | undefined, showPlayer: boolean
       const time = Math.floor(newTime[0]);
       audioRef.current.currentTime = time;
       setCurrentTime(time);
+
+      // Se o áudio estava tocando antes de arrastar, continue tocando
+      if (isPlaying && !isPaused) {
+        audioRef.current.play()
+          .catch(error => {
+            console.error("Error resuming after time change:", error);
+          });
+      }
     }
   };
 

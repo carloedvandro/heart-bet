@@ -32,7 +32,7 @@ export const TimeControl = ({
         onValueChange={onTimeChange}
         onPointerDown={onDragStart}
         onPointerUp={onDragEnd}
-        className="w-full"
+        className="w-full cursor-pointer"
       />
       <div className="flex justify-between text-sm text-gray-500">
         <span>{formatTime(currentTime)}</span>
