@@ -7,6 +7,8 @@ export const useAdminStatus = () => {
   const session = useSession();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
+  const MAX_RETRIES = 3;
 
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -19,6 +21,7 @@ export const useAdminStatus = () => {
         }
 
         console.log("Checking admin status for user:", session.user.id);
+        console.log("Current retry count:", retryCount);
         
         const { data: profile, error } = await supabase
           .from('profiles')
@@ -28,23 +31,47 @@ export const useAdminStatus = () => {
         
         if (error) {
           console.error('Error fetching admin status:', error);
+          console.log('Error details:', {
+            message: error.message,
+            code: error.code,
+            details: error.details
+          });
+          
+          if (retryCount < MAX_RETRIES) {
+            console.log(`Retrying... Attempt ${retryCount + 1} of ${MAX_RETRIES}`);
+            setRetryCount(prev => prev + 1);
+            return;
+          }
+          
           toast.error('Erro ao verificar status de administrador');
           setIsAdmin(false);
         } else {
           console.log("Admin status response:", profile);
           setIsAdmin(!!profile?.is_admin);
+          setRetryCount(0); // Reset retry count on success
         }
       } catch (error) {
         console.error('Error in checkAdminStatus:', error);
+        
+        if (retryCount < MAX_RETRIES) {
+          console.log(`Retrying... Attempt ${retryCount + 1} of ${MAX_RETRIES}`);
+          setRetryCount(prev => prev + 1);
+          return;
+        }
+        
         toast.error('Erro ao verificar status de administrador');
         setIsAdmin(false);
       } finally {
-        setIsLoading(false);
+        if (retryCount >= MAX_RETRIES) {
+          setIsLoading(false);
+        }
       }
     };
 
-    checkAdminStatus();
-  }, [session?.user?.id]);
+    const retryTimeout = setTimeout(checkAdminStatus, retryCount * 1000);
+    
+    return () => clearTimeout(retryTimeout);
+  }, [session?.user?.id, retryCount]);
 
   return { isAdmin, isLoading };
 };
