@@ -31,11 +31,11 @@ const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betTyp
     shuffleHearts();
   }, []);
 
-  // Embaralhar corações a cada 30 segundos
+  // Embaralhar corações a cada 10 segundos
   useEffect(() => {
     const interval = setInterval(() => {
       shuffleHearts();
-    }, 30000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);
