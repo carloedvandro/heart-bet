@@ -125,18 +125,20 @@ export default function Dashboard() {
 
   return (
     <div 
-      className="min-h-screen bg-gray-50 p-4 bg-cover bg-center relative"
+      className="min-h-screen bg-gray-50 p-4 md:p-6 bg-cover bg-center relative"
       style={{
         backgroundImage: 'url("/lovable-uploads/5a0e0336-aecf-49bc-961c-013d9aee3443.png")',
       }}
     >
-      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
-      <Header profile={profile} onLogout={handleLogout} />
-      <DashboardContent 
-        profile={profile}
-        refreshTrigger={refreshTrigger}
-        onBetPlaced={() => setRefreshTrigger(prev => prev + 1)}
-      />
+      <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
+      <div className="relative z-10">
+        <Header profile={profile} onLogout={handleLogout} />
+        <DashboardContent 
+          profile={profile}
+          refreshTrigger={refreshTrigger}
+          onBetPlaced={() => setRefreshTrigger(prev => prev + 1)}
+        />
+      </div>
     </div>
   );
 }
