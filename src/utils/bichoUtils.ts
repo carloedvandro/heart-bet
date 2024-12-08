@@ -29,68 +29,58 @@ export const BICHO_GROUPS = [
 
 // Função para encontrar o grupo baseado em um número de dois dígitos
 export const findBichoGroup = (number: number) => {
-  // Tratamento especial para números repetidos (00, 11, 22, etc.)
-  const firstDigit = Math.floor(number / 10);
-  const secondDigit = number % 10;
-  const isRepeatedNumber = firstDigit === secondDigit;
-
-  if (isRepeatedNumber) {
-    // Para números repetidos, encontre o grupo que contém o número repetido
-    return BICHO_GROUPS.find(group => {
-      if (group.end === 0 && number === 0) return true;
-      return number >= group.start && number <= group.end;
-    });
-  }
-
-  // Tratamento especial para 0, que pertence ao último grupo (97-00)
+  console.log("🔍 Finding group for number:", number);
+  
+  // Tratamento especial para zero
   if (number === 0) {
+    console.log("🎯 Special case: number is 0, returning last group (Vaca)");
     return BICHO_GROUPS[BICHO_GROUPS.length - 1];
   }
 
   // Encontrar o grupo correto baseado no número
-  return BICHO_GROUPS.find(group => {
+  const group = BICHO_GROUPS.find(group => {
     if (group.end === 0) {
       // Caso especial para o último grupo (97-00)
       return number >= 97 || number === 0;
     }
     return number >= group.start && number <= group.end;
   });
+
+  console.log("🎯 Found group:", group);
+  return group;
 };
 
 // Função para obter todos os números de um grupo
 export const getGroupNumbers = (number: number): number[] => {
-  const firstDigit = Math.floor(number / 10);
-  const secondDigit = number % 10;
-  const isRepeatedNumber = firstDigit === secondDigit;
+  console.log("🎲 Getting group numbers for:", number);
 
-  // Se for um número repetido (00, 11, 22, etc.)
-  if (isRepeatedNumber) {
-    // Encontra o grupo que contém o número repetido
-    const group = findBichoGroup(number);
-    if (!group) return [];
-    return [
-      group.start,
-      group.start + 1,
-      group.start + 2,
-      group.start + 3
-    ];
+  // Tratamento especial para quando o número é 0 (00)
+  if (number === 0) {
+    console.log("🎲 Special case: number is 0, returning group [97, 98, 99, 0]");
+    return [97, 98, 99, 0];
   }
 
   const group = findBichoGroup(number);
-  if (!group) return [];
+  if (!group) {
+    console.log("❌ No group found for number:", number);
+    return [];
+  }
 
   // Se for o último grupo (97-00)
   if (group.end === 0) {
+    console.log("🎲 Last group case, returning [97, 98, 99, 0]");
     return [97, 98, 99, 0];
   }
 
   // Para qualquer outro grupo, retorna os 4 números começando do start
-  return [
+  const numbers = [
     group.start,
     group.start + 1,
     group.start + 2,
     group.start + 3
   ];
+  console.log("🎲 Returning group numbers:", numbers);
+  return numbers;
 };
 
 // Função para verificar se dois números pertencem ao mesmo grupo
