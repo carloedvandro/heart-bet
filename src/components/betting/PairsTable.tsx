@@ -9,8 +9,8 @@ interface PairsTableProps {
 }
 
 const PairsTable = ({ mainHeart, selectedPairs, betType }: PairsTableProps) => {
-  // Se for aposta do tipo dezena ou centena, mostra a tabela simplificada
-  if (betType === "dozen" || betType === "hundred") {
+  // Se for aposta do tipo dezena, centena ou milhar, mostra a tabela simplificada
+  if (betType === "dozen" || betType === "hundred" || betType === "thousand") {
     return (
       <Table>
         <TableHeader>
