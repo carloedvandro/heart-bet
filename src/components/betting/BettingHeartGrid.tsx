@@ -39,31 +39,33 @@ const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betTyp
           ))}
         </div>
 
-        {/* Tabela de Visualização */}
-        <div className="w-48">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-center">Números</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow>
-                <TableCell className="text-center text-lg font-semibold">
-                  {selectedHearts.length === 0 ? (
-                    <span className="text-gray-500">Selecione os corações</span>
-                  ) : (
-                    <div className="flex justify-center gap-1">
-                      {selectedHearts.map((heart, index) => (
-                        <span key={index}>{getNumberForHeart(heart)}</span>
-                      ))}
-                    </div>
-                  )}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
+        {/* Tabela de Visualização - apenas para apostas do tipo dezena */}
+        {betType === "dozen" && (
+          <div className="w-48">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="text-center">Números</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow>
+                  <TableCell className="text-center text-lg font-semibold">
+                    {selectedHearts.length === 0 ? (
+                      <span className="text-gray-500">Selecione os corações</span>
+                    ) : (
+                      <div className="flex justify-center gap-1">
+                        {selectedHearts.map((heart, index) => (
+                          <span key={index}>{getNumberForHeart(heart)}</span>
+                        ))}
+                      </div>
+                    )}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
     </div>
   );
