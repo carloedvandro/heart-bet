@@ -68,21 +68,21 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
     audioRef.current.volume = volume;
   }, [volume]);
 
-  const togglePlay = () => {
+  const togglePlay = async () => {
     if (!audioRef.current || isLoading) return;
     
-    if (isPlaying) {
-      audioRef.current.pause();
-    } else {
-      const playPromise = audioRef.current.play();
-      if (playPromise !== undefined) {
-        playPromise.catch((error) => {
-          console.error("Error playing audio:", error);
-          setIsPlaying(false);
-        });
+    try {
+      if (isPlaying) {
+        await audioRef.current.pause();
+        setIsPlaying(false);
+      } else {
+        await audioRef.current.play();
+        setIsPlaying(true);
       }
+    } catch (error) {
+      console.error("Error playing audio:", error);
+      setIsPlaying(false);
     }
-    setIsPlaying(!isPlaying);
   };
 
   const toggleMute = () => {
