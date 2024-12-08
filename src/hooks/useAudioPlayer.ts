@@ -50,7 +50,7 @@ export const useAudioPlayer = (audioUrl: string | undefined, showPlayer: boolean
         console.log("Audio playback ended");
         setIsPlaying(false);
         setIsPaused(false);
-        setCurrentTime(0);
+        // Não resetamos mais o currentTime aqui para manter a barra no final
       };
 
       audio.addEventListener('timeupdate', updateTime);
@@ -109,6 +109,16 @@ export const useAudioPlayer = (audioUrl: string | undefined, showPlayer: boolean
       const time = Math.min(newTime[0], duration);
       audioRef.current.currentTime = time;
       setCurrentTime(time);
+      
+      // Se o áudio terminou e o usuário move a barra, permitimos que ele continue
+      if (!isPlaying && time < duration) {
+        audioRef.current.play()
+          .then(() => {
+            setIsPlaying(true);
+            setIsPaused(false);
+          })
+          .catch(console.error);
+      }
     }
   };
 
