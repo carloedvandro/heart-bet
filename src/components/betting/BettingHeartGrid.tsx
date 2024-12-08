@@ -6,6 +6,7 @@ import { useBetSubmission } from "@/hooks/useBetSubmission";
 import SubmitButton from "./SubmitButton";
 import { useTemporaryBetState } from "@/hooks/useTemporaryBetState";
 import PairsTable from "./PairsTable";
+import { useHeartSelection } from "@/hooks/useHeartSelection";
 
 interface BettingHeartGridProps {
   betType: BetType;
@@ -30,6 +31,14 @@ const BettingHeartGrid = memo(({
   const session = useSession();
   const { combinations } = useTemporaryBetState();
 
+  const { handleHeartClick } = useHeartSelection(
+    betType,
+    mainHeart,
+    selectedHearts,
+    setMainHeart,
+    setSelectedHearts
+  );
+
   const shuffleHearts = () => {
     setIsShuffling(true);
     const shuffled = [...shuffledHearts];
@@ -41,22 +50,12 @@ const BettingHeartGrid = memo(({
     setTimeout(() => setIsShuffling(false), 500);
   };
 
-  const handleHeartClick = (color: string) => {
-    if (isShuffling) return;
-
-    if (betType === "simple_group") {
-      if (!mainHeart) {
-        setMainHeart(color);
-        setSelectedHearts([color]);
-      } else {
-        if (!selectedHearts.includes(color)) {
-          setSelectedHearts([...selectedHearts, color]);
-        }
-      }
-    } else {
-      if (!selectedHearts.includes(color)) {
-        setSelectedHearts([...selectedHearts, color]);
-      }
+  const clearSelections = () => {
+    console.log("Limpando seleções no grid");
+    setSelectedHearts([]);
+    setMainHeart(null);
+    if (onClearSelection) {
+      onClearSelection();
     }
   };
 
@@ -66,15 +65,6 @@ const BettingHeartGrid = memo(({
       setMainHeart(null);
     }
   }, [betType]);
-
-  const clearSelections = () => {
-    console.log("Limpando seleções no grid");
-    setSelectedHearts([]);
-    setMainHeart(null);
-    if (onClearSelection) {
-      onClearSelection();
-    }
-  };
 
   useEffect(() => {
     shuffleHearts();
@@ -95,7 +85,7 @@ const BettingHeartGrid = memo(({
     betType,
     drawPeriod,
     betAmount,
-    position as Position,
+    position,
     isSubmitting,
     setIsSubmitting,
     () => {}
@@ -109,7 +99,7 @@ const BettingHeartGrid = memo(({
         betType={betType}
       />
 
-      <div className="grid grid-cols-5 gap-4 p-4">
+      <div className="grid grid-cols-5 gap-4">
         {shuffledHearts.map(({ color }) => (
           <HeartButton
             key={color}

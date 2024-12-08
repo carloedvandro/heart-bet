@@ -25,6 +25,12 @@ export const useHeartSelection = (
 
   const handleHeartClick = (color: string) => {
     console.log("🎯 Heart clicked:", color);
+    console.log("Current state:", { betType, mainHeart, selectedHearts });
+
+    // Se o coração já está selecionado, não fazer nada
+    if (selectedHearts.includes(color) && betType !== "simple_group") {
+      return false;
+    }
 
     if (betType === "simple_group") {
       return handleSimpleGroupSelection(color);
@@ -36,25 +42,29 @@ export const useHeartSelection = (
 
     // Para aposta do tipo centena (hundred), permitir exatamente 3 seleções
     if (betType === "hundred") {
-      if (selectedHearts.length >= 3) {
+      if (selectedHearts.length >= 3 && !selectedHearts.includes(color)) {
         toast.error("Máximo de 3 corações para centena");
         return false;
       }
       
-      setSelectedHearts([...selectedHearts, color]);
-      playSounds.click();
+      if (!selectedHearts.includes(color)) {
+        setSelectedHearts([...selectedHearts, color]);
+        playSounds.click();
+      }
       return true;
     }
 
     // Para aposta do tipo milhar (thousand), permitir exatamente 4 seleções
     if (betType === "thousand") {
-      if (selectedHearts.length >= 4) {
+      if (selectedHearts.length >= 4 && !selectedHearts.includes(color)) {
         toast.error("Máximo de 4 corações para milhar");
         return false;
       }
       
-      setSelectedHearts([...selectedHearts, color]);
-      playSounds.click();
+      if (!selectedHearts.includes(color)) {
+        setSelectedHearts([...selectedHearts, color]);
+        playSounds.click();
+      }
       return true;
     }
 
