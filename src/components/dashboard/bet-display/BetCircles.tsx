@@ -1,10 +1,8 @@
-import { useAdminStatus } from "@/hooks/useAdminStatus";
-
 interface BetCirclesProps {
   hearts: string[] | null;
   betType: string;
   isAdmin: boolean;
-  numbers?: number[] | null;
+  numbers?: string[] | null;
 }
 
 export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProps) => {
