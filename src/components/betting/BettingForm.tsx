@@ -7,14 +7,14 @@ import { BetType } from "@/types/betting";
 import { Button } from "../ui/button";
 import { Eraser } from "lucide-react";
 import { toast } from "sonner";
-import { AudioPlayer } from "../audio/AudioPlayer";
 
 interface BettingFormProps {
   onBetPlaced: (bet: Bet) => void;
   initialBetType?: BetType;
+  children?: React.ReactNode;
 }
 
-const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
+const BettingForm = ({ onBetPlaced, initialBetType, children }: BettingFormProps) => {
   const {
     selectedHearts,
     mainHeart,
@@ -38,11 +38,6 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
     toast.info("Seleção de corações limpa");
   };
 
-  const showAudioPlayer = betType === "simple_group" || betType === "dozen";
-  const audioUrl = betType === "dozen" 
-    ? "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_dezena.mp3"
-    : "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_do_grupo_simples.mp3";
-
   return (
     <>
       <BetForm
@@ -56,11 +51,7 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
         setPosition={setPosition}
       />
 
-      <AudioPlayer 
-        showPlayer={showAudioPlayer}
-        audioUrl={audioUrl}
-        key={betType}
-      />
+      {children}
 
       <BettingHeartGrid 
         selectedHearts={selectedHearts}
