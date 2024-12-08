@@ -1,3 +1,6 @@
+import { BetSequence } from "./BetSequence";
+import { HeartCircles } from "./HeartCircles";
+
 interface BetCirclesProps {
   hearts: string[] | null;
   betType: string;
@@ -14,39 +17,10 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
     numbers
   });
 
-  // Função para formatar números com dois dígitos
-  const formatNumber = (num: string) => {
-    const parsedNum = parseInt(num, 10);
-    return parsedNum.toString().padStart(2, '0');
-  };
+  // Primeiro tentar renderizar a sequência de números
+  const sequence = <BetSequence numbers={numbers} betType={betType} />;
+  if (sequence) return sequence;
 
-  // Mostrar números apenas para grupo simples
-  if (betType === 'simple_group' && numbers?.length) {
-    console.log("Showing numbers for simple_group:", numbers);
-    return <span>{numbers.map(formatNumber).join(", ")}</span>;
-  }
-
-  // Para milhar, manter o comportamento original
-  if (betType === 'thousand' && numbers?.length) {
-    console.log("Showing numbers for thousand:", numbers);
-    return <span>{numbers.map(formatNumber).join(", ")}</span>;
-  }
-
-  // Para todos os outros tipos, mostrar corações
-  if (hearts?.length) {
-    return (
-      <div className="flex gap-1 flex-wrap">
-        {hearts.map((color, index) => (
-          <span
-            key={`${color}-${index}`}
-            className="inline-block w-4 h-4 rounded-full border border-gray-300"
-            style={{ backgroundColor: `var(--heart-${color})` }}
-            title={color}
-          />
-        ))}
-      </div>
-    );
-  }
-
-  return <span>N/A</span>;
+  // Se não houver sequência, renderizar os círculos
+  return <HeartCircles hearts={hearts} />;
 };
