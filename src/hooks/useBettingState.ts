@@ -6,7 +6,7 @@ export const useBettingState = () => {
   const [mainHeart, setMainHeart] = useState<string | null>(null);
   const [betType, setBetType] = useState<BetType>("simple_group");
   const [drawPeriod, setDrawPeriod] = useState<DrawPeriod>("morning");
-  const [betAmount, setBetAmount] = useState<number>(1);
+  const [betAmount, setBetAmount] = useState<number>(10);
   const [position, setPosition] = useState<Position>(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
