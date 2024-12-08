@@ -6,10 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface AudioPlayerProps {
   showPlayer: boolean;
-  audioUrl: string;
+  audioUrl?: string;
 }
 
-export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
+export const AudioPlayer = ({ showPlayer, audioUrl = "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_dezena.mp3" }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
