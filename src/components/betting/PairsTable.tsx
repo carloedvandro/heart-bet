@@ -9,8 +9,11 @@ interface PairsTableProps {
 const PairsTable = ({ mainHeart, selectedPairs, betType = "simple_group" }: PairsTableProps) => {
   const getTableTitle = () => {
     if (betType === "dozen") {
-      return `Dezena (${selectedPairs.length}/2)`;
+      // For dozen, we count all selected hearts since there's no main heart
+      const selectedCount = selectedPairs.length;
+      return `Dezena (${selectedCount}/2)`;
     }
+    // For simple_group, we only count the pairs (excluding main heart)
     return `Números do Grupo (${selectedPairs.length}/4)`;
   };
 
