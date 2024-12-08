@@ -61,9 +61,12 @@ export const useHeartSelection = (
       if (newSelectedHearts.length === 2) {
         const firstNumber = getNumberForHeart(newSelectedHearts[0]);
         const secondNumber = getNumberForHeart(newSelectedHearts[1]);
-        const twoDigitNumber = firstNumber * 10 + secondNumber;
+        // Garantir que o número seja tratado como uma dezena de dois dígitos
+        const twoDigitNumber = Number(`${firstNumber}${secondNumber}`);
         setCombinations([twoDigitNumber]);
-        toast.success(`Dezena formada: ${twoDigitNumber.toString().padStart(2, '0')}`);
+        // Formatar o número com dois dígitos para exibição
+        const formattedNumber = twoDigitNumber.toString().padStart(2, '0');
+        toast.success(`Dezena formada: ${formattedNumber}`);
       }
       return;
     }
