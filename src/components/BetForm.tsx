@@ -1,9 +1,8 @@
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { BetType, DrawPeriod, Position, calculatePrize, DRAW_PERIODS } from "@/types/betting";
-import { playSounds } from "@/utils/soundEffects";
+import { BetType, DrawPeriod, Position } from "@/types/betting";
+import { BetTypeSelect } from "./bet-form/BetTypeSelect";
+import { PositionSelect } from "./bet-form/PositionSelect";
+import { DrawPeriodSelect } from "./bet-form/DrawPeriodSelect";
+import { BetAmountInput } from "./bet-form/BetAmountInput";
 
 interface BetFormProps {
   betType: BetType;
@@ -26,77 +25,29 @@ const BetForm = ({
   position,
   setPosition,
 }: BetFormProps) => {
-  const calculatePotentialPrize = () => {
-    return calculatePrize(betType, position, betAmount);
-  };
-
-  const handleAmountChange = (value: number) => {
-    setBetAmount(value);
-    playSounds.coin();
-  };
-
   return (
     <div className="w-full max-w-md space-y-6">
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Tipo de Aposta</Label>
-        <Select value={betType} onValueChange={(value) => setBetType(value as BetType)}>
-          <SelectTrigger className="w-full border-2 border-gray-200 rounded-md shadow-sm hover:border-gray-300 focus:border-heart-pink focus:ring-heart-pink">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="simple_group">Grupo Simples</SelectItem>
-            <SelectItem value="dozen">Dezena</SelectItem>
-            <SelectItem value="hundred">Centena</SelectItem>
-            <SelectItem value="thousand">Milhar</SelectItem>
-            <SelectItem value="group_double">Duque de Grupo</SelectItem>
-            <SelectItem value="group_triple">Terno de Grupo</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Posição</Label>
-        <Select value={position.toString()} onValueChange={(value) => setPosition(Number(value) as Position)}>
-          <SelectTrigger className="w-full border-2 border-gray-200 rounded-md shadow-sm hover:border-gray-300 focus:border-heart-pink focus:ring-heart-pink">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="1">Primeiro (Cabeça)</SelectItem>
-            <SelectItem value="5">Do primeiro ao quinto</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Período do Sorteio</Label>
-        <RadioGroup
-          value={drawPeriod}
-          onValueChange={(value) => setDrawPeriod(value as DrawPeriod)}
-          className="grid grid-cols-2 gap-4"
-        >
-          {Object.entries(DRAW_PERIODS).map(([period, label]) => (
-            <div key={period} className="flex items-center space-x-2">
-              <RadioGroupItem value={period} id={period} />
-              <Label htmlFor={period}>{label}</Label>
-            </div>
-          ))}
-        </RadioGroup>
-      </div>
-
-      <div className="space-y-2">
-        <Label className="text-sm font-medium">Valor da Aposta (R$)</Label>
-        <Input
-          type="number"
-          min="10"
-          step="1"
-          value={betAmount}
-          onChange={(e) => handleAmountChange(Number(e.target.value))}
-          className="w-full border-2 border-gray-200 rounded-md shadow-sm hover:border-gray-300 focus:border-heart-pink focus:ring-heart-pink"
-        />
-        <p className="text-sm text-muted-foreground">
-          Prêmio potencial: R$ {calculatePotentialPrize().toFixed(2)}
-        </p>
-      </div>
+      <BetTypeSelect 
+        betType={betType} 
+        onBetTypeChange={setBetType} 
+      />
+      
+      <PositionSelect 
+        position={position} 
+        onPositionChange={setPosition} 
+      />
+      
+      <DrawPeriodSelect 
+        drawPeriod={drawPeriod} 
+        onDrawPeriodChange={setDrawPeriod} 
+      />
+      
+      <BetAmountInput 
+        betAmount={betAmount} 
+        onBetAmountChange={setBetAmount}
+        betType={betType}
+        position={position}
+      />
     </div>
   );
 };
