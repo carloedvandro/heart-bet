@@ -9,6 +9,7 @@ import { Header } from "@/components/dashboard/Header";
 import { BetsTable } from "@/components/dashboard/BetsTable";
 import { useSession } from "@supabase/auth-helpers-react";
 import { playSounds } from "@/utils/soundEffects";
+import SimpleHeartDisplay from "@/components/betting/SimpleHeartDisplay";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type RechargeRow = Database['public']['Tables']['recharges']['Row'];
@@ -157,6 +158,8 @@ export default function Dashboard() {
             <HeartGrid onBetPlaced={() => setRefreshTrigger(prev => prev + 1)} />
           </CardContent>
         </Card>
+
+        <SimpleHeartDisplay />
 
         <Card className="bg-white/90 backdrop-blur">
           <CardHeader>
