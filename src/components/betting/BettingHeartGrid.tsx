@@ -2,6 +2,8 @@ import { HEART_COLORS, BetType } from "@/types/betting";
 import HeartButton from "../HeartButton";
 import { memo } from "react";
 import PairsTable from "./PairsTable";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../ui/table";
+import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
 interface BettingHeartGridProps {
   selectedHearts: string[];
@@ -22,18 +24,47 @@ const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betTyp
         />
       </div>
 
-      {/* Grade de Corações */}
-      <div className="grid grid-cols-5 gap-4">
-        {HEART_COLORS.map((heartColor) => (
-          <HeartButton
-            key={heartColor.color}
-            color={heartColor.color}
-            selected={selectedHearts.includes(heartColor.color)}
-            isMain={heartColor.color === mainHeart}
-            onClick={() => onHeartClick(heartColor.color)}
-            disabled={false}
-          />
-        ))}
+      <div className="flex gap-8 items-start w-full">
+        {/* Grade de Corações */}
+        <div className="grid grid-cols-5 gap-4 flex-1">
+          {HEART_COLORS.map((heartColor) => (
+            <HeartButton
+              key={heartColor.color}
+              color={heartColor.color}
+              selected={selectedHearts.includes(heartColor.color)}
+              isMain={heartColor.color === mainHeart}
+              onClick={() => onHeartClick(heartColor.color)}
+              disabled={false}
+            />
+          ))}
+        </div>
+
+        {/* Tabela de Visualização */}
+        <div className="w-48">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="text-center">Números</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {selectedHearts.map((heart, index) => (
+                <TableRow key={index}>
+                  <TableCell className="text-center text-lg font-semibold">
+                    {getNumberForHeart(heart)}
+                  </TableCell>
+                </TableRow>
+              ))}
+              {selectedHearts.length === 0 && (
+                <TableRow>
+                  <TableCell className="text-center text-gray-500">
+                    Selecione os corações
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
     </div>
   );
