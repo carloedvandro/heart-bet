@@ -25,6 +25,7 @@ export const useHeartSelection = (
         setMainHeart(color);
         setSelectedHearts([color]);
         playSounds.click();
+        toast.info("Agora escolha outro coração para formar o grupo. Você pode escolher o mesmo coração novamente!");
         return;
       }
 
