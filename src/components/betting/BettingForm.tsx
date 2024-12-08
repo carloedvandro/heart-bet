@@ -38,7 +38,7 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
   };
 
   const playRules = () => {
-    const audio = new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Primeiro_selecione_um_coracao_para_formar_o_grupo.mp3");
+    const audio = new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Primeiro_selecione_um_coracao_para_formar_o_grupo2.mp3");
     audio.volume = 0.7;
     audio.play().catch(error => {
       console.error("Error playing audio:", error);
