@@ -18,6 +18,25 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     params: {
       eventsPerSecond: 1
     }
+  },
+  global: {
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    fetch: (url, options = {}) => {
+      const defaultOptions = {
+        retries: 3,
+        retryDelay: (attempt: number) => Math.min(attempt * 1000, 3000),
+      };
+
+      return fetch(url, {
+        ...defaultOptions,
+        ...options,
+      }).catch(error => {
+        console.error('Fetch error:', error);
+        throw error;
+      });
+    }
   }
 });
 
