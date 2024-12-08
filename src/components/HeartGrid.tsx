@@ -27,20 +27,6 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   const [currentBetType, setCurrentBetType] = useState<BetType>("simple_group");
   const { clearCombinations } = useTemporaryBetState();
 
-  // Cleanup audio when component unmounts or changes
-  useEffect(() => {
-    const cleanup = () => {
-      const audio = document.querySelector('audio');
-      if (audio) {
-        audio.pause();
-        audio.currentTime = 0;
-      }
-    };
-
-    // Cleanup on unmount
-    return cleanup;
-  }, []);
-
   const handleReset = () => {
     setLastBet(null);
     setPendingBet(null);
@@ -94,15 +80,11 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
             initialBetType={currentBetType}
             key={pendingBet ? undefined : 'new-bet'} 
           >
-            {!lastBet && (
-              <div className="mt-4">
-                <AudioPlayer 
-                  showPlayer={true}
-                  audioUrl={getAudioUrl(currentBetType)}
-                  key={currentBetType}
-                />
-              </div>
-            )}
+            <AudioPlayer 
+              showPlayer={true}
+              audioUrl={getAudioUrl(currentBetType)}
+              key={`audio-${currentBetType}`}
+            />
           </BettingForm>
         </>
       )}

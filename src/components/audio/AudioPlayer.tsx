@@ -61,7 +61,9 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
   }, [audioRef.current]);
 
   const playRules = () => {
-    if (!audioRef.current && audioUrl) {
+    cleanupAudio(); // Limpa o áudio anterior antes de criar um novo
+
+    if (audioUrl) {
       audioRef.current = new Audio(audioUrl);
       audioRef.current.volume = 0.7;
       audioRef.current.playbackRate = Number(playbackSpeed);
@@ -123,7 +125,7 @@ export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
   if (!showPlayer) return null;
 
   return (
-    <div className="flex flex-col gap-2 w-full max-w-[300px]">
+    <div className="flex flex-col gap-2 w-full max-w-[300px] mt-4">
       <div className="flex gap-2">
         <Button
           variant="outline"
