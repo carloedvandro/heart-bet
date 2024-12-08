@@ -11,12 +11,12 @@ interface BettingHeartGridProps {
 }
 
 const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betType }: BettingHeartGridProps) => {
-  // Explicitly type the state with the same type as HEART_COLORS
   const [shuffledHearts, setShuffledHearts] = useState([...HEART_COLORS]);
+  const [isShuffling, setIsShuffling] = useState(false);
 
   const shuffleHearts = () => {
+    setIsShuffling(true);
     setShuffledHearts(hearts => {
-      // Create a new array to shuffle
       const newHearts = [...hearts];
       for (let i = newHearts.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -24,6 +24,8 @@ const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betTyp
       }
       return newHearts;
     });
+    // Reset shuffling state after animation completes
+    setTimeout(() => setIsShuffling(false), 500);
   };
 
   // Embaralhar corações inicialmente
@@ -53,15 +55,22 @@ const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betTyp
 
       {/* Grade de Corações */}
       <div className="grid grid-cols-5 gap-4 w-full">
-        {shuffledHearts.map((heartColor) => (
-          <HeartButton
+        {shuffledHearts.map((heartColor, index) => (
+          <div
             key={heartColor.color}
-            color={heartColor.color}
-            selected={selectedHearts.includes(heartColor.color)}
-            isMain={heartColor.color === mainHeart}
-            onClick={() => onHeartClick(heartColor.color)}
-            disabled={false}
-          />
+            className={isShuffling ? "animate-deal-card" }
+            style={{
+              animationDelay: `${index * 50}ms`
+            }}
+          >
+            <HeartButton
+              color={heartColor.color}
+              selected={selectedHearts.includes(heartColor.color)}
+              isMain={heartColor.color === mainHeart}
+              onClick={() => onHeartClick(heartColor.color)}
+              disabled={false}
+            />
+          </div>
         ))}
       </div>
     </div>

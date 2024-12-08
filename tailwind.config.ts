@@ -78,11 +78,22 @@ export default {
           "0%": { opacity: "0", transform: "translateY(10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        "deal-card": {
+          "0%": { 
+            transform: "translateY(-100px) rotate(-20deg)",
+            opacity: "0"
+          },
+          "100%": {
+            transform: "translateY(0) rotate(0deg)",
+            opacity: "1"
+          }
+        }
       },
       animation: {
         "heart-beat": "heart-beat 1s ease-in-out infinite",
         "heart-float": "heart-float 3s ease-in-out infinite",
         "fade-in": "fade-in 0.5s ease-out",
+        "deal-card": "deal-card 0.5s ease-out"
       },
     },
   },
