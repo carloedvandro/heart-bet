@@ -1,5 +1,5 @@
 import { memo, useState, useEffect } from "react";
-import { HEART_COLORS, BetType } from "@/types/betting";
+import { HEART_COLORS, BetType, DrawPeriod } from "@/types/betting";
 import HeartButton from "../HeartButton";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useBetSubmission } from "@/hooks/useBetSubmission";
@@ -8,7 +8,7 @@ import { useTemporaryBetState } from "@/hooks/useTemporaryBetState";
 
 interface BettingHeartGridProps {
   betType: BetType;
-  drawPeriod: string;
+  drawPeriod: DrawPeriod;  // Updated to use DrawPeriod type
   betAmount: number;
   position: number;
   onClearSelection?: () => void;
