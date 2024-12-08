@@ -33,7 +33,14 @@ export const useHeartSelection = (
       if (selectedHearts.length === 1) {
         const firstNumber = getNumberForHeart(mainHeart);
         const secondNumber = getNumberForHeart(color);
-        const twoDigitNumber = firstNumber * 10 + secondNumber;
+        
+        // Formatar o número de dois dígitos, tratando especialmente o caso do zero
+        let twoDigitNumber;
+        if (firstNumber === 0 && secondNumber === 0) {
+          twoDigitNumber = 0; // Caso especial para 00
+        } else {
+          twoDigitNumber = firstNumber * 10 + secondNumber;
+        }
         
         console.log("🎲 First number:", firstNumber);
         console.log("🎲 Second number:", secondNumber);
