@@ -94,12 +94,15 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
             initialBetType={currentBetType}
             key={pendingBet ? undefined : 'new-bet'} 
           >
-            <div className="mt-4">
-              <AudioPlayer 
-                showPlayer={!lastBet} 
-                audioUrl={getAudioUrl(currentBetType)}
-              />
-            </div>
+            {!lastBet && (
+              <div className="mt-4">
+                <AudioPlayer 
+                  showPlayer={true}
+                  audioUrl={getAudioUrl(currentBetType)}
+                  key={currentBetType}
+                />
+              </div>
+            )}
           </BettingForm>
         </>
       )}
