@@ -12,7 +12,7 @@ export const useHeartSelection = (
   setMainHeart: (heart: string | null) => void,
   setSelectedHearts: React.Dispatch<React.SetStateAction<string[]>>
 ) => {
-  const { setCombinations } = useTemporaryBetState();
+  const setCombinations = useTemporaryBetState((state) => state.setCombinations);
 
   const handleHeartClick = (color: string) => {
     console.log("🎯 Heart clicked:", color);
@@ -61,10 +61,8 @@ export const useHeartSelection = (
       if (newSelectedHearts.length === 2) {
         const firstNumber = getNumberForHeart(newSelectedHearts[0]);
         const secondNumber = getNumberForHeart(newSelectedHearts[1]);
-        // Garantir que o número seja tratado como uma dezena de dois dígitos
         const twoDigitNumber = Number(`${firstNumber}${secondNumber}`);
         setCombinations([twoDigitNumber]);
-        // Formatar o número com dois dígitos para exibição
         const formattedNumber = twoDigitNumber.toString().padStart(2, '0');
         toast.success(`Dezena formada: ${formattedNumber}`);
       }
