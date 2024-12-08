@@ -39,7 +39,6 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
   const handleClearSelection = () => {
     if (!hasCleared.current) {
       console.log("Limpando todas as seleções");
-      setBetType("simple_group");
       setDrawPeriod("morning");
       setBetAmount(10);
       setPosition(1);
