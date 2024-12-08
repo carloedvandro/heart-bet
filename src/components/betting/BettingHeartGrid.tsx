@@ -29,14 +29,29 @@ const BettingHeartGrid = memo(({ betType }: BettingHeartGridProps) => {
     setTimeout(() => setIsShuffling(false), 500);
   };
 
+  const getMaxSelections = (type: BetType) => {
+    switch (type) {
+      case "simple_group":
+        return 1;
+      case "dozen":
+        return 2;
+      case "hundred":
+        return 3;
+      case "thousand":
+        return 4;
+      default:
+        return 1;
+    }
+  };
+
   const handleHeartClick = (color: string) => {
-    if (selectedHearts.includes(color)) {
-      setSelectedHearts(prev => prev.filter(h => h !== color));
-      if (mainHeart === color) {
-        setMainHeart(null);
-      }
-    } else {
+    const maxSelections = getMaxSelections(betType);
+    
+    if (selectedHearts.length < maxSelections) {
       setSelectedHearts(prev => [...prev, color]);
+      if (betType === "simple_group") {
+        setMainHeart(color);
+      }
     }
   };
 
@@ -76,7 +91,7 @@ const BettingHeartGrid = memo(({ betType }: BettingHeartGridProps) => {
               selected={selectedHearts.includes(heartColor.color)}
               isMain={heartColor.color === mainHeart}
               onClick={() => handleHeartClick(heartColor.color)}
-              disabled={false}
+              disabled={selectedHearts.length >= getMaxSelections(betType)}
             />
           </div>
         ))}
