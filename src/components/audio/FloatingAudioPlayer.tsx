@@ -17,25 +17,22 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
+  // Efeito para inicializar e limpar o áudio
   useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
+    const audio = new Audio(audioUrl);
+    audio.preload = "metadata";
+    audioRef.current = audio;
 
     const handleLoadedMetadata = () => {
-      if (audio.duration && !isNaN(audio.duration)) {
-        setDuration(audio.duration);
-        setCurrentTime(0);
-        setIsPlaying(false);
-        setIsLoading(false);
-      }
+      console.log("Áudio metadata carregada:", audio.duration);
+      setDuration(audio.duration);
+      setIsLoading(false);
     };
 
     const handleTimeUpdate = () => {
-      if (audio.currentTime && !isNaN(audio.currentTime)) {
-        setCurrentTime(audio.currentTime);
-      }
+      setCurrentTime(audio.currentTime);
     };
 
     const handleEnded = () => {
@@ -43,53 +40,80 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
       setCurrentTime(0);
     };
 
-    // Reset state when audio source changes
-    setIsPlaying(false);
-    setCurrentTime(0);
-    setIsLoading(true);
-    setDuration(0);
+    const handlePlay = () => {
+      console.log("Áudio iniciou reprodução");
+      setIsPlaying(true);
+    };
+
+    const handlePause = () => {
+      console.log("Áudio pausado");
+      setIsPlaying(false);
+    };
+
+    const handleError = (e: ErrorEvent) => {
+      console.error("Erro no áudio:", e);
+      setIsLoading(false);
+      setIsPlaying(false);
+    };
 
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleEnded);
-
-    // Force reload of audio when source changes
-    audio.load();
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
+    audio.addEventListener('error', handleError);
 
     return () => {
+      audio.pause();
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
+      audio.removeEventListener('error', handleError);
+      audioRef.current = null;
     };
   }, [audioUrl]);
 
+  // Efeito para controlar o volume
   useEffect(() => {
-    if (!audioRef.current) return;
-    audioRef.current.volume = volume;
+    if (audioRef.current) {
+      audioRef.current.volume = volume;
+    }
   }, [volume]);
 
   const togglePlay = async () => {
-    if (!audioRef.current || isLoading) return;
-    
+    const audio = audioRef.current;
+    if (!audio || isLoading) return;
+
     try {
       if (isPlaying) {
-        audioRef.current.pause();
-        setIsPlaying(false);
+        audio.pause();
       } else {
-        // Primeiro, vamos garantir que o áudio está carregado
-        if (audioRef.current.readyState < 2) {
-          await new Promise((resolve) => {
-            audioRef.current!.addEventListener('canplay', resolve, { once: true });
+        // Garantir que o áudio está pronto antes de tentar reproduzir
+        if (audio.readyState < 3) {
+          setIsLoading(true);
+          await new Promise((resolve, reject) => {
+            const loadedHandler = () => {
+              resolve(true);
+              audio.removeEventListener('canplaythrough', loadedHandler);
+            };
+            const errorHandler = (e: ErrorEvent) => {
+              reject(e);
+              audio.removeEventListener('error', errorHandler);
+            };
+            audio.addEventListener('canplaythrough', loadedHandler);
+            audio.addEventListener('error', errorHandler);
           });
+          setIsLoading(false);
         }
-        
-        await audioRef.current.play();
-        console.log("Áudio iniciou a reprodução");
-        setIsPlaying(true);
+
+        await audio.play();
       }
     } catch (error) {
-      console.error("Erro ao reproduzir áudio:", error);
+      console.error("Erro ao controlar reprodução:", error);
       setIsPlaying(false);
+      setIsLoading(false);
     }
   };
 
@@ -100,10 +124,12 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
   };
 
   const handleTimeChange = (newValue: number[]) => {
-    if (!audioRef.current || isLoading) return;
+    const audio = audioRef.current;
+    if (!audio || isLoading) return;
+    
     const time = newValue[0];
     if (!isNaN(time) && time >= 0 && time <= duration) {
-      audioRef.current.currentTime = time;
+      audio.currentTime = time;
       setCurrentTime(time);
     }
   };
@@ -133,14 +159,6 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
           <X className="h-4 w-4" />
         </Button>
       </div>
-
-      <audio 
-        ref={audioRef} 
-        src={audioUrl} 
-        preload="metadata"
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-      />
 
       <div className="space-y-4">
         <div className="flex items-center justify-center space-x-2">
