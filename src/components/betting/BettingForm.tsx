@@ -59,6 +59,7 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
       <AudioPlayer 
         showPlayer={showAudioPlayer}
         audioUrl={audioUrl}
+        key={betType} // Add key prop to force re-render when bet type changes
       />
 
       <BettingHeartGrid 
