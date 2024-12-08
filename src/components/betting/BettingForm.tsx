@@ -40,7 +40,7 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
 
   const showAudioPlayer = betType === "simple_group" || betType === "dozen";
   const audioUrl = betType === "dozen" 
-    ? "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Primeiro_selecione_um_coracao_para_formar_o_grupo3.mp3" // This should be replaced with the correct URL for dozen
+    ? "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_dezena.mp3"
     : "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Primeiro_selecione_um_coracao_para_formar_o_grupo3.mp3";
 
   return (
