@@ -21,7 +21,7 @@ export type Database = {
           hearts: string[]
           id: string
           is_winner: boolean | null
-          numbers: number[]
+          numbers: string[]
           position: number
           prize_amount: number | null
           result: string | null
@@ -38,7 +38,7 @@ export type Database = {
           hearts: string[]
           id?: string
           is_winner?: boolean | null
-          numbers: number[]
+          numbers: string[]
           position?: number
           prize_amount?: number | null
           result?: string | null
@@ -55,7 +55,7 @@ export type Database = {
           hearts?: string[]
           id?: string
           is_winner?: boolean | null
-          numbers?: number[]
+          numbers?: string[]
           position?: number
           prize_amount?: number | null
           result?: string | null
