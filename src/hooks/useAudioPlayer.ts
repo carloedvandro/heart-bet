@@ -37,12 +37,12 @@ export const useAudioPlayer = (audioUrl: string | undefined, showPlayer: boolean
 
       const updateTime = () => {
         if (!isDragging) {
-          setCurrentTime(audio.currentTime);
+          setCurrentTime(Math.floor(audio.currentTime));
         }
       };
 
       const handleLoadedMetadata = () => {
-        setDuration(audio.duration);
+        setDuration(Math.floor(audio.duration));
       };
 
       const handleEnded = () => {
@@ -101,18 +101,11 @@ export const useAudioPlayer = (audioUrl: string | undefined, showPlayer: boolean
     }
   };
 
-  const handleTimeChange = (newTime: number) => {
-    if (audioRef.current) {
-      audioRef.current.currentTime = newTime;
-      setCurrentTime(newTime);
-      
-      // Se o áudio estava tocando antes de arrastar, continue tocando
-      if (isPlaying && !isPaused) {
-        audioRef.current.play()
-          .catch(error => {
-            console.error("Error resuming after time change:", error);
-          });
-      }
+  const handleTimeChange = (newTime: number[]) => {
+    if (audioRef.current && newTime.length > 0) {
+      const time = Math.floor(newTime[0]);
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
     }
   };
 
