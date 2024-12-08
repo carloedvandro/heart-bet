@@ -4,6 +4,9 @@ import BettingHeartGrid from "./BettingHeartGrid";
 import SubmitButton from "./SubmitButton";
 import { Bet } from "@/integrations/supabase/custom-types";
 import { BetType } from "@/types/betting";
+import { Button } from "../ui/button";
+import { Eraser } from "lucide-react";
+import { toast } from "sonner";
 
 interface BettingFormProps {
   onBetPlaced: (bet: Bet) => void;
@@ -25,8 +28,14 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
     setDrawPeriod,
     setBetAmount,
     setPosition,
-    handleSubmit
+    handleSubmit,
+    clearSelection
   } = useBettingForm(onBetPlaced, initialBetType);
+
+  const handleClearSelection = () => {
+    clearSelection();
+    toast.info("Seleção de corações limpa");
+  };
 
   return (
     <>
@@ -48,14 +57,25 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
         betType={betType}
       />
 
-      <SubmitButton
-        session={session}
-        selectedHearts={selectedHearts}
-        mainHeart={mainHeart}
-        betType={betType}
-        isSubmitting={isSubmitting}
-        onSubmit={handleSubmit}
-      />
+      <div className="flex flex-col gap-4 items-center">
+        <SubmitButton
+          session={session}
+          selectedHearts={selectedHearts}
+          mainHeart={mainHeart}
+          betType={betType}
+          isSubmitting={isSubmitting}
+          onSubmit={handleSubmit}
+        />
+
+        <Button
+          variant="outline"
+          onClick={handleClearSelection}
+          className="w-full max-w-[200px] gap-2"
+        >
+          <Eraser className="w-4 h-4" />
+          Limpar Seleção
+        </Button>
+      </div>
     </>
   );
 };

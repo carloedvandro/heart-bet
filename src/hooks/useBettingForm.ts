@@ -1,7 +1,6 @@
 import { useSession } from "@supabase/auth-helpers-react";
 import { BetType } from "@/types/betting";
 import { Bet } from "@/integrations/supabase/custom-types";
-import { toast } from "sonner";
 import { useBettingState } from "@/hooks/useBettingState";
 import { useHeartSelection } from "@/hooks/useHeartSelection";
 import { useBetSubmission } from "@/hooks/useBetSubmission";
@@ -58,8 +57,12 @@ export const useBettingForm = (onBetPlaced: (bet: Bet) => void, initialBetType?:
     setBetType(newBetType);
     setSelectedHearts([]);
     setMainHeart(null);
-    toast.info(`Seleção de corações resetada para ${newBetType === "simple_group" ? "grupo simples" : "nova aposta"}`);
   }, [setBetType, setSelectedHearts, setMainHeart]);
+
+  const clearSelection = useCallback(() => {
+    setSelectedHearts([]);
+    setMainHeart(null);
+  }, [setSelectedHearts, setMainHeart]);
 
   return {
     selectedHearts,
@@ -75,6 +78,7 @@ export const useBettingForm = (onBetPlaced: (bet: Bet) => void, initialBetType?:
     setDrawPeriod,
     setBetAmount,
     setPosition,
-    handleSubmit
+    handleSubmit,
+    clearSelection
   };
 };
