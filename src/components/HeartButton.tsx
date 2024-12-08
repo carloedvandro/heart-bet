@@ -41,7 +41,7 @@ const HeartButton = ({ color, selected, isMain, onClick, disabled }: HeartButton
           "fill-current",
           "stroke-black stroke-1 group-hover:scale-105",
           selected ? "scale-110" : "",
-          isMain ? "animate-pulse" : "animate-heart-float"
+          isMain && "animate-pulse"
         )}
         style={{
           color: `var(--heart-${color})`,
