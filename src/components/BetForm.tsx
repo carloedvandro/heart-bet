@@ -62,10 +62,7 @@ const BetForm = ({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="1">Primeiro (Cabeça)</SelectItem>
-            <SelectItem value="2">Segundo</SelectItem>
-            <SelectItem value="3">Terceiro</SelectItem>
-            <SelectItem value="4">Quarto</SelectItem>
-            <SelectItem value="5">Quinto</SelectItem>
+            <SelectItem value="5">Do primeiro ao quinto</SelectItem>
           </SelectContent>
         </Select>
       </div>
