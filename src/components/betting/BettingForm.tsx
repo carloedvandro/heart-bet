@@ -7,6 +7,7 @@ import { Button } from "../ui/button";
 import { Eraser } from "lucide-react";
 import { toast } from "sonner";
 import ListenRulesButton from "../audio/ListenRulesButton";
+import { useTemporaryBetState } from "@/hooks/useTemporaryBetState";
 
 interface BettingFormProps {
   onBetPlaced: (bet: Bet) => void;
@@ -18,6 +19,7 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
   const [drawPeriod, setDrawPeriod] = useState<DrawPeriod>("morning");
   const [betAmount, setBetAmount] = useState<number>(10);
   const [position, setPosition] = useState<Position>(1);
+  const { clearCombinations } = useTemporaryBetState();
 
   const getAudioUrl = (betType: BetType) => {
     switch (betType) {
@@ -37,6 +39,7 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
     setDrawPeriod("morning");
     setBetAmount(10);
     setPosition(1);
+    clearCombinations();
     toast.success("Seleção limpa com sucesso!");
   };
 
@@ -62,6 +65,7 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
         drawPeriod={drawPeriod}
         betAmount={betAmount}
         position={position}
+        key={betType} // Add key prop to force re-render when bet type changes
       />
 
       <div className="flex justify-center mt-4">
