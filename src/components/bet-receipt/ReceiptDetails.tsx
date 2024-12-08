@@ -16,9 +16,15 @@ const ReceiptDetails = ({ bet }: ReceiptDetailsProps) => {
 
   const textSizeClass = isMobile ? "text-xs" : "text-sm";
 
+  // Função para formatar números com dois dígitos
+  const formatNumber = (num: string) => {
+    const parsedNum = parseInt(num, 10);
+    return parsedNum.toString().padStart(2, '0');
+  };
+
   const renderSequence = () => {
     if (isAdmin) {
-      return bet.numbers?.join(", ") || "N/A";
+      return bet.numbers?.map(formatNumber).join(", ") || "N/A";
     }
     return (
       <div className="flex gap-1 flex-wrap">
