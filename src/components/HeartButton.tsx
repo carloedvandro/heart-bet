@@ -1,6 +1,7 @@
 import { Heart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { playSounds } from "@/utils/soundEffects";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface HeartButtonProps {
   color: string;
@@ -11,6 +12,8 @@ interface HeartButtonProps {
 }
 
 const HeartButton = ({ color, selected, isMain, onClick, disabled }: HeartButtonProps) => {
+  const isMobile = useIsMobile();
+  
   const handleClick = () => {
     playSounds.click();
     onClick();
@@ -22,11 +25,16 @@ const HeartButton = ({ color, selected, isMain, onClick, disabled }: HeartButton
       disabled={disabled}
       data-color={color}
       className={cn(
-        "group transition-all duration-300 ease-in-out",
-        "focus:outline-none focus:ring-2 focus:ring-offset-2",
+        "group relative transition-all duration-300 ease-in-out",
+        "focus:outline-none",
         "disabled:opacity-50 disabled:cursor-not-allowed",
         selected && "animate-heart-beat",
-        isMain && "ring-4 ring-heart-pink ring-offset-4 rounded-full"
+        isMain && cn(
+          "after:absolute after:inset-[-8px]",
+          "after:rounded-full after:border-4",
+          "after:border-heart-pink",
+          isMobile ? "after:inset-[-4px]" : "after:inset-[-8px]"
+        )
       )}
       style={{
         border: "none",
@@ -37,11 +45,12 @@ const HeartButton = ({ color, selected, isMain, onClick, disabled }: HeartButton
     >
       <Heart
         className={cn(
-          "w-16 h-16 transition-all duration-300",
+          "transition-all duration-300",
           "fill-current",
           "stroke-black stroke-1 group-hover:scale-105",
           selected ? "scale-110" : "",
-          isMain && "animate-pulse"
+          isMain && "animate-pulse",
+          isMobile ? "w-10 h-10" : "w-16 h-16"
         )}
         style={{
           color: `var(--heart-${color})`,
