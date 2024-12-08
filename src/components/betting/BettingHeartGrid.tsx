@@ -7,6 +7,7 @@ import SubmitButton from "./SubmitButton";
 import { useTemporaryBetState } from "@/hooks/useTemporaryBetState";
 import PairsTable from "./PairsTable";
 import { useHeartSelection } from "@/hooks/useHeartSelection";
+import { Bet } from "@/integrations/supabase/custom-types";
 
 interface BettingHeartGridProps {
   betType: BetType;
@@ -14,6 +15,7 @@ interface BettingHeartGridProps {
   betAmount: number;
   position: Position;
   onClearSelection?: () => void;
+  onBetPlaced?: (bet: Bet) => void;
 }
 
 const BettingHeartGrid = memo(({ 
@@ -21,7 +23,8 @@ const BettingHeartGrid = memo(({
   drawPeriod, 
   betAmount, 
   position,
-  onClearSelection 
+  onClearSelection,
+  onBetPlaced
 }: BettingHeartGridProps) => {
   const [shuffledHearts, setShuffledHearts] = useState([...HEART_COLORS]);
   const [isShuffling, setIsShuffling] = useState(false);
@@ -88,7 +91,12 @@ const BettingHeartGrid = memo(({
     position,
     isSubmitting,
     setIsSubmitting,
-    () => {}
+    (bet: Bet) => {
+      console.log("Bet placed:", bet);
+      if (onBetPlaced) {
+        onBetPlaced(bet);
+      }
+    }
   );
 
   return (

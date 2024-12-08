@@ -47,7 +47,6 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
       toast.success("Seleção limpa com sucesso!");
       hasCleared.current = true;
       
-      // Reset the flag after a short delay
       setTimeout(() => {
         hasCleared.current = false;
       }, 100);
@@ -78,6 +77,7 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
         position={position}
         key={`${betType}-${resetKey}`}
         onClearSelection={handleClearSelection}
+        onBetPlaced={onBetPlaced}
       />
 
       <div className="flex justify-center mt-4">
