@@ -42,17 +42,7 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
 
   return (
     <>
-      <div className="flex justify-between items-center mb-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={handleClearSelection}
-          className="gap-2"
-        >
-          <Eraser className="h-4 w-4" />
-          Limpar Seleção
-        </Button>
-
+      <div className="flex justify-end items-center mb-4">
         <ListenRulesButton audioUrl={getAudioUrl(betType)} />
       </div>
 
@@ -73,6 +63,18 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
         betAmount={betAmount}
         position={position}
       />
+
+      <div className="flex justify-center mt-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleClearSelection}
+          className="gap-2"
+        >
+          <Eraser className="h-4 w-4" />
+          Limpar Seleção
+        </Button>
+      </div>
     </>
   );
 };
