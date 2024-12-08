@@ -34,17 +34,20 @@ export const useHeartSelection = (
         const firstNumber = getNumberForHeart(mainHeart);
         const secondNumber = getNumberForHeart(color);
         
-        // Formatar o número de dois dígitos, tratando especialmente o caso do zero
+        console.log("🎲 First number:", firstNumber);
+        console.log("🎲 Second number:", secondNumber);
+        
+        // Tratamento especial para quando ambos os números são zero
         let twoDigitNumber;
         if (firstNumber === 0 && secondNumber === 0) {
-          twoDigitNumber = 0; // Caso especial para 00
+          twoDigitNumber = 0;
+          console.log("🎲 Special case: both numbers are zero");
         } else {
+          // Para outros casos, formamos o número normalmente
           twoDigitNumber = firstNumber * 10 + secondNumber;
         }
         
-        console.log("🎲 First number:", firstNumber);
-        console.log("🎲 Second number:", secondNumber);
-        console.log("🎲 Formed number:", twoDigitNumber);
+        console.log("🎲 Final two digit number:", twoDigitNumber);
         
         const groupNumbers = getGroupNumbers(twoDigitNumber);
         console.log("🎯 Group numbers:", groupNumbers);
@@ -53,12 +56,16 @@ export const useHeartSelection = (
         setCombinations(groupNumbers);
         playSounds.click();
 
-        // Formatação correta para exibição no toast, garantindo que 00 seja mostrado corretamente
+        // Formatação especial para o toast
         const formattedNumber = firstNumber === 0 && secondNumber === 0 
           ? "00"
           : twoDigitNumber.toString().padStart(2, '0');
 
-        toast.success(`Grupo formado: ${groupNumbers.map(n => n.toString().padStart(2, '0')).join(", ")}`);
+        toast.success(`Grupo formado: ${groupNumbers.map(n => {
+          // Formatação especial para exibição dos números do grupo
+          if (n === 0) return "00";
+          return n.toString().padStart(2, '0');
+        }).join(", ")}`);
         return;
       }
 
@@ -83,9 +90,17 @@ export const useHeartSelection = (
       if (newSelectedHearts.length === 2) {
         const firstNumber = getNumberForHeart(newSelectedHearts[0]);
         const secondNumber = getNumberForHeart(newSelectedHearts[1]);
-        const twoDigitNumber = Number(`${firstNumber}${secondNumber}`);
+        
+        // Tratamento especial para dezena 00
+        let twoDigitNumber;
+        if (firstNumber === 0 && secondNumber === 0) {
+          twoDigitNumber = 0;
+        } else {
+          twoDigitNumber = firstNumber * 10 + secondNumber;
+        }
+        
         setCombinations([twoDigitNumber]);
-        const formattedNumber = twoDigitNumber.toString().padStart(2, '0');
+        const formattedNumber = twoDigitNumber === 0 ? "00" : twoDigitNumber.toString().padStart(2, '0');
         toast.success(`Dezena formada: ${formattedNumber}`);
       }
       return;
