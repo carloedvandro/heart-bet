@@ -13,7 +13,7 @@ export function AudioControl() {
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
-    // Criar o elemento de áudio apenas uma vez
+    // Create audio element only once
     if (!audioRef.current) {
       const audio = new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/background.mp3");
       audio.loop = true;
@@ -36,23 +36,25 @@ export function AudioControl() {
     const audio = audioRef.current;
     
     if (!isMuted) {
+      console.log("Attempting to play background music");
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise.catch((error) => {
-          console.error("Erro ao reproduzir áudio:", error);
+          console.error("Error playing background audio:", error);
           setIsMuted(true);
           localStorage.setItem('audioMuted', 'true');
           toast.error("Erro ao reproduzir música de fundo");
         });
       }
     } else {
+      console.log("Pausing background music");
       audio.pause();
     }
 
-    // Monitora alterações no volume
+    // Monitor volume changes
     const handleVolumeChange = () => {
       if (!isMuted && audio.volume !== 0.05) {
-        console.log("Ajustando volume para 5%");
+        console.log("Adjusting volume to 5%");
         audio.volume = 0.05;
       }
     };
@@ -64,6 +66,7 @@ export function AudioControl() {
   }, [isMuted, isInitialized]);
 
   const toggleSound = () => {
+    console.log("Toggling sound:", !isMuted);
     setIsMuted(!isMuted);
     localStorage.setItem('audioMuted', (!isMuted).toString());
   };
