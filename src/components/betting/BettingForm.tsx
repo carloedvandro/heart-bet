@@ -31,6 +31,8 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
         return "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_dezena.mp3";
       case "hundred":
         return "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_sentena.mp3";
+      case "thousand":
+        return "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_milhar.mp3";
       default:
         return "";
     }
