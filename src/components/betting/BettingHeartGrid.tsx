@@ -1,5 +1,5 @@
 import { memo, useState, useEffect } from "react";
-import { HEART_COLORS } from "@/types/betting";
+import { HEART_COLORS, BetType } from "@/types/betting";
 import HeartButton from "../HeartButton";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useBetSubmission } from "@/hooks/useBetSubmission";
@@ -7,7 +7,7 @@ import SubmitButton from "./SubmitButton";
 import { useTemporaryBetState } from "@/hooks/useTemporaryBetState";
 
 interface BettingHeartGridProps {
-  betType: string;
+  betType: BetType;
   drawPeriod: string;
   betAmount: number;
   position: number;
@@ -59,7 +59,6 @@ const BettingHeartGrid = memo(({
     }
   };
 
-  // Limpa as seleções quando o tipo de aposta muda
   useEffect(() => {
     clearSelections();
   }, [betType]);
@@ -105,7 +104,7 @@ const BettingHeartGrid = memo(({
           <HeartButton
             key={color}
             color={color}
-            isSelected={selectedHearts.includes(color)}
+            selected={selectedHearts.includes(color)}
             isMain={mainHeart === color}
             onClick={() => handleHeartClick(color)}
             disabled={isShuffling}
