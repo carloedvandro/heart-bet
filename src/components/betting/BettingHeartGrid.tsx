@@ -59,8 +59,12 @@ const BettingHeartGrid = memo(({
     }
   };
 
+  // Removido o useEffect que chamava clearSelections na montagem
   useEffect(() => {
-    clearSelections();
+    if (betType) {
+      setSelectedHearts([]);
+      setMainHeart(null);
+    }
   }, [betType]);
 
   const clearSelections = () => {
@@ -91,7 +95,7 @@ const BettingHeartGrid = memo(({
     betType,
     drawPeriod,
     betAmount,
-    position as Position,  // Ensure position is treated as Position type
+    position as Position,
     isSubmitting,
     setIsSubmitting,
     () => {}
