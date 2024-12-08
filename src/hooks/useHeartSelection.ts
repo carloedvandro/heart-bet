@@ -34,13 +34,11 @@ export const useHeartSelection = (
       return handleDozenSelection(color);
     }
 
-    // Para aposta do tipo centena (hundred), permitir seleção múltipla do mesmo coração
+    // Para aposta do tipo centena (hundred), permitir exatamente 3 seleções
     if (betType === "hundred") {
       if (selectedHearts.length >= 3) {
-        if (!selectedHearts.includes(color)) {
-          toast.error("Máximo de 3 corações");
-          return false;
-        }
+        toast.error("Máximo de 3 corações para centena");
+        return false;
       }
       
       setSelectedHearts([...selectedHearts, color]);
