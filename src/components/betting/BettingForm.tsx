@@ -41,7 +41,7 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
   const showAudioPlayer = betType === "simple_group" || betType === "dozen";
   const audioUrl = betType === "dozen" 
     ? "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_dezena.mp3"
-    : "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Primeiro_selecione_um_coracao_para_formar_o_grupo3.mp3";
+    : "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_do_grupo_simples.mp3";
 
   return (
     <>
@@ -59,7 +59,7 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
       <AudioPlayer 
         showPlayer={showAudioPlayer}
         audioUrl={audioUrl}
-        key={betType} // Add key prop to force re-render when bet type changes
+        key={betType}
       />
 
       <BettingHeartGrid 
