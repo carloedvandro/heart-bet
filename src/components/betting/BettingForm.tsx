@@ -38,6 +38,11 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
     toast.info("Seleção de corações limpa");
   };
 
+  const showAudioPlayer = betType === "simple_group" || betType === "dozen";
+  const audioUrl = betType === "dozen" 
+    ? "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Primeiro_selecione_um_coracao_para_formar_o_grupo3.mp3" // This should be replaced with the correct URL for dozen
+    : "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Primeiro_selecione_um_coracao_para_formar_o_grupo3.mp3";
+
   return (
     <>
       <BetForm
@@ -51,7 +56,10 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
         setPosition={setPosition}
       />
 
-      <AudioPlayer showPlayer={betType === "simple_group"} />
+      <AudioPlayer 
+        showPlayer={showAudioPlayer}
+        audioUrl={audioUrl}
+      />
 
       <BettingHeartGrid 
         selectedHearts={selectedHearts}

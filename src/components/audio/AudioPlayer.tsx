@@ -6,9 +6,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 interface AudioPlayerProps {
   showPlayer: boolean;
+  audioUrl: string;
 }
 
-export const AudioPlayer = ({ showPlayer }: AudioPlayerProps) => {
+export const AudioPlayer = ({ showPlayer, audioUrl }: AudioPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -35,7 +36,7 @@ export const AudioPlayer = ({ showPlayer }: AudioPlayerProps) => {
 
   const playRules = () => {
     if (!audioRef.current) {
-      audioRef.current = new Audio("https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Primeiro_selecione_um_coracao_para_formar_o_grupo3.mp3");
+      audioRef.current = new Audio(audioUrl);
       audioRef.current.volume = 0.7;
       audioRef.current.playbackRate = Number(playbackSpeed);
     }
