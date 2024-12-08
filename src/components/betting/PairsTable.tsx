@@ -22,26 +22,24 @@ const PairsTable = memo(({ mainHeart, selectedPairs, betType = "simple_group" }:
     if (selectedPairs.length === 0) {
       return (
         <div className="text-center py-2 border-t border-gray-100 text-gray-400">
-          Selecione os números
+          Selecione os números da dezena
         </div>
       );
     }
 
     const numbers = selectedPairs.map(getNumberForHeart);
-    const combination = numbers.length === 2 
+    const formattedDozens = numbers.length === 2 
       ? `${numbers[0]}${numbers[1]}`
       : numbers[0];
     
     return (
-      <div className="grid grid-cols-1 gap-2">
-        {numbers.map((number, index) => (
-          <div key={index} className="text-center py-2 border-t border-gray-100 font-medium">
-            {number}
-          </div>
-        ))}
-        {combination && (
-          <div className="text-center py-2 border-t border-gray-100 font-bold text-lg">
-            {combination}
+      <div className="text-center py-2 border-t border-gray-100">
+        <div className="font-bold text-2xl">
+          {formattedDozens}
+        </div>
+        {numbers.length === 2 && (
+          <div className="text-sm text-gray-500 mt-1">
+            Dezena formada: {formattedDozens}
           </div>
         )}
       </div>
