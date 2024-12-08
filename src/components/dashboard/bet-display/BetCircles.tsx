@@ -27,24 +27,33 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
   if (hearts?.length) {
     console.log("Converting hearts to numbers");
     
-    // Se for grupo simples e tivermos dois corações
+    // Se for grupo simples
     if (betType === 'simple_group') {
+      // Converter corações para números
       const heartNumbers = hearts.map(heart => {
-        return Number(Object.entries(getHeartForNumber).find(([_, color]) => color === heart)?.[0]) || 0;
-      }).filter(num => num !== 0);
+        const number = Number(Object.entries(getHeartForNumber).find(([_, color]) => color === heart)?.[0]);
+        return isNaN(number) ? 0 : number;
+      });
 
-      if (heartNumbers.length === 2) {
-        // Formar o número do grupo (menor primeiro)
+      console.log("Heart numbers before processing:", heartNumbers);
+
+      // Se tivermos números válidos
+      if (heartNumbers.some(num => num !== 0)) {
+        // Para corações repetidos, usar o mesmo número
+        if (heartNumbers[0] === heartNumbers[1]) {
+          const groupNumbers = getGroupNumbers(heartNumbers[0]);
+          console.log("Group numbers for repeated heart:", groupNumbers);
+          return <span>{groupNumbers.join(", ")}</span>;
+        }
+
+        // Para corações diferentes, formar o grupo
         const [num1, num2] = heartNumbers.sort((a, b) => a - b);
         const groupNumber = num1 * 10 + num2;
         const groupNumbers = getGroupNumbers(groupNumber);
         
-        console.log("Group formed:", groupNumbers);
+        console.log("Group numbers for different hearts:", groupNumbers);
         return <span>{groupNumbers.join(", ")}</span>;
       }
-      
-      console.log("Simple group numbers:", heartNumbers);
-      return <span>{heartNumbers.join(", ")}</span>;
     }
     
     // Para outros tipos de apostas, mostrar os números individuais
