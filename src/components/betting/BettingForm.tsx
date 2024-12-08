@@ -21,6 +21,7 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
   const [position, setPosition] = useState<Position>(1);
   const { clearCombinations } = useTemporaryBetState();
   const [resetKey, setResetKey] = useState(0);
+  const hasCleared = useRef(false);
 
   const getAudioUrl = (betType: BetType) => {
     switch (betType) {
@@ -36,14 +37,22 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
   };
 
   const handleClearSelection = () => {
-    console.log("Limpando todas as seleções");
-    setBetType("simple_group");
-    setDrawPeriod("morning");
-    setBetAmount(10);
-    setPosition(1);
-    clearCombinations();
-    setResetKey(prev => prev + 1);
-    toast.success("Seleção limpa com sucesso!");
+    if (!hasCleared.current) {
+      console.log("Limpando todas as seleções");
+      setBetType("simple_group");
+      setDrawPeriod("morning");
+      setBetAmount(10);
+      setPosition(1);
+      clearCombinations();
+      setResetKey(prev => prev + 1);
+      toast.success("Seleção limpa com sucesso!");
+      hasCleared.current = true;
+      
+      // Reset the flag after a short delay
+      setTimeout(() => {
+        hasCleared.current = false;
+      }, 100);
+    }
   };
 
   return (
