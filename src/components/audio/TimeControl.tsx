@@ -16,6 +16,7 @@ export const TimeControl = ({
   onDragEnd,
 }: TimeControlProps) => {
   const formatTime = (time: number) => {
+    if (!time || isNaN(time)) return "0:00";
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -25,7 +26,8 @@ export const TimeControl = ({
     <div className="w-full space-y-2">
       <Slider
         value={[currentTime]}
-        max={duration}
+        max={duration || 100}
+        min={0}
         step={0.1}
         onValueChange={onTimeChange}
         onPointerDown={onDragStart}

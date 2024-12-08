@@ -104,9 +104,7 @@ export const useAudioPlayer = (audioUrl: string | undefined, showPlayer: boolean
   const handleTimeChange = (newTime: number) => {
     if (audioRef.current) {
       audioRef.current.currentTime = newTime;
-      if (!isDragging) {
-        setCurrentTime(newTime);
-      }
+      setCurrentTime(newTime);
     }
   };
 
