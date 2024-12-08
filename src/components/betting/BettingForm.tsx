@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Bet } from "@/integrations/supabase/custom-types";
 import { BetType, DrawPeriod, Position } from "@/types/betting";
 import BetForm from "./BetForm";
@@ -20,6 +20,7 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
   const [betAmount, setBetAmount] = useState<number>(10);
   const [position, setPosition] = useState<Position>(1);
   const { clearCombinations } = useTemporaryBetState();
+  const [resetKey, setResetKey] = useState(0);
 
   const getAudioUrl = (betType: BetType) => {
     switch (betType) {
@@ -35,11 +36,13 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
   };
 
   const handleClearSelection = () => {
+    console.log("Limpando todas as seleções");
     setBetType("simple_group");
     setDrawPeriod("morning");
     setBetAmount(10);
     setPosition(1);
     clearCombinations();
+    setResetKey(prev => prev + 1);
     toast.success("Seleção limpa com sucesso!");
   };
 
@@ -65,7 +68,7 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
         drawPeriod={drawPeriod}
         betAmount={betAmount}
         position={position}
-        key={betType} // Add key prop to force re-render when bet type changes
+        key={`${betType}-${resetKey}`}
       />
 
       <div className="flex justify-center mt-4">

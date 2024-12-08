@@ -8,9 +8,10 @@ interface BettingHeartGridProps {
   drawPeriod: string;
   betAmount: number;
   position: number;
+  onClearSelection?: () => void;
 }
 
-const BettingHeartGrid = memo(({ betType }: BettingHeartGridProps) => {
+const BettingHeartGrid = memo(({ betType, onClearSelection }: BettingHeartGridProps) => {
   const [shuffledHearts, setShuffledHearts] = useState([...HEART_COLORS]);
   const [isShuffling, setIsShuffling] = useState(false);
   const [selectedHearts, setSelectedHearts] = useState<string[]>([]);
@@ -55,6 +56,20 @@ const BettingHeartGrid = memo(({ betType }: BettingHeartGridProps) => {
     }
   };
 
+  // Limpa as seleções quando o tipo de aposta muda
+  useEffect(() => {
+    clearSelections();
+  }, [betType]);
+
+  const clearSelections = () => {
+    console.log("Limpando seleções no grid");
+    setSelectedHearts([]);
+    setMainHeart(null);
+    if (onClearSelection) {
+      onClearSelection();
+    }
+  };
+
   useEffect(() => {
     shuffleHearts();
   }, []);
@@ -66,12 +81,6 @@ const BettingHeartGrid = memo(({ betType }: BettingHeartGridProps) => {
 
     return () => clearInterval(interval);
   }, []);
-
-  // Reset selections when bet type changes
-  useEffect(() => {
-    setSelectedHearts([]);
-    setMainHeart(null);
-  }, [betType]);
 
   return (
     <div className="flex flex-col gap-8 items-center animate-fade-in">
