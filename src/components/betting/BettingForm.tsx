@@ -1,47 +1,64 @@
-import BetForm from "../BetForm";
-import { useBettingForm } from "@/hooks/useBettingForm";
-import BettingHeartGrid from "./BettingHeartGrid";
-import SubmitButton from "./SubmitButton";
+import { useState } from "react";
 import { Bet } from "@/integrations/supabase/custom-types";
 import { BetType } from "@/types/betting";
+import BetForm from "./BetForm";
+import BettingHeartGrid from "./BettingHeartGrid";
 import { Button } from "../ui/button";
 import { Eraser } from "lucide-react";
 import { toast } from "sonner";
+import ListenRulesButton from "../audio/ListenRulesButton";
 
 interface BettingFormProps {
   onBetPlaced: (bet: Bet) => void;
   initialBetType?: BetType;
 }
 
-const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
-  const {
-    selectedHearts,
-    mainHeart,
-    betType,
-    drawPeriod,
-    betAmount,
-    position,
-    isSubmitting,
-    session,
-    handleHeartClick,
-    handleBetTypeChange,
-    setDrawPeriod,
-    setBetAmount,
-    setPosition,
-    handleSubmit,
-    clearSelection
-  } = useBettingForm(onBetPlaced, initialBetType);
+const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFormProps) => {
+  const [betType, setBetType] = useState<BetType>(initialBetType);
+  const [drawPeriod, setDrawPeriod] = useState<string>("morning");
+  const [betAmount, setBetAmount] = useState<number>(10);
+  const [position, setPosition] = useState<number>(1);
+
+  const getAudioUrl = (betType: BetType) => {
+    switch (betType) {
+      case "simple_group":
+        return "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_do_grupo_simples.mp3";
+      case "dozen":
+        return "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_dezena.mp3";
+      case "hundred":
+        return "https://mwdaxgwuztccxfgbusuj.supabase.co/storage/v1/object/public/sounds/Regras_da_sentena.mp3";
+      default:
+        return "";
+    }
+  };
 
   const handleClearSelection = () => {
-    clearSelection();
-    toast.info("Seleção de corações limpa");
+    setBetType("simple_group");
+    setDrawPeriod("morning");
+    setBetAmount(10);
+    setPosition(1);
+    toast.success("Seleção limpa com sucesso!");
   };
 
   return (
     <>
+      <div className="flex justify-between items-center mb-4">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleClearSelection}
+          className="gap-2"
+        >
+          <Eraser className="h-4 w-4" />
+          Limpar Seleção
+        </Button>
+
+        <ListenRulesButton audioUrl={getAudioUrl(betType)} />
+      </div>
+
       <BetForm
         betType={betType}
-        setBetType={handleBetTypeChange}
+        setBetType={setBetType}
         drawPeriod={drawPeriod}
         setDrawPeriod={setDrawPeriod}
         betAmount={betAmount}
@@ -50,32 +67,13 @@ const BettingForm = ({ onBetPlaced, initialBetType }: BettingFormProps) => {
         setPosition={setPosition}
       />
 
-      <BettingHeartGrid 
-        selectedHearts={selectedHearts}
-        mainHeart={mainHeart}
-        onHeartClick={handleHeartClick}
+      <BettingHeartGrid
         betType={betType}
+        onBetPlaced={onBetPlaced}
+        drawPeriod={drawPeriod}
+        betAmount={betAmount}
+        position={position}
       />
-
-      <div className="flex flex-col gap-4 items-center">
-        <SubmitButton
-          session={session}
-          selectedHearts={selectedHearts}
-          mainHeart={mainHeart}
-          betType={betType}
-          isSubmitting={isSubmitting}
-          onSubmit={handleSubmit}
-        />
-
-        <Button
-          variant="outline"
-          onClick={handleClearSelection}
-          className="w-full max-w-[200px] gap-2"
-        >
-          <Eraser className="w-4 h-4" />
-          Limpar Seleção
-        </Button>
-      </div>
     </>
   );
 };
