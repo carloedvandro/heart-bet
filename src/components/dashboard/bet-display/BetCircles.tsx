@@ -14,10 +14,16 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
     numbers
   });
 
+  // Função para formatar números com dois dígitos
+  const formatNumber = (num: string) => {
+    const parsedNum = parseInt(num, 10);
+    return parsedNum.toString().padStart(2, '0');
+  };
+
   // Sempre mostrar os números se disponíveis
   if (numbers?.length) {
     console.log("Showing numbers:", numbers);
-    return <span>{numbers.join(", ")}</span>;
+    return <span>{numbers.map(formatNumber).join(", ")}</span>;
   }
 
   // Fallback para exibição dos corações
