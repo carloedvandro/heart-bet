@@ -58,7 +58,7 @@ const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betTyp
         {shuffledHearts.map((heartColor, index) => (
           <div
             key={heartColor.color}
-            className={isShuffling ? "animate-deal-card" }
+            className={isShuffling ? "animate-deal-card" : ""}
             style={{
               animationDelay: `${index * 50}ms`
             }}
