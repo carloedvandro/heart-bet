@@ -10,16 +10,27 @@ interface PairsTableProps {
 
 const PairsTable = memo(({ mainHeart, selectedPairs, betType = "simple_group" }: PairsTableProps) => {
   const getTableTitle = () => {
-    if (betType === "dozen") {
-      return `Dezena (${selectedPairs.length}/2)`;
-    }
-    const totalSelected = mainHeart ? selectedPairs.length + 1 : 0;
-    return `Números do Grupo (${totalSelected}/2)`;
+    const totalSelected = betType === "dozen" 
+      ? selectedPairs.length
+      : (mainHeart ? selectedPairs.length + 1 : 0);
+      
+    const maxSelections = betType === "dozen" ? 2 : 2;
+    return `${betType === "dozen" ? "Dezena" : "Números do Grupo"} (${totalSelected}/${maxSelections})`;
   };
 
   const renderDozenContent = () => {
+    if (selectedPairs.length === 0) {
+      return (
+        <div className="text-center py-2 border-t border-gray-100 text-gray-400">
+          Selecione os números
+        </div>
+      );
+    }
+
     const numbers = selectedPairs.map(getNumberForHeart);
-    const combination = numbers.length === 2 ? `${numbers[0]}${numbers[1]}` : "";
+    const combination = numbers.length === 2 
+      ? `${numbers[0]}${numbers[1]}`
+      : numbers[0];
     
     return (
       <div className="grid grid-cols-1 gap-2">
@@ -38,7 +49,13 @@ const PairsTable = memo(({ mainHeart, selectedPairs, betType = "simple_group" }:
   };
 
   const renderGroupContent = () => {
-    if (!mainHeart) return null;
+    if (!mainHeart) {
+      return (
+        <div className="text-center py-2 border-t border-gray-100 text-gray-400">
+          Selecione o número principal
+        </div>
+      );
+    }
     
     const mainNumber = getNumberForHeart(mainHeart);
     const pairNumber = selectedPairs[0] ? getNumberForHeart(selectedPairs[0]) : "-";
@@ -56,16 +73,20 @@ const PairsTable = memo(({ mainHeart, selectedPairs, betType = "simple_group" }:
   return (
     <div className="bg-white rounded-lg shadow p-4 w-full">
       <h3 className="text-lg font-bold mb-4 text-center">{getTableTitle()}</h3>
-      <div className={`grid ${betType === "dozen" ? "grid-cols-1" : "grid-cols-3"} gap-4 text-sm text-gray-600`}>
-        {betType !== "dozen" && (
-          <>
+      {betType === "dozen" ? (
+        <div className="grid grid-cols-1 gap-4 text-sm text-gray-600">
+          {renderDozenContent()}
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-3 gap-4 text-sm text-gray-600">
             <div className="text-center font-medium">Principal</div>
             <div className="text-center font-medium">Par</div>
             <div className="text-center font-medium">Combinação</div>
-          </>
-        )}
-      </div>
-      {betType === "dozen" ? renderDozenContent() : renderGroupContent()}
+          </div>
+          {renderGroupContent()}
+        </>
+      )}
     </div>
   );
 });
