@@ -16,6 +16,7 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [volume, setVolume] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -23,13 +24,18 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
     if (!audio) return;
 
     const handleLoadedMetadata = () => {
-      setDuration(audio.duration);
-      setCurrentTime(0);
-      setIsPlaying(false);
+      if (audio.duration && !isNaN(audio.duration)) {
+        setDuration(audio.duration);
+        setCurrentTime(0);
+        setIsPlaying(false);
+        setIsLoading(false);
+      }
     };
 
     const handleTimeUpdate = () => {
-      setCurrentTime(audio.currentTime);
+      if (audio.currentTime && !isNaN(audio.currentTime)) {
+        setCurrentTime(audio.currentTime);
+      }
     };
 
     const handleEnded = () => {
@@ -40,17 +46,22 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
     // Reset state when audio source changes
     setIsPlaying(false);
     setCurrentTime(0);
+    setIsLoading(true);
+    setDuration(0);
 
     audio.addEventListener('loadedmetadata', handleLoadedMetadata);
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('ended', handleEnded);
+
+    // Force reload of audio when source changes
+    audio.load();
 
     return () => {
       audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
       audio.removeEventListener('timeupdate', handleTimeUpdate);
       audio.removeEventListener('ended', handleEnded);
     };
-  }, [audioUrl]); // Added audioUrl as dependency to reset state when audio changes
+  }, [audioUrl]);
 
   useEffect(() => {
     if (!audioRef.current) return;
@@ -58,7 +69,7 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
   }, [volume]);
 
   const togglePlay = () => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || isLoading) return;
     
     if (isPlaying) {
       audioRef.current.pause();
@@ -81,10 +92,12 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
   };
 
   const handleTimeChange = (newValue: number[]) => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || isLoading) return;
     const time = newValue[0];
-    audioRef.current.currentTime = time;
-    setCurrentTime(time);
+    if (!isNaN(time) && time >= 0 && time <= duration) {
+      audioRef.current.currentTime = time;
+      setCurrentTime(time);
+    }
   };
 
   const handleVolumeChange = (newValue: number[]) => {
@@ -96,6 +109,7 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
   };
 
   const formatTime = (time: number) => {
+    if (isNaN(time)) return "0:00";
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
@@ -112,7 +126,7 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
         </Button>
       </div>
 
-      <audio ref={audioRef} src={audioUrl} />
+      <audio ref={audioRef} src={audioUrl} preload="metadata" />
 
       <div className="space-y-4">
         <div className="flex items-center justify-center space-x-2">
@@ -121,6 +135,7 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
             size="icon"
             onClick={togglePlay}
             className="h-12 w-12"
+            disabled={isLoading}
           >
             {isPlaying ? (
               <Pause className="h-6 w-6" />
@@ -135,8 +150,9 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
             value={[currentTime]}
             min={0}
             max={duration || 100}
-            step={1}
+            step={0.1}
             onValueChange={handleTimeChange}
+            disabled={isLoading}
             className="w-full"
           />
           <div className="flex justify-between text-xs text-gray-500">
