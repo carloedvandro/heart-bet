@@ -3,14 +3,14 @@ import HeartButton from "../HeartButton";
 import { memo } from "react";
 import PairsTable from "./PairsTable";
 
-interface HeartGridProps {
+interface BettingHeartGridProps {
   selectedHearts: string[];
   mainHeart: string | null;
   onHeartClick: (color: string) => void;
   betType: BetType;
 }
 
-const HeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betType }: HeartGridProps) => {
+const BettingHeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betType }: BettingHeartGridProps) => {
   return (
     <div className="flex flex-col gap-8 items-center animate-fade-in">
       {/* Tabela de Pares */}
@@ -39,6 +39,6 @@ const HeartGrid = memo(({ selectedHearts, mainHeart, onHeartClick, betType }: He
   );
 });
 
-HeartGrid.displayName = 'HeartGrid';
+BettingHeartGrid.displayName = 'BettingHeartGrid';
 
-export default HeartGrid;
+export default BettingHeartGrid;

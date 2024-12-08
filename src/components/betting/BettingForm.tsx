@@ -1,6 +1,6 @@
 import BetForm from "../BetForm";
 import { useBettingForm } from "./useBettingForm";
-import HeartGrid from "./HeartGrid";
+import BettingHeartGrid from "./BettingHeartGrid";
 import SubmitButton from "./SubmitButton";
 import { Bet } from "@/integrations/supabase/custom-types";
 
@@ -39,7 +39,7 @@ const BettingForm = ({ onBetPlaced }: BettingFormProps) => {
         setPosition={setPosition}
       />
 
-      <HeartGrid 
+      <BettingHeartGrid 
         selectedHearts={selectedHearts}
         mainHeart={mainHeart}
         onHeartClick={handleHeartClick}
