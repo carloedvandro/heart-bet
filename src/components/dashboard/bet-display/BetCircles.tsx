@@ -17,10 +17,16 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
     numbers
   });
 
-  // Primeiro tentar renderizar a sequência de números
-  const sequence = <BetSequence numbers={numbers} betType={betType} />;
-  if (sequence) return sequence;
+  // Mostrar números apenas para grupo simples
+  if (betType === 'simple_group' && numbers?.length) {
+    return <BetSequence numbers={numbers} betType={betType} />;
+  }
 
-  // Se não houver sequência, renderizar os círculos
+  // Para milhar, manter o comportamento original
+  if (betType === 'thousand' && numbers?.length) {
+    return <BetSequence numbers={numbers} betType={betType} />;
+  }
+
+  // Para todos os outros tipos, mostrar corações
   return <HeartCircles hearts={hearts} />;
 };
