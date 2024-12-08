@@ -14,15 +14,20 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
   while (attempt < MAX_RETRIES) {
     try {
-      // Ensure we're setting all required headers
-      const headers = {
-        ...init?.headers,
+      // Create new headers object with all required headers
+      const headers = new Headers({
         'apikey': supabaseKey,
         'Authorization': `Bearer ${supabaseKey}`,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
         'Prefer': 'return=minimal'
-      };
+      });
+
+      // If there are any custom headers in init, add them
+      if (init?.headers) {
+        const customHeaders = new Headers(init.headers);
+        customHeaders.forEach((value, key) => headers.set(key, value));
+      }
 
       const response = await fetch(url, {
         ...init,
@@ -34,7 +39,8 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
           status: response.status,
           statusText: response.statusText,
           url: response.url,
-          headers: Object.fromEntries(response.headers.entries())
+          headers: Object.fromEntries(response.headers.entries()),
+          body: await response.text()
         });
         throw new Error(`HTTP error! status: ${response.status}`);
       }
