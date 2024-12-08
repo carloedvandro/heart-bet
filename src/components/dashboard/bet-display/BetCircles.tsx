@@ -17,56 +17,27 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
     numbers
   });
 
-  // Se já temos os números, mostra eles diretamente
+  // Se já temos os números calculados, mostra eles diretamente
   if (numbers?.length) {
     console.log("Showing direct numbers:", numbers);
     return <span>{numbers.join(", ")}</span>;
   }
 
-  // Se temos corações, vamos converter para números
+  // Fallback para exibição dos corações se não tivermos números
   if (hearts?.length) {
-    console.log("Converting hearts to numbers");
-    
-    // Se for grupo simples
-    if (betType === 'simple_group') {
-      // Converter corações para números
-      const heartNumbers = hearts.map(heart => {
-        const number = Number(Object.entries(getHeartForNumber).find(([_, color]) => color === heart)?.[0]);
-        return isNaN(number) ? 0 : number;
-      });
-
-      console.log("Heart numbers:", heartNumbers);
-
-      // Se tivermos números válidos
-      if (heartNumbers.some(num => num !== 0)) {
-        // Para corações repetidos, usar o número para gerar o grupo
-        if (heartNumbers[0] === heartNumbers[1]) {
-          console.log("Same hearts detected, using single number for group:", heartNumbers[0]);
-          const groupNumbers = getGroupNumbers(heartNumbers[0]);
-          console.log("Group numbers for single heart:", groupNumbers);
-          return <span>{groupNumbers.join(", ")}</span>;
-        }
-
-        // Para corações diferentes, formar o grupo com os dois números
-        const [num1, num2] = heartNumbers.sort((a, b) => a - b);
-        const groupNumber = num1 * 10 + num2;
-        console.log("Forming group from two different hearts:", groupNumber);
-        const groupNumbers = getGroupNumbers(groupNumber);
-        console.log("Group numbers for different hearts:", groupNumbers);
-        return <span>{groupNumbers.join(", ")}</span>;
-      }
-    }
-    
-    // Para outros tipos de apostas, mostrar os números individuais
-    const heartNumbers = hearts.map(heart => {
-      const number = Object.entries(getHeartForNumber).find(([_, color]) => color === heart)?.[0];
-      return number || "0";
-    });
-    
-    console.log("Individual numbers for non-simple group:", heartNumbers);
-    return <span>{heartNumbers.join(", ")}</span>;
+    return (
+      <div className="flex gap-1 flex-wrap">
+        {hearts.map((color, index) => (
+          <span
+            key={`${color}-${index}`}
+            className="inline-block w-4 h-4 rounded-full border border-gray-300"
+            style={{ backgroundColor: `var(--heart-${color})` }}
+            title={color}
+          />
+        ))}
+      </div>
+    );
   }
 
-  console.log("No valid data found, returning N/A");
   return <span>N/A</span>;
 };
