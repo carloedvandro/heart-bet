@@ -31,6 +31,10 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
       return selectedHearts.length === 2;
     }
 
+    if (betType === "hundred") {
+      return selectedHearts.length === 3;
+    }
+
     return selectedHearts.length === 4;
   };
 
@@ -44,8 +48,10 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
         if (selectedHearts.length === 1) return "Selecione pelo menos 1 par";
       } else if (betType === "dozen") {
         return `Selecione ${2 - selectedHearts.length} coração(ões)`;
+      } else if (betType === "hundred") {
+        return `Selecione ${3 - selectedHearts.length} coração(ões)`;
       } else {
-        return "Selecione 4 corações";
+        return `Selecione ${4 - selectedHearts.length} coração(ões)`;
       }
     }
     
