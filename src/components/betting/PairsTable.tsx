@@ -1,4 +1,5 @@
 import { BetType } from "@/types/betting";
+import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
 interface PairsTableProps {
   mainHeart: string | null;
@@ -9,13 +10,38 @@ interface PairsTableProps {
 const PairsTable = ({ mainHeart, selectedPairs, betType = "simple_group" }: PairsTableProps) => {
   const getTableTitle = () => {
     if (betType === "dozen") {
-      // Para dezena, contamos todos os corações selecionados
       const selectedCount = selectedPairs.length;
       return `Dezena (${selectedCount}/2)`;
     }
-    // Para grupo simples, contamos o coração principal e o segundo coração
-    const totalSelected = mainHeart ? selectedPairs.length + 1 : 0;
+    const totalSelected = mainHeart ? selectedPairs.length + 1 : selectedPairs.length;
     return `Números do Grupo (${totalSelected}/2)`;
+  };
+
+  const renderPairs = () => {
+    if (betType === "dozen") {
+      return selectedPairs.map((heart, index) => (
+        <div key={index} className="grid grid-cols-1 gap-2 py-2 border-t border-gray-100">
+          <div className="text-center">{getNumberForHeart(heart)}</div>
+        </div>
+      ));
+    }
+
+    // Para grupo simples
+    if (mainHeart) {
+      return (
+        <div className="grid grid-cols-3 gap-2 py-2 border-t border-gray-100">
+          <div>{getNumberForHeart(mainHeart)}</div>
+          <div>{selectedPairs.length > 0 ? getNumberForHeart(selectedPairs[0]) : "-"}</div>
+          <div>
+            {mainHeart && selectedPairs.length > 0
+              ? `${getNumberForHeart(mainHeart)}${getNumberForHeart(selectedPairs[0])}`
+              : "-"}
+          </div>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -26,10 +52,11 @@ const PairsTable = ({ mainHeart, selectedPairs, betType = "simple_group" }: Pair
           <>
             <div>Principal</div>
             <div>Par</div>
+            <div>Combinação</div>
           </>
         )}
-        <div>Combinação</div>
       </div>
+      {renderPairs()}
     </div>
   );
 };
