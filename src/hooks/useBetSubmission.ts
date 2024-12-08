@@ -6,7 +6,7 @@ import { Session } from "@supabase/auth-helpers-react";
 import { BetType, DrawPeriod, Position } from "@/types/betting";
 import { playSounds } from "@/utils/soundEffects";
 import { Bet } from "@/integrations/supabase/custom-types";
-import { getNumberForHeart } from "@/utils/heartNumberMapping";
+import { useTemporaryBetState } from "./useTemporaryBetState";
 
 export const useBetSubmission = (
   session: Session | null,
@@ -21,6 +21,7 @@ export const useBetSubmission = (
   onBetPlaced: (bet: Bet) => void
 ) => {
   const navigate = useNavigate();
+  const { combinations, clearCombinations } = useTemporaryBetState();
 
   const checkBalance = async (userId: string) => {
     const { data: profile, error } = await supabase
@@ -35,25 +36,6 @@ export const useBetSubmission = (
     }
 
     return profile?.balance >= betAmount;
-  };
-
-  const generateNumbers = (hearts: string[], mainHeart: string | null, betType: BetType): number[] => {
-    if (betType === "simple_group") {
-      // Para grupo simples, combinar o coração principal com cada outro coração
-      const otherHearts = hearts.filter(h => h !== mainHeart);
-      const mainNumber = getNumberForHeart(mainHeart!);
-      
-      return otherHearts.map(heart => {
-        const pairNumber = getNumberForHeart(heart);
-        // Garantir que o número menor sempre venha primeiro
-        return mainNumber < pairNumber 
-          ? mainNumber * 10 + pairNumber 
-          : pairNumber * 10 + mainNumber;
-      });
-    }
-    
-    // Para outros tipos de apostas, converter cada coração em seu número correspondente
-    return hearts.map(heart => getNumberForHeart(heart));
   };
 
   const handleSubmit = async () => {
@@ -74,8 +56,7 @@ export const useBetSubmission = (
       return;
     }
 
-    const numbers = generateNumbers(selectedHearts, mainHeart, betType);
-    console.log("Generated numbers:", numbers);
+    console.log("Submitting bet with combinations:", combinations);
 
     try {
       const { data: bet, error } = await supabase
@@ -83,7 +64,7 @@ export const useBetSubmission = (
         .insert({
           user_id: session.user.id,
           hearts: selectedHearts,
-          numbers: numbers,
+          numbers: combinations,
           bet_type: betType,
           draw_period: drawPeriod,
           amount: betAmount,
@@ -108,6 +89,7 @@ export const useBetSubmission = (
       playSounds.bet();
       toast.success("Aposta registrada com sucesso!");
       
+      clearCombinations();
       onBetPlaced(bet);
       setIsSubmitting(false);
     } catch (error) {

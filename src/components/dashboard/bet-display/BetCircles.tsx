@@ -1,5 +1,4 @@
-import { getHeartForNumber } from "@/utils/heartNumberMapping";
-import { getGroupNumbers } from "@/utils/bichoUtils";
+import { useAdminStatus } from "@/hooks/useAdminStatus";
 
 interface BetCirclesProps {
   hearts: string[] | null;
@@ -17,13 +16,13 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
     numbers
   });
 
-  // Se já temos os números calculados, mostra eles diretamente
+  // Sempre mostrar os números se disponíveis
   if (numbers?.length) {
-    console.log("Showing direct numbers:", numbers);
+    console.log("Showing numbers:", numbers);
     return <span>{numbers.join(", ")}</span>;
   }
 
-  // Fallback para exibição dos corações se não tivermos números
+  // Fallback para exibição dos corações
   if (hearts?.length) {
     return (
       <div className="flex gap-1 flex-wrap">
