@@ -10,13 +10,16 @@ interface PairsTableProps {
 
 const PairsTable = memo(({ mainHeart, selectedPairs, betType = "simple_group" }: PairsTableProps) => {
   console.log("PairsTable render - selectedPairs:", selectedPairs);
+  console.log("PairsTable render - mainHeart:", mainHeart);
   console.log("PairsTable render - betType:", betType);
 
   const getTableTitle = () => {
     if (betType === "dozen") {
-      // Para dezenas, contamos todos os corações selecionados
-      const totalSelected = selectedPairs.length;
-      return `Dezena (${totalSelected}/2)`;
+      // Para dezenas, incluímos todos os corações na contagem
+      const allSelectedHearts = [...selectedPairs];
+      if (mainHeart) allSelectedHearts.push(mainHeart);
+      console.log("Total selected hearts:", allSelectedHearts.length);
+      return `Dezena (${allSelectedHearts.length}/2)`;
     }
     // Para grupos, contamos o coração principal + pares
     const totalSelected = mainHeart ? selectedPairs.length + 1 : 0;
@@ -25,7 +28,10 @@ const PairsTable = memo(({ mainHeart, selectedPairs, betType = "simple_group" }:
 
   const renderDozenContent = () => {
     // Se não houver corações selecionados, mostra mensagem inicial
-    if (selectedPairs.length === 0) {
+    const allSelectedHearts = [...selectedPairs];
+    if (mainHeart) allSelectedHearts.push(mainHeart);
+
+    if (allSelectedHearts.length === 0) {
       return (
         <div className="text-center py-2 border-t border-gray-100 text-gray-400">
           Selecione os números da dezena
@@ -34,7 +40,7 @@ const PairsTable = memo(({ mainHeart, selectedPairs, betType = "simple_group" }:
     }
 
     // Converte os corações em números
-    const numbers = selectedPairs.map(getNumberForHeart);
+    const numbers = allSelectedHearts.map(getNumberForHeart);
     console.log("Dozen numbers:", numbers);
 
     // Formata a dezena
