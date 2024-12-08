@@ -19,6 +19,7 @@ export const useHeartSelection = (
 
     // Lógica para grupo simples
     if (betType === "simple_group") {
+      // Se não há coração principal selecionado
       if (!mainHeart) {
         console.log("🎈 Setting main heart:", color);
         setMainHeart(color);
@@ -27,6 +28,7 @@ export const useHeartSelection = (
         return;
       }
 
+      // Se já tem coração principal e está selecionando o segundo coração
       if (selectedHearts.length === 1) {
         const firstNumber = getNumberForHeart(mainHeart);
         const secondNumber = getNumberForHeart(color);
@@ -43,6 +45,12 @@ export const useHeartSelection = (
         setCombinations(groupNumbers);
         playSounds.click();
         toast.success(`Grupo formado: ${groupNumbers.map(n => n.toString().padStart(2, '0')).join(", ")}`);
+        return;
+      }
+
+      // Se tentar selecionar mais de 2 corações no grupo simples
+      if (selectedHearts.length >= 2) {
+        toast.error("Máximo de 2 corações para grupo simples");
         return;
       }
     }
