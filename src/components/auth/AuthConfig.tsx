@@ -24,10 +24,7 @@ export function AuthConfig() {
 
       if (event === "SIGNED_OUT") {
         console.log("User signed out");
-      }
-
-      if (event === "USER_DELETED") {
-        toast.error("Usuário removido");
+        toast.info("Você saiu da conta.");
       }
     });
 
@@ -80,8 +77,7 @@ export function AuthConfig() {
               loading_button_label: "Entrando...",
               email_input_placeholder: "Seu email",
               password_input_placeholder: "Sua senha",
-              link_text: "", // Remove the built-in link text
-              error_message: "Email ou senha incorretos"
+              link_text: "", // Remove built-in link
             },
             sign_up: {
               email_label: "Email",
@@ -91,8 +87,7 @@ export function AuthConfig() {
               email_input_placeholder: "Seu email",
               password_input_placeholder: "Sua senha",
               confirmation_text: "Verifique seu email para confirmar o cadastro",
-              link_text: "", // Remove the built-in link text
-              error_message: "Erro ao criar conta"
+              link_text: "", // Remove built-in link
             },
             forgotten_password: {
               email_label: "Email",
