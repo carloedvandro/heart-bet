@@ -15,6 +15,17 @@ export function AuthConfig() {
     setPassword("");
   };
 
+  const parseErrorBody = (error: any) => {
+    try {
+      if (typeof error.body === 'string') {
+        return JSON.parse(error.body);
+      }
+      return error.body;
+    } catch {
+      return {};
+    }
+  };
+
   const handleSignUp = async () => {
     try {
       setIsLoading(true);
@@ -22,24 +33,26 @@ export function AuthConfig() {
         email,
         password,
         options: {
-          emailRedirectTo: window.location.origin + "/dashboard"
-        }
+          emailRedirectTo: `${window.location.origin}/dashboard`,
+        },
       });
 
       if (error) {
-        if (error.message.includes("User already registered")) {
+        console.error("Signup error:", error);
+        const errorBody = parseErrorBody(error);
+        
+        if (error.status === 422 || errorBody.code === "user_already_exists") {
           toast.error("Este email já está registrado. Faça login.");
           setView("sign_in");
         } else {
-          console.error("Signup error details:", error);
-          toast.error(error.message || "Erro ao tentar cadastrar");
+          toast.error(errorBody.message || error.message || "Erro ao tentar cadastrar");
         }
       } else {
         toast.success("Cadastro realizado com sucesso! Verifique seu email.");
       }
     } catch (error) {
-      console.error("Error during sign up:", error);
-      toast.error("Ocorreu um erro. Por favor, tente novamente.");
+      console.error("Erro no cadastro:", error);
+      toast.error("Ocorreu um erro ao tentar cadastrar. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -54,21 +67,22 @@ export function AuthConfig() {
       });
 
       if (error) {
-        console.error("Signin error details:", error);
+        console.error("Signin error:", error);
+        const errorBody = parseErrorBody(error);
         
-        if (error.message.includes("Invalid login credentials")) {
+        if (error.status === 400 || errorBody.code === "invalid_credentials") {
           toast.error("Email ou senha incorretos.");
-        } else if (error.message.includes("Email not confirmed")) {
+        } else if (errorBody.message?.includes("Email not confirmed")) {
           toast.error("Por favor, confirme seu email antes de fazer login.");
         } else {
-          toast.error(error.message || "Erro ao tentar fazer login");
+          toast.error(errorBody.message || error.message || "Erro ao tentar fazer login");
         }
       } else {
         toast.success("Login realizado com sucesso!");
       }
     } catch (error) {
-      console.error("Error during sign in:", error);
-      toast.error("Ocorreu um erro. Por favor, tente novamente.");
+      console.error("Erro no login:", error);
+      toast.error("Ocorreu um erro ao tentar entrar. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
