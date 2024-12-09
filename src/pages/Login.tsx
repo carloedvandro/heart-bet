@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { LoginHeader } from "@/components/auth/LoginHeader";
 import { AuthConfig } from "@/components/auth/AuthConfig";
 import { toast } from "sonner";
 
@@ -97,8 +96,7 @@ export default function Login() {
     >
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
       <Card className="w-full max-w-md relative z-10 bg-white/95">
-        <LoginHeader />
-        <CardContent>
+        <CardContent className="pt-6">
           <AuthConfig />
         </CardContent>
       </Card>

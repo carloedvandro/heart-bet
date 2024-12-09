@@ -20,24 +20,6 @@ export function AuthConfig() {
 
   return (
     <div className="space-y-6">
-      {view === "sign_up" && (
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-semibold text-gray-900">Você está na tela de cadastro</h2>
-          <p className="text-gray-600">
-            Por favor, digite um email e uma senha para fazer parte da nossa comunidade
-          </p>
-        </div>
-      )}
-      
-      {view === "sign_in" && (
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-semibold text-gray-900">Bem-vindo de volta!</h2>
-          <p className="text-gray-600">
-            Entre com seu email e senha para acessar sua conta
-          </p>
-        </div>
-      )}
-
       <Auth
         supabaseClient={supabase}
         view={view}
@@ -63,7 +45,9 @@ export function AuthConfig() {
               link_text: "Não tem uma conta? Cadastre-se",
               email_input_placeholder: "Seu email",
               password_input_placeholder: "Sua senha",
-              confirmation_text: "Verifique seu email"
+              confirmation_text: "Verifique seu email",
+              header_text: "Você está na tela de cadastro",
+              header_text_help: "Por favor, digite um email e uma senha para fazer parte da nossa comunidade"
             },
             sign_in: {
               email_label: "Email",
@@ -73,7 +57,9 @@ export function AuthConfig() {
               social_provider_text: "Entrar com {{provider}}",
               link_text: "Já tem uma conta? Entre",
               email_input_placeholder: "Seu email",
-              password_input_placeholder: "Sua senha"
+              password_input_placeholder: "Sua senha",
+              header_text: "Bem-vindo de volta!",
+              header_text_help: "Entre com seu email e senha para acessar sua conta"
             },
             forgotten_password: {
               link_text: "Esqueceu sua senha?",
