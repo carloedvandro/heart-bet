@@ -22,9 +22,9 @@ export function AuthConfig() {
     <div className="space-y-6">
       {view === "sign_up" && (
         <div className="text-center space-y-2">
-          <h2 className="text-2xl font-semibold text-gray-900">Tela de Cadastro</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">Você está na tela de cadastro</h2>
           <p className="text-gray-600">
-            Cadastre um email e uma senha para se tornar membro de nossa comunidade
+            Por favor, digite um email e uma senha para fazer parte da nossa comunidade
           </p>
         </div>
       )}
