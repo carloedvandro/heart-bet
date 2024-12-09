@@ -74,7 +74,8 @@ export function AuthConfig() {
               button_label: "Entrar",
               loading_button_label: "Entrando...",
               email_input_placeholder: "Seu email",
-              password_input_placeholder: "Sua senha"
+              password_input_placeholder: "Sua senha",
+              link_text: "" // Remove the built-in link text
             },
             sign_up: {
               email_label: "Email",
@@ -83,7 +84,8 @@ export function AuthConfig() {
               loading_button_label: "Cadastrando...",
               email_input_placeholder: "Seu email",
               password_input_placeholder: "Sua senha",
-              confirmation_text: "Verifique seu email para confirmar o cadastro"
+              confirmation_text: "Verifique seu email para confirmar o cadastro",
+              link_text: "" // Remove the built-in link text
             },
             forgotten_password: {
               email_label: "Email",
