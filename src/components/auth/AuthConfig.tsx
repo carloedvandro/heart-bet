@@ -20,23 +20,13 @@ export function AuthConfig() {
 
   return (
     <div className="space-y-6">
-      {view === "sign_up" && (
-        <div className="text-center space-y-2">
-          <h2 className="text-2xl font-semibold text-gray-900">Você está na tela de cadastro</h2>
-          <p className="text-gray-600">
-            Por favor, digite um email e uma senha para fazer parte da nossa comunidade
-          </p>
-        </div>
-      )}
-      
-      {view === "sign_in" && (
-        <div className="text-center space-y-2">
+      <div className="text-center space-y-2">
+        {view === "sign_up" ? (
+          <h2 className="text-2xl font-semibold text-gray-900">Crie sua conta</h2>
+        ) : (
           <h2 className="text-2xl font-semibold text-gray-900">Bem-vindo de volta!</h2>
-          <p className="text-gray-600">
-            Entre com seu email e senha para acessar sua conta
-          </p>
-        </div>
-      )}
+        )}
+      </div>
 
       <Auth
         supabaseClient={supabase}
