@@ -1,6 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { toast } from "sonner";
+import { AuthForm } from "./AuthForm";
+import { AuthLinks } from "./AuthLinks";
 
 export function AuthConfig() {
   const [email, setEmail] = useState("");
@@ -122,111 +124,23 @@ export function AuthConfig() {
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="email" className="block text-gray-700 font-medium mb-1">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            placeholder="Seu email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
-            required
-          />
-        </div>
-        
-        {!isResetMode && (
-          <div>
-            <label htmlFor="password" className="block text-gray-700 font-medium mb-1">
-              Senha
-            </label>
-            <input
-              id="password"
-              type="password"
-              placeholder="Sua senha"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-pink-500"
-              required
-            />
-          </div>
-        )}
+      <AuthForm 
+        email={email}
+        setEmail={setEmail}
+        password={password}
+        setPassword={setPassword}
+        isLoading={isLoading}
+        isResetMode={isResetMode}
+        isSignUpMode={isSignUpMode}
+        onSubmit={handleSubmit}
+      />
 
-        <button
-          type="submit"
-          disabled={isLoading}
-          className="w-full bg-pink-500 hover:bg-pink-600 disabled:bg-pink-300 text-white font-medium py-2 px-4 rounded transition-colors"
-        >
-          {isLoading ? (
-            <span>
-              {isResetMode 
-                ? "Enviando..." 
-                : isSignUpMode 
-                  ? "Criando conta..." 
-                  : "Entrando..."}
-            </span>
-          ) : (
-            <span>
-              {isResetMode 
-                ? "Enviar instruções" 
-                : isSignUpMode 
-                  ? "Criar conta" 
-                  : "Entrar"}
-            </span>
-          )}
-        </button>
-      </form>
-
-      <div className="text-center mt-4 space-y-2">
-        {!isResetMode && !isSignUpMode && (
-          <p className="text-sm">
-            Não tem uma conta?{" "}
-            <span
-              className="text-pink-500 cursor-pointer hover:underline"
-              onClick={() => setIsSignUpMode(true)}
-            >
-              Cadastre-se
-            </span>
-          </p>
-        )}
-
-        <p className="text-sm">
-          {isResetMode ? (
-            <>
-              Lembrou sua senha?{" "}
-              <span
-                className="text-pink-500 cursor-pointer hover:underline"
-                onClick={() => setIsResetMode(false)}
-              >
-                Voltar ao login
-              </span>
-            </>
-          ) : isSignUpMode ? (
-            <>
-              Já tem uma conta?{" "}
-              <span
-                className="text-pink-500 cursor-pointer hover:underline"
-                onClick={() => setIsSignUpMode(false)}
-              >
-                Fazer login
-              </span>
-            </>
-          ) : (
-            <>
-              Esqueceu sua senha?{" "}
-              <span
-                className="text-pink-500 cursor-pointer hover:underline"
-                onClick={() => setIsResetMode(true)}
-              >
-                Recuperar senha
-              </span>
-            </>
-          )}
-        </p>
-      </div>
+      <AuthLinks 
+        isResetMode={isResetMode}
+        isSignUpMode={isSignUpMode}
+        onResetMode={setIsResetMode}
+        onSignUpMode={setIsSignUpMode}
+      />
     </div>
   );
 }
