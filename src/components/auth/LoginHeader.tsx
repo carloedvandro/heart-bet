@@ -1,12 +1,21 @@
-import { CardHeader, CardTitle } from "@/components/ui/card";
+import { useLocation } from "react-router-dom";
 
-export function LoginHeader() {
+const LoginHeader = () => {
+  const location = useLocation();
+  const isSignUp = location.hash === "#signup";
+
   return (
-    <CardHeader className="space-y-2">
-      <h2 className="text-center text-lg text-gray-600">Bem-vindo</h2>
-      <CardTitle className="text-center text-2xl font-bold">
-        Loto Corações Premiados
-      </CardTitle>
-    </CardHeader>
+    <div className="flex flex-col space-y-2 text-center">
+      <h1 className="text-2xl font-semibold tracking-tight">
+        {isSignUp ? "Você está na tela de cadastro" : "Bem-vindo de volta!"}
+      </h1>
+      <p className="text-sm text-muted-foreground">
+        {isSignUp
+          ? "Por favor, digite um email e uma senha para fazer parte da nossa comunidade"
+          : "Entre com seu email e senha para acessar sua conta"}
+      </p>
+    </div>
   );
-}
+};
+
+export default LoginHeader;
