@@ -7,6 +7,7 @@ export function AuthConfig() {
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isResetMode, setIsResetMode] = useState(false);
+  const [isSignUpMode, setIsSignUpMode] = useState(false);
 
   const handleSignIn = async () => {
     try {
@@ -31,6 +32,29 @@ export function AuthConfig() {
     } catch (error) {
       console.error("Erro no login:", error);
       toast.error("Ocorreu um erro ao tentar entrar. Tente novamente.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSignUp = async () => {
+    try {
+      setIsLoading(true);
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error("Signup error:", error);
+        toast.error("Erro ao tentar criar conta. Por favor, tente novamente.");
+      } else {
+        toast.success("Conta criada com sucesso! Verifique seu email para confirmar.");
+        setIsSignUpMode(false);
+      }
+    } catch (error) {
+      console.error("Erro no cadastro:", error);
+      toast.error("Ocorreu um erro ao tentar criar conta. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
@@ -72,6 +96,8 @@ export function AuthConfig() {
 
     if (isResetMode) {
       await handleResetPassword();
+    } else if (isSignUpMode) {
+      await handleSignUp();
     } else {
       await handleSignIn();
     }
@@ -81,12 +107,18 @@ export function AuthConfig() {
     <div className="space-y-6">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-semibold text-gray-900">
-          {isResetMode ? "Recuperar Senha" : "Bem-vindo de volta!"}
+          {isResetMode 
+            ? "Recuperar Senha" 
+            : isSignUpMode 
+              ? "Criar Conta" 
+              : "Bem-vindo de volta!"}
         </h2>
         <p className="mt-2 text-sm text-gray-600">
           {isResetMode 
             ? "Digite seu email para receber instruções"
-            : "Entre com suas credenciais para continuar"}
+            : isSignUpMode
+              ? "Preencha seus dados para criar uma conta"
+              : "Entre com suas credenciais para continuar"}
         </p>
       </div>
 
@@ -130,17 +162,37 @@ export function AuthConfig() {
         >
           {isLoading ? (
             <span>
-              {isResetMode ? "Enviando..." : "Entrando..."}
+              {isResetMode 
+                ? "Enviando..." 
+                : isSignUpMode 
+                  ? "Criando conta..." 
+                  : "Entrando..."}
             </span>
           ) : (
             <span>
-              {isResetMode ? "Enviar instruções" : "Entrar"}
+              {isResetMode 
+                ? "Enviar instruções" 
+                : isSignUpMode 
+                  ? "Criar conta" 
+                  : "Entrar"}
             </span>
           )}
         </button>
       </form>
 
-      <div className="text-center mt-4">
+      <div className="text-center mt-4 space-y-2">
+        {!isResetMode && !isSignUpMode && (
+          <p className="text-sm">
+            Não tem uma conta?{" "}
+            <span
+              className="text-pink-500 cursor-pointer hover:underline"
+              onClick={() => setIsSignUpMode(true)}
+            >
+              Cadastre-se
+            </span>
+          </p>
+        )}
+
         <p className="text-sm">
           {isResetMode ? (
             <>
@@ -150,6 +202,16 @@ export function AuthConfig() {
                 onClick={() => setIsResetMode(false)}
               >
                 Voltar ao login
+              </span>
+            </>
+          ) : isSignUpMode ? (
+            <>
+              Já tem uma conta?{" "}
+              <span
+                className="text-pink-500 cursor-pointer hover:underline"
+                onClick={() => setIsSignUpMode(false)}
+              >
+                Fazer login
               </span>
             </>
           ) : (
