@@ -73,8 +73,6 @@ export function AuthConfig() {
               password_label: "Senha",
               button_label: "Entrar",
               loading_button_label: "Entrando...",
-              social_provider_text: "Entrar com {{provider}}",
-              link_text: "Não tem uma conta? Cadastre-se",
               email_input_placeholder: "Seu email",
               password_input_placeholder: "Sua senha"
             },
@@ -83,8 +81,6 @@ export function AuthConfig() {
               password_label: "Senha",
               button_label: "Cadastrar",
               loading_button_label: "Cadastrando...",
-              social_provider_text: "Cadastrar com {{provider}}",
-              link_text: "Já tem uma conta? Entre",
               email_input_placeholder: "Seu email",
               password_input_placeholder: "Sua senha",
               confirmation_text: "Verifique seu email para confirmar o cadastro"
