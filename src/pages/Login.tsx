@@ -95,11 +95,21 @@ export default function Login() {
       }}
     >
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
-      <Card className="w-full max-w-md relative z-10 bg-white/95">
-        <CardContent className="pt-6">
-          <AuthConfig />
-        </CardContent>
-      </Card>
+      <div className="relative z-10 w-full max-w-md space-y-4">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-white drop-shadow-lg">
+            Jogo do Coração
+          </h1>
+          <p className="text-white/90 mt-2 text-lg drop-shadow">
+            Aposte com o coração
+          </p>
+        </div>
+        <Card className="bg-white/95">
+          <CardContent className="pt-6">
+            <AuthConfig />
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
