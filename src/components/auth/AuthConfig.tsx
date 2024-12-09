@@ -10,14 +10,13 @@ export function AuthConfig() {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN") {
-        setView("sign_in");
+        console.log("User signed in:", session);
       }
       
       if (event === "USER_UPDATED") {
         console.log("User updated:", session);
       }
 
-      // Handle auth errors through the error event
       if (event === "SIGNED_OUT") {
         console.log("User signed out");
       }
@@ -34,6 +33,11 @@ export function AuthConfig() {
         <h2 className="text-2xl font-semibold text-gray-900">
           {view === "sign_in" ? "Bem-vindo de volta!" : "Crie sua conta"}
         </h2>
+        <p className="mt-2 text-sm text-gray-600">
+          {view === "sign_in" 
+            ? "Entre com suas credenciais para continuar" 
+            : "Preencha os dados abaixo para começar"}
+        </p>
       </div>
 
       <Auth
@@ -79,7 +83,7 @@ export function AuthConfig() {
               link_text: "Já tem uma conta? Entre",
               email_input_placeholder: "Seu email",
               password_input_placeholder: "Sua senha",
-              confirmation_text: "Verifique seu email"
+              confirmation_text: "Verifique seu email para confirmar o cadastro"
             },
             forgotten_password: {
               email_label: "Email",
