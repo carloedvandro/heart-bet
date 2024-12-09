@@ -7,6 +7,10 @@ import { toast } from "sonner";
 export function AuthConfig() {
   const [view, setView] = useState<"sign_in" | "sign_up">("sign_in");
 
+  const toggleView = () => {
+    setView((prevView) => (prevView === "sign_in" ? "sign_up" : "sign_in"));
+  };
+
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN") {
@@ -99,6 +103,32 @@ export function AuthConfig() {
         magicLink={false}
         redirectTo={window.location.origin + "/dashboard"}
       />
+
+      <div className="text-center mt-4">
+        <p className="text-sm">
+          {view === "sign_in" ? (
+            <>
+              Não tem uma conta?{" "}
+              <span
+                className="text-pink-500 cursor-pointer hover:underline"
+                onClick={toggleView}
+              >
+                Cadastre-se
+              </span>
+            </>
+          ) : (
+            <>
+              Já tem uma conta?{" "}
+              <span
+                className="text-pink-500 cursor-pointer hover:underline"
+                onClick={toggleView}
+              >
+                Entre
+              </span>
+            </>
+          )}
+        </p>
+      </div>
     </div>
   );
 }
