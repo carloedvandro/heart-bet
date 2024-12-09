@@ -1,6 +1,6 @@
 import { useLocation } from "react-router-dom";
 
-const LoginHeader = () => {
+export function LoginHeader() {
   const location = useLocation();
   const isSignUp = location.hash === "#signup";
 
@@ -16,6 +16,4 @@ const LoginHeader = () => {
       </p>
     </div>
   );
-};
-
-export default LoginHeader;
+}
