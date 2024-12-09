@@ -31,7 +31,8 @@ export function AuthConfig() {
           toast.error("Este email já está registrado. Faça login.");
           setView("sign_in");
         } else {
-          throw error;
+          console.error("Signup error details:", error);
+          toast.error(error.message || "Erro ao tentar cadastrar");
         }
       } else {
         toast.success("Cadastro realizado com sucesso! Verifique seu email.");
@@ -53,12 +54,14 @@ export function AuthConfig() {
       });
 
       if (error) {
+        console.error("Signin error details:", error);
+        
         if (error.message.includes("Invalid login credentials")) {
           toast.error("Email ou senha incorretos.");
         } else if (error.message.includes("Email not confirmed")) {
           toast.error("Por favor, confirme seu email antes de fazer login.");
         } else {
-          throw error;
+          toast.error(error.message || "Erro ao tentar fazer login");
         }
       } else {
         toast.success("Login realizado com sucesso!");
