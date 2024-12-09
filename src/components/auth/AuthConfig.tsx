@@ -65,20 +65,38 @@ export function AuthConfig() {
   const handleResetPassword = async () => {
     try {
       setIsLoading(true);
+      
+      // Adicionar validação de email antes de enviar
+      if (!email || !email.includes('@')) {
+        toast.error("Por favor, insira um email válido.");
+        return;
+      }
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/dashboard`,
       });
 
       if (error) {
-        console.error("Reset password error:", error);
-        toast.error("Erro ao tentar resetar a senha. Por favor, tente novamente.");
+        console.error("Detailed Reset Password Error:", error);
+        
+        // Tratamento de erro mais específico
+        switch (error.message) {
+          case "Error sending recovery email":
+            toast.error("Não foi possível enviar o email de recuperação. Tente novamente mais tarde.");
+            break;
+          case "User not found":
+            toast.error("Não encontramos uma conta com este email.");
+            break;
+          default:
+            toast.error(`Erro ao resetar senha: ${error.message}`);
+        }
       } else {
         toast.success("Se existe uma conta com este email, você receberá instruções para resetar sua senha.");
         setIsResetMode(false);
       }
     } catch (error) {
-      console.error("Erro no reset de senha:", error);
-      toast.error("Ocorreu um erro ao tentar resetar a senha. Tente novamente.");
+      console.error("Unexpected error in password reset:", error);
+      toast.error("Ocorreu um erro inesperado. Tente novamente.");
     } finally {
       setIsLoading(false);
     }
