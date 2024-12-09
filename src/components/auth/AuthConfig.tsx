@@ -15,17 +15,6 @@ export function AuthConfig() {
     setPassword("");
   };
 
-  const parseErrorBody = (error: any) => {
-    try {
-      if (typeof error.body === 'string') {
-        return JSON.parse(error.body);
-      }
-      return error.body;
-    } catch {
-      return {};
-    }
-  };
-
   const handleSignUp = async () => {
     try {
       setIsLoading(true);
@@ -39,14 +28,15 @@ export function AuthConfig() {
 
       if (error) {
         console.error("Signup error:", error);
-        const errorBody = parseErrorBody(error);
         
-        if (error.status === 422 || errorBody.code === "user_already_exists") {
-          toast.error("Este email já está registrado. Faça login.");
+        // Check if error indicates user already exists
+        if (error.status === 422 && error.message.includes("already registered")) {
+          toast.error("Este email já está registrado. Por favor, faça login.");
           setView("sign_in");
-        } else {
-          toast.error(errorBody.message || error.message || "Erro ao tentar cadastrar");
+          return;
         }
+        
+        toast.error("Erro ao tentar cadastrar. Por favor, tente novamente.");
       } else {
         toast.success("Cadastro realizado com sucesso! Verifique seu email.");
       }
@@ -68,15 +58,13 @@ export function AuthConfig() {
 
       if (error) {
         console.error("Signin error:", error);
-        const errorBody = parseErrorBody(error);
         
-        if (error.status === 400 || errorBody.code === "invalid_credentials") {
+        if (error.status === 400 && error.message.includes("Invalid login credentials")) {
           toast.error("Email ou senha incorretos.");
-        } else if (errorBody.message?.includes("Email not confirmed")) {
-          toast.error("Por favor, confirme seu email antes de fazer login.");
-        } else {
-          toast.error(errorBody.message || error.message || "Erro ao tentar fazer login");
+          return;
         }
+        
+        toast.error("Erro ao tentar fazer login. Por favor, tente novamente.");
       } else {
         toast.success("Login realizado com sucesso!");
       }
