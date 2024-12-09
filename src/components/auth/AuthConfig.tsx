@@ -20,6 +20,12 @@ export function AuthConfig() {
 
   return (
     <div className="space-y-6">
+      <div className="text-center mb-6">
+        <h2 className="text-2xl font-semibold text-gray-900">
+          {view === "sign_in" ? "Bem-vindo de volta!" : "Crie sua conta"}
+        </h2>
+      </div>
+
       <Auth
         supabaseClient={supabase}
         view={view}
@@ -52,8 +58,7 @@ export function AuthConfig() {
               social_provider_text: "Entrar com {{provider}}",
               link_text: "Não tem uma conta? Cadastre-se",
               email_input_placeholder: "Seu email",
-              password_input_placeholder: "Sua senha",
-              forgotten_password_label: "Esqueceu sua senha?"
+              password_input_placeholder: "Sua senha"
             },
             sign_up: {
               email_label: "Email",
@@ -64,14 +69,13 @@ export function AuthConfig() {
               link_text: "Já tem uma conta? Entre",
               email_input_placeholder: "Seu email",
               password_input_placeholder: "Sua senha",
-              confirmation_text: "Verifique seu email",
+              confirmation_text: "Verifique seu email"
             },
             forgotten_password: {
-              link_text: "Esqueceu sua senha?",
               email_label: "Email",
-              password_label: "Senha",
               button_label: "Enviar instruções",
               loading_button_label: "Enviando instruções...",
+              link_text: "Esqueceu sua senha?",
               confirmation_text: "Verifique seu email para redefinir sua senha"
             }
           }
