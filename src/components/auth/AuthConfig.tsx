@@ -2,13 +2,24 @@ import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
+import { toast } from "sonner";
 
 export function AuthConfig() {
   const [view, setView] = useState<"sign_in" | "sign_up">("sign_in");
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN") {
+        setView("sign_in");
+      }
+      
+      if (event === "USER_UPDATED") {
+        console.log("User updated:", session);
+      }
+
+      // Handle signup error
+      if (event === "USER_REGISTRATION_ERROR") {
+        toast.error("Este email já está registrado. Por favor, faça login.");
         setView("sign_in");
       }
     });
@@ -84,6 +95,15 @@ export function AuthConfig() {
         providers={[]}
         magicLink={false}
         redirectTo={window.location.origin + "/dashboard"}
+        onError={(error) => {
+          console.error("Auth error:", error);
+          if (error.message.includes("User already registered")) {
+            toast.error("Este email já está registrado. Por favor, faça login.");
+            setView("sign_in");
+          } else {
+            toast.error("Ocorreu um erro. Por favor, tente novamente.");
+          }
+        }}
       />
     </div>
   );
