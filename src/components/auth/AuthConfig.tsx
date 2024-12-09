@@ -15,6 +15,7 @@ export function AuthConfig() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_IN") {
         console.log("User signed in:", session);
+        toast.success("Login realizado com sucesso!");
       }
       
       if (event === "USER_UPDATED") {
@@ -23,6 +24,10 @@ export function AuthConfig() {
 
       if (event === "SIGNED_OUT") {
         console.log("User signed out");
+      }
+
+      if (event === "USER_DELETED") {
+        toast.error("Usuário removido");
       }
     });
 
@@ -75,7 +80,8 @@ export function AuthConfig() {
               loading_button_label: "Entrando...",
               email_input_placeholder: "Seu email",
               password_input_placeholder: "Sua senha",
-              link_text: "" // Remove the built-in link text
+              link_text: "", // Remove the built-in link text
+              error_message: "Email ou senha incorretos"
             },
             sign_up: {
               email_label: "Email",
@@ -85,7 +91,8 @@ export function AuthConfig() {
               email_input_placeholder: "Seu email",
               password_input_placeholder: "Sua senha",
               confirmation_text: "Verifique seu email para confirmar o cadastro",
-              link_text: "" // Remove the built-in link text
+              link_text: "", // Remove the built-in link text
+              error_message: "Erro ao criar conta"
             },
             forgotten_password: {
               email_label: "Email",
@@ -100,6 +107,20 @@ export function AuthConfig() {
         providers={[]}
         magicLink={false}
         redirectTo={window.location.origin + "/dashboard"}
+        onError={(error) => {
+          console.error("Auth error:", error);
+          
+          if (error.message.includes("User already registered")) {
+            toast.error("Este email já está registrado. Faça login.");
+            setView("sign_in");
+          } else if (error.message.includes("Invalid login credentials")) {
+            toast.error("Email ou senha incorretos");
+          } else if (error.message.includes("Email not confirmed")) {
+            toast.error("Por favor, confirme seu email antes de fazer login");
+          } else {
+            toast.error("Ocorreu um erro. Por favor, tente novamente.");
+          }
+        }}
       />
 
       <div className="text-center mt-4">
