@@ -17,10 +17,9 @@ export function AuthConfig() {
         console.log("User updated:", session);
       }
 
-      // Handle signup error
-      if (event === "USER_REGISTRATION_ERROR") {
-        toast.error("Este email já está registrado. Por favor, faça login.");
-        setView("sign_in");
+      // Handle auth errors through the error event
+      if (event === "SIGNED_OUT") {
+        console.log("User signed out");
       }
     });
 
@@ -95,15 +94,6 @@ export function AuthConfig() {
         providers={[]}
         magicLink={false}
         redirectTo={window.location.origin + "/dashboard"}
-        onError={(error) => {
-          console.error("Auth error:", error);
-          if (error.message.includes("User already registered")) {
-            toast.error("Este email já está registrado. Por favor, faça login.");
-            setView("sign_in");
-          } else {
-            toast.error("Ocorreu um erro. Por favor, tente novamente.");
-          }
-        }}
       />
     </div>
   );
