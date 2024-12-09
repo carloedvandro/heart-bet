@@ -20,14 +20,6 @@ export function AuthConfig() {
 
   return (
     <div className="space-y-6">
-      <div className="text-center space-y-2">
-        {view === "sign_up" ? (
-          <h2 className="text-2xl font-semibold text-gray-900">Crie sua conta</h2>
-        ) : (
-          <h2 className="text-2xl font-semibold text-gray-900">Bem-vindo de volta!</h2>
-        )}
-      </div>
-
       <Auth
         supabaseClient={supabase}
         view={view}
@@ -41,6 +33,11 @@ export function AuthConfig() {
               },
             },
           },
+          className: {
+            container: "space-y-4",
+            label: "text-gray-700",
+            button: "w-full",
+          },
         }}
         localization={{
           variables: {
@@ -50,10 +47,10 @@ export function AuthConfig() {
               button_label: "Cadastrar",
               loading_button_label: "Cadastrando...",
               social_provider_text: "Entrar com {{provider}}",
-              link_text: "Não tem uma conta? Cadastre-se",
+              link_text: "Já tem uma conta? Entre",
               email_input_placeholder: "Seu email",
               password_input_placeholder: "Sua senha",
-              confirmation_text: "Verifique seu email"
+              confirmation_text: "Verifique seu email",
             },
             sign_in: {
               email_label: "Email",
@@ -61,7 +58,7 @@ export function AuthConfig() {
               button_label: "Entrar",
               loading_button_label: "Entrando...",
               social_provider_text: "Entrar com {{provider}}",
-              link_text: "Já tem uma conta? Entre",
+              link_text: "Não tem uma conta? Cadastre-se",
               email_input_placeholder: "Seu email",
               password_input_placeholder: "Sua senha"
             },
@@ -77,6 +74,8 @@ export function AuthConfig() {
         }}
         theme="light"
         providers={[]}
+        magicLink={false}
+        redirectTo={window.location.origin + "/dashboard"}
       />
     </div>
   );
