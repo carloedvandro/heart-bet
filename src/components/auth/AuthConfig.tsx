@@ -1,10 +1,22 @@
 import { Auth } from "@supabase/auth-ui-react";
 import { ThemeSupa } from "@supabase/auth-ui-shared";
 import { supabase } from "@/integrations/supabase/client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 export function AuthConfig() {
   const [view, setView] = useState<"sign_in" | "sign_up">("sign_in");
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN") {
+        setView("sign_in");
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -75,7 +87,6 @@ export function AuthConfig() {
         }}
         theme="light"
         providers={[]}
-        onViewChange={(newView) => setView(newView as "sign_in" | "sign_up")}
       />
     </div>
   );
