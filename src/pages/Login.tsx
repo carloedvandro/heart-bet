@@ -98,7 +98,7 @@ export default function Login() {
       <div className="relative z-10 w-full max-w-md space-y-4">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-white drop-shadow-lg">
-            Jogo do Coração
+            Loto Corações Premiados
           </h1>
           <p className="text-white/90 mt-2 text-lg drop-shadow">
             Aposte com o coração
