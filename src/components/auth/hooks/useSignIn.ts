@@ -14,13 +14,20 @@ export function useSignIn() {
       if (error) {
         console.error("Erro no login:", error);
         
-        if (error.message.includes("Invalid login credentials")) {
-          toast.error("Email ou senha incorretos");
+        // Handle specific error cases
+        if (error.message.includes("Email not confirmed")) {
+          toast.error(
+            "Por favor, confirme seu email antes de fazer login. Verifique sua caixa de entrada.", 
+            {
+              duration: 6000,
+              description: "Não recebeu o email? Tente se cadastrar novamente."
+            }
+          );
           return false;
         }
         
-        if (error.message.includes("Email not confirmed")) {
-          toast.error("Por favor, confirme seu email antes de fazer login");
+        if (error.message.includes("Invalid login credentials")) {
+          toast.error("Email ou senha incorretos");
           return false;
         }
         
