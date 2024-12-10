@@ -64,6 +64,7 @@ export default function Dashboard() {
           profile={profile}
           refreshTrigger={refreshTrigger}
           onBetPlaced={handleBetPlaced}
+          setProfile={setProfile}
         />
       </div>
     </div>
