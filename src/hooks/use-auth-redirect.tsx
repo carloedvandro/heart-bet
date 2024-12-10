@@ -52,15 +52,22 @@ export function useAuthRedirect() {
         
         // Check if user is admin
         if (session) {
-          const { data: profile } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('is_admin')
             .eq('id', session.user.id)
             .single();
             
+          if (profileError) {
+            console.error("Error checking admin status:", profileError);
+            return;
+          }
+
           if (profile?.is_admin) {
+            console.log("Admin user detected, redirecting to admin");
             navigate("/admin");
           } else {
+            console.log("Regular user detected, redirecting to dashboard");
             navigate("/dashboard");
           }
         }
@@ -68,10 +75,6 @@ export function useAuthRedirect() {
         console.log("User signed out");
         toast.info("Você foi desconectado");
         navigate("/login");
-      } else if (event === 'USER_UPDATED') {
-        console.log("User updated:", session?.user);
-      } else if (event === 'PASSWORD_RECOVERY') {
-        toast.info("Verifique seu email para redefinir sua senha");
       }
     });
 

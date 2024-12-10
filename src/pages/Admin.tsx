@@ -16,6 +16,7 @@ export default function Admin() {
 
   useEffect(() => {
     if (!session) {
+      console.log("No session found, redirecting to login");
       navigate("/login");
       return;
     }

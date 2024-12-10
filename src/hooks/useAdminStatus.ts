@@ -21,7 +21,6 @@ export const useAdminStatus = () => {
         }
 
         console.log("Checking admin status for user:", session.user.id);
-        console.log("Current retry count:", retryCount);
         
         const { data: profile, error } = await supabase
           .from('profiles')
@@ -31,11 +30,6 @@ export const useAdminStatus = () => {
         
         if (error) {
           console.error('Error fetching admin status:', error);
-          console.log('Error details:', {
-            message: error.message,
-            code: error.code,
-            details: error.details
-          });
           
           if (retryCount < MAX_RETRIES) {
             console.log(`Retrying... Attempt ${retryCount + 1} of ${MAX_RETRIES}`);
