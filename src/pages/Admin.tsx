@@ -20,7 +20,6 @@ export default function Admin() {
       console.log("Buscando todas as apostas de hoje...");
       const today = new Date().toISOString().split('T')[0];
       
-      // Usando RPC para bypass do RLS e buscar todas as apostas
       const { data, error } = await supabase
         .rpc('get_all_bets_today', { today_date: today });
 
