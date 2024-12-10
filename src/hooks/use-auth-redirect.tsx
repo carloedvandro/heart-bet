@@ -1,10 +1,11 @@
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function useAuthRedirect() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -34,15 +35,22 @@ export function useAuthRedirect() {
 
           console.log("Dados do perfil:", profile);
 
-          if (profile?.is_admin === true) {
-            console.log("Usuário admin detectado, redirecionando para painel admin");
-            navigate("/admin");
-          } else {
-            console.log("Usuário comum detectado, redirecionando para dashboard");
-            navigate("/dashboard");
+          // Só redireciona se o usuário não estiver em uma rota válida
+          if (location.pathname === '/login' || location.pathname === '/') {
+            if (profile?.is_admin === true) {
+              console.log("Usuário admin detectado, redirecionando para painel admin");
+              navigate("/admin");
+            } else {
+              console.log("Usuário comum detectado, redirecionando para dashboard");
+              navigate("/dashboard");
+            }
           }
         } else {
           console.log("Nenhuma sessão encontrada");
+          // Se não houver sessão e não estiver na página de login, redireciona
+          if (location.pathname !== '/login') {
+            navigate("/login");
+          }
         }
       } catch (error) {
         console.error("Erro ao verificar sessão:", error);
@@ -91,5 +99,5 @@ export function useAuthRedirect() {
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate]);
+  }, [navigate, location.pathname]);
 }
