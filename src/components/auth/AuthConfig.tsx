@@ -14,7 +14,7 @@ export function AuthConfig() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Formulário submetido", { email, password, isResetMode, isSignUpMode });
+    console.log("Formulário submetido", { email, isResetMode, isSignUpMode });
 
     if (!email) {
       toast.error("Por favor, preencha o email.");
@@ -41,18 +41,17 @@ export function AuthConfig() {
           setPassword("");
         }
       } else {
+        console.log("Tentando login com:", { email });
         const success = await handleSignIn(email, password);
         if (success) {
-          // Limpa os dados apenas após sucesso
           setEmail("");
           setPassword("");
         } else {
-          // Mantém os dados se houver erro
           console.log("Login falhou, mantendo dados do formulário");
         }
       }
     } catch (error) {
-      console.error("Erro no submit do formulário:", error);
+      console.error("Erro detalhado no submit do formulário:", error);
       toast.error("Ocorreu um erro. Por favor, tente novamente.");
     }
   };
