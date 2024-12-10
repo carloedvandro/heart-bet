@@ -56,22 +56,24 @@ export function useAuthRedirect() {
           }
           
           // Se admin estiver em páginas de usuário comum, redirecionar para admin
-          if (location.pathname === '/dashboard') {
-            console.log("Admin tentando acessar dashboard, redirecionando para /admin");
+          if (!location.pathname.startsWith('/admin')) {
+            console.log("Admin tentando acessar área de usuário, redirecionando para /admin");
             toast.error("Administradores devem usar o painel administrativo");
             navigate('/admin');
             return;
           }
 
-          // Se admin estiver tentando acessar rotas admin, permitir
-          if (location.pathname.startsWith('/admin')) {
-            console.log("Admin acessando rota administrativa:", location.pathname);
+          // Se admin estiver em rotas administrativas válidas, permitir
+          if (location.pathname === '/admin' || location.pathname === '/admin/bets') {
+            console.log("Admin acessando rota administrativa válida:", location.pathname);
             return;
           }
 
-          // Se admin estiver em qualquer outra rota, redirecionar para /admin
-          navigate('/admin');
-          return;
+          // Se admin estiver em qualquer outra rota administrativa inválida, redirecionar para /admin
+          if (location.pathname.startsWith('/admin')) {
+            navigate('/admin');
+            return;
+          }
         }
 
         // Lógica para usuários comuns
