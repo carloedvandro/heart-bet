@@ -6,7 +6,7 @@ export function useSignIn() {
     console.log("Iniciando login para:", email);
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data: { session }, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -28,12 +28,13 @@ export function useSignIn() {
         return false;
       }
 
-      if (data.session) {
-        console.log("Login bem sucedido para:", data.session.user.email);
+      if (session) {
+        console.log("Login bem sucedido para:", session.user.email);
         toast.success("Login realizado com sucesso!");
         return true;
       }
 
+      toast.error("Erro inesperado ao fazer login");
       return false;
     } catch (error) {
       console.error("Erro inesperado no login:", error);

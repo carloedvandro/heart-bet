@@ -31,6 +31,7 @@ export function AuthConfig() {
         const success = await handleResetPassword(email);
         if (success) {
           setIsResetMode(false);
+          setEmail("");
         }
       } else if (isSignUpMode) {
         const success = await handleSignUp(email, password);
@@ -41,13 +42,13 @@ export function AuthConfig() {
         }
       } else {
         const success = await handleSignIn(email, password);
-        if (!success) {
-          // Mantém os dados apenas se houver erro
-          console.log("Login falhou, mantendo dados do formulário");
-        } else {
+        if (success) {
           // Limpa os dados apenas após sucesso
           setEmail("");
           setPassword("");
+        } else {
+          // Mantém os dados se houver erro
+          console.log("Login falhou, mantendo dados do formulário");
         }
       }
     } catch (error) {

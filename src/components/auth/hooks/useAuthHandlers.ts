@@ -10,18 +10,21 @@ export function useAuthHandlers() {
   const resetPassword = useResetPassword();
 
   const handleSignIn = async (email: string, password: string) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const success = await signIn.handleSignIn(email, password);
       return success;
+    } catch (error) {
+      console.error("Erro no handleSignIn:", error);
+      return false;
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleSignUp = async (email: string, password: string) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const success = await signUp.handleSignUp(email, password);
       return success;
     } finally {
@@ -30,8 +33,8 @@ export function useAuthHandlers() {
   };
 
   const handleResetPassword = async (email: string) => {
+    setIsLoading(true);
     try {
-      setIsLoading(true);
       const success = await resetPassword.handleResetPassword(email);
       return success;
     } finally {
