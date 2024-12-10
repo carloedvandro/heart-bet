@@ -35,13 +35,19 @@ export default function Admin() {
   const { data: todayBets } = useQuery({
     queryKey: ['admin', 'today-bets'],
     queryFn: async () => {
+      console.log("Buscando apostas de hoje...");
       const today = new Date().toISOString().split('T')[0];
       const { count, error } = await supabase
         .from('bets')
         .select('*', { count: 'exact', head: true })
         .eq('draw_date', today);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Erro ao buscar apostas:", error);
+        throw error;
+      }
+      
+      console.log("Total de apostas hoje:", count);
       return count || 0;
     }
   });
@@ -62,24 +68,17 @@ export default function Admin() {
   const { data: totalUsers } = useQuery({
     queryKey: ['admin', 'total-users'],
     queryFn: async () => {
-      // Adicionando logs para debug
-      const { data, count, error } = await supabase
+      console.log("Buscando total de usuários...");
+      const { count, error } = await supabase
         .from('profiles')
-        .select('*', { count: 'exact' });
-
-      console.log('Debug - Resposta completa:', { data, count, error });
+        .select('*', { count: 'exact', head: true });
 
       if (error) {
-        console.error('Erro ao buscar total de usuários:', error);
+        console.error("Erro ao buscar total de usuários:", error);
         throw error;
       }
 
-      if (data) {
-        console.log('Debug - Número de usuários nos dados:', data.length);
-      }
-
-      console.log('Debug - Contagem retornada:', count);
-
+      console.log("Total de usuários encontrados:", count);
       return count || 0;
     }
   });
