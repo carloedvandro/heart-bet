@@ -59,7 +59,7 @@ export const useBetSubmission = (
     console.log("Submitting bet with combinations:", combinations);
 
     try {
-      const { data: bet, error } = await supabase
+      const { data, error } = await supabase
         .from('bets')
         .insert({
           user_id: session.user.id,
@@ -90,7 +90,7 @@ export const useBetSubmission = (
       toast.success("Aposta registrada com sucesso!");
       
       clearCombinations();
-      onBetPlaced(bet);
+      onBetPlaced(data as Bet);
       setIsSubmitting(false);
     } catch (error) {
       console.error("Erro ao registrar aposta:", error);

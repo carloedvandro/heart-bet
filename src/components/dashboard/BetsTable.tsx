@@ -45,7 +45,8 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
 
       if (error) throw error;
       
-      setBets(data || []);
+      // Explicitly type the data as Bet[] to ensure type safety
+      setBets(data as Bet[]);
       if (count) {
         setTotalItems(count);
         setHasMore(count > (currentPage + 1) * itemsPerPage);
@@ -97,12 +98,12 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
           
           <div className="flex flex-col items-center gap-2">
             <div className="text-sm text-muted-foreground">
-              Página {currentPage + 1} de {totalPages}
+              Página {currentPage + 1} de {Math.ceil(totalItems / itemsPerPage)}
             </div>
             <div className="flex justify-center gap-4">
               <Button
                 variant="outline"
-                onClick={handlePreviousPage}
+                onClick={() => setCurrentPage(prev => prev - 1)}
                 disabled={currentPage === 0}
                 className="gap-2"
               >
@@ -111,7 +112,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
               </Button>
               <Button
                 variant="outline"
-                onClick={handleNextPage}
+                onClick={() => setCurrentPage(prev => prev + 1)}
                 disabled={!hasMore}
                 className="gap-2"
               >
