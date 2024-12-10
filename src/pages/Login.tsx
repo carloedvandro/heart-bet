@@ -14,16 +14,7 @@ export default function Login() {
     
     const checkSession = async () => {
       try {
-        // Clear any stale session data first
-        const { error: signOutError } = await supabase.auth.signOut({
-          scope: 'local'
-        });
-        
-        if (signOutError) {
-          console.error("Error clearing session:", signOutError);
-        }
-
-        // Now check for a valid session
+        // First check if we have a valid session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -32,9 +23,9 @@ export default function Login() {
         }
 
         if (session) {
-          console.log("Session found, checking profile for user:", session.user.id);
+          console.log("Valid session found, checking profile for user:", session.user.id);
           
-          // Add a longer delay to ensure auth record is fully created
+          // Add a delay to ensure auth record is fully created
           await new Promise(resolve => setTimeout(resolve, 2000));
           
           // Check if profile exists
@@ -53,6 +44,8 @@ export default function Login() {
           // If profile exists or we're waiting for the trigger to create it, proceed to dashboard
           console.log("Profile check complete, navigating to dashboard");
           navigate('/dashboard', { replace: true });
+        } else {
+          console.log("No valid session found");
         }
       } catch (error) {
         console.error("Unexpected error:", error);
@@ -61,6 +54,22 @@ export default function Login() {
     };
 
     checkSession();
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session?.user?.id);
+      
+      if (event === 'SIGNED_OUT') {
+        console.log("User signed out, staying on login page");
+      } else if (event === 'SIGNED_IN' && session) {
+        console.log("User signed in, redirecting to dashboard");
+        navigate('/dashboard', { replace: true });
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [navigate]);
 
   return (
