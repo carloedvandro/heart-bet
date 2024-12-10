@@ -17,11 +17,16 @@ export function useAuthRedirect() {
           return;
         }
 
-        // Se não houver sessão e estiver tentando acessar uma rota protegida
+        // Se não houver sessão
         if (!session) {
-          if (location.pathname === '/admin') {
+          // Se estiver tentando acessar área administrativa
+          if (location.pathname.startsWith('/admin')) {
             navigate('/admin-login');
-          } else if (location.pathname !== '/login' && location.pathname !== '/admin-login') {
+            return;
+          }
+          
+          // Se estiver tentando acessar área de usuário
+          if (location.pathname !== '/login' && location.pathname !== '/admin-login') {
             navigate('/login');
           }
           return;
@@ -39,34 +44,48 @@ export function useAuthRedirect() {
           return;
         }
 
-        // Se for admin na página de login admin ou login comum, redirecionar para admin
-        if (profile?.is_admin && (location.pathname === '/admin-login' || location.pathname === '/login')) {
-          navigate('/admin');
+        // Lógica para usuários administrativos
+        if (profile?.is_admin) {
+          // Se admin estiver em páginas de login, redirecionar para admin
+          if (location.pathname === '/admin-login' || location.pathname === '/login') {
+            navigate('/admin');
+            return;
+          }
+          
+          // Se admin estiver em páginas de usuário comum, redirecionar para admin
+          if (location.pathname === '/dashboard') {
+            navigate('/admin');
+            return;
+          }
           return;
         }
 
-        // Se não for admin tentando acessar área admin, redirecionar para dashboard
-        if (!profile?.is_admin && location.pathname === '/admin') {
-          toast.error("Acesso não autorizado");
-          navigate('/dashboard');
-          return;
-        }
+        // Lógica para usuários comuns
+        if (!profile?.is_admin) {
+          // Se usuário comum tentar acessar área admin
+          if (location.pathname.startsWith('/admin')) {
+            toast.error("Acesso não autorizado");
+            navigate('/dashboard');
+            return;
+          }
 
-        // Se for usuário comum na página de login, redirecionar para dashboard
-        if (!profile?.is_admin && location.pathname === '/login') {
-          navigate('/dashboard');
+          // Se usuário comum estiver na página de login
+          if (location.pathname === '/login') {
+            navigate('/dashboard');
+            return;
+          }
         }
       } catch (error) {
         console.error("Erro ao verificar sessão:", error);
       }
     };
 
-    // Verificar status do usuário ao montar o componente e quando a rota mudar
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_OUT') {
-        if (location.pathname === '/admin') {
+        // Verificar se estava na área administrativa
+        if (location.pathname.startsWith('/admin')) {
           navigate('/admin-login');
         } else {
           navigate('/login');

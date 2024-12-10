@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
@@ -7,32 +6,15 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { Card } from "@/components/ui/card";
+import { useAdminStatus } from "@/hooks/useAdminStatus";
 
 export default function Admin() {
   const navigate = useNavigate();
   const session = useSession();
+  const { isAdmin, isLoading } = useAdminStatus();
 
-  useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!session?.user?.id) {
-        navigate("/login");
-        return;
-      }
-
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("is_admin")
-        .eq("id", session.user.id)
-        .single();
-
-      if (error || !profile?.is_admin) {
-        toast.error("Acesso não autorizado");
-        navigate("/dashboard");
-      }
-    };
-
-    checkAdminStatus();
-  }, [session, navigate]);
+  // Se estiver carregando, mostra nada
+  if (isLoading || !isAdmin) return null;
 
   // Query para buscar TODAS as apostas de hoje com valor total
   const { data: todayBetsData } = useQuery({
@@ -41,7 +23,6 @@ export default function Admin() {
       console.log("Buscando todas as apostas de hoje...");
       const today = new Date().toISOString().split('T')[0];
       
-      // Removida a condição de user_id para buscar todas as apostas
       const { data, error } = await supabase
         .from('bets')
         .select('amount, user_id')
@@ -52,10 +33,7 @@ export default function Admin() {
         throw error;
       }
       
-      // Calcula o total de todas as apostas
       const total = data?.reduce((acc, bet) => acc + Number(bet.amount), 0) || 0;
-      
-      // Conta o número de apostadores únicos
       const uniqueBettors = new Set(data?.map(bet => bet.user_id)).size;
 
       return {
@@ -84,20 +62,17 @@ export default function Admin() {
     }
   });
 
-  // Query para buscar usuários ativos (com apostas nos últimos 7 dias)
   const { data: usersData } = useQuery({
     queryKey: ['admin', 'users-stats'],
     queryFn: async () => {
       console.log("Buscando estatísticas de usuários...");
       
-      // Buscar total de usuários
       const { count: totalUsers, error: countError } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
       if (countError) throw countError;
 
-      // Buscar usuários ativos (com apostas nos últimos 7 dias)
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       const { data: activeBettors, error: activeError } = await supabase
@@ -108,7 +83,6 @@ export default function Admin() {
 
       if (activeError) throw activeError;
 
-      // Contar usuários únicos ativos
       const uniqueActiveBettors = new Set(activeBettors?.map(bet => bet.user_id));
 
       return {
@@ -123,15 +97,13 @@ export default function Admin() {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
-      navigate("/login");
+      navigate("/admin-login");
       toast.success("Desconectado com sucesso");
     } catch (error) {
       console.error("Erro ao desconectar:", error);
       toast.error("Erro ao desconectar");
     }
   };
-
-  if (!session) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
