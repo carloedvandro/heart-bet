@@ -7,6 +7,7 @@ import { AdminPaymentProofs } from "@/components/admin/AdminPaymentProofs";
 import { AdminBets } from "@/components/admin/AdminBets";
 import { useAdminStatus } from "@/hooks/useAdminStatus";
 import { useSession } from "@supabase/auth-helpers-react";
+import { toast } from "sonner";
 
 export default function Admin() {
   const { isAdmin, isLoading } = useAdminStatus();
@@ -21,6 +22,7 @@ export default function Admin() {
 
     if (!isLoading && !isAdmin) {
       console.log("User is not admin, redirecting to dashboard");
+      toast.error("Acesso negado. Você não tem permissão para acessar esta área.");
       navigate("/dashboard");
     }
   }, [session, isAdmin, isLoading, navigate]);
