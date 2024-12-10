@@ -5,13 +5,15 @@ import { useAuthRedirect } from "@/hooks/use-auth-redirect";
 import { Card } from "@/components/ui/card";
 import { ProfileActions } from "@/components/dashboard/ProfileActions";
 import { BetsTable } from "@/components/dashboard/BetsTable";
-import { BettingForm } from "@/components/betting/BettingForm";
+import BettingForm from "@/components/betting/BettingForm";
 import { RechargeDialog } from "@/components/dashboard/RechargeDialog";
 import { BalanceDisplay } from "@/components/dashboard/BalanceDisplay";
 import { AudioControl } from "@/components/dashboard/AudioControl";
+import { Profile } from "@/integrations/supabase/custom-types";
 
 export default function Dashboard() {
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const session = useSession();
 
   useAuthRedirect();
@@ -37,6 +39,10 @@ export default function Dashboard() {
     fetchProfile();
   }, [session]);
 
+  const handleBetPlaced = () => {
+    setRefreshTrigger(prev => prev + 1);
+  };
+
   if (!session) return null;
 
   return (
@@ -45,7 +51,7 @@ export default function Dashboard() {
         <div className="grid gap-6 md:grid-cols-[300px,1fr]">
           <div className="space-y-6">
             <Card className="p-4 space-y-4">
-              <BalanceDisplay balance={profile?.balance} />
+              <BalanceDisplay profile={profile} />
               <ProfileActions 
                 isAdmin={profile?.is_admin} 
                 setProfile={setProfile}
@@ -56,8 +62,8 @@ export default function Dashboard() {
           </div>
 
           <div className="space-y-6">
-            <BettingForm />
-            <BetsTable userId={session.user.id} />
+            <BettingForm onBetPlaced={handleBetPlaced} />
+            <BetsTable refreshTrigger={refreshTrigger} />
           </div>
         </div>
       </div>
