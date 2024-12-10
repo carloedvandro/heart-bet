@@ -110,15 +110,15 @@ export default {
             transform: "translateY(0) translateX(0) rotate(0deg)",
           },
           "33%": {
-            transform: "translateY(-30px) translateX(20px) rotate(10deg)",
+            transform: "translateY(-40px) translateX(30px) rotate(15deg)",
           },
           "66%": {
-            transform: "translateY(-15px) translateX(-20px) rotate(-10deg)",
+            transform: "translateY(-20px) translateX(-30px) rotate(-15deg)",
           }
         },
       },
       animation: {
-        "heart-beat": "heart-beat 1s ease-in-out infinite",
+        "heart-beat": "heart-beat 0.8s ease-in-out infinite",
         "heart-float": "heart-float 3s ease-in-out infinite",
         "fade-in": "fade-in 0.5s ease-out",
         "fade-in-delayed": "fade-in-delayed 1s ease-out forwards",

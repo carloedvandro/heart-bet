@@ -108,15 +108,15 @@ export default function Login() {
       
       {/* Floating hearts effect */}
       <div className="absolute inset-0 overflow-hidden">
-        {[...Array(12)].map((_, i) => (
+        {[...Array(24)].map((_, i) => (
           <div
             key={i}
             className="absolute animate-float"
             style={{
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
-              animation: `float ${10 + i * 2}s ease-in-out infinite`,
-              animationDelay: `${i * 0.5}s`,
+              animation: `float ${6 + i * 1.5}s ease-in-out infinite`,
+              animationDelay: `${i * 0.3}s`,
               opacity: 0.3 + Math.random() * 0.4,
               transform: `scale(${0.5 + Math.random() * 0.5})`,
             }}
