@@ -12,21 +12,25 @@ export function useAuthRedirect() {
     const checkUser = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        console.log("Checking session:", session?.user?.id);
+        console.log("Verificando sessão atual:", {
+          sessionExists: !!session,
+          userId: session?.user?.id,
+          currentPath: location.pathname
+        });
         
         if (!session && location.pathname !== '/login') {
-          console.log("No session found, redirecting to login");
+          console.log("Sem sessão ativa, redirecionando para login");
           navigate('/login', { replace: true });
           return;
         }
 
         if (session && location.pathname === '/login') {
-          console.log("Session found on login page, redirecting to dashboard");
+          console.log("Sessão ativa encontrada, redirecionando para dashboard");
           navigate('/dashboard', { replace: true });
           return;
         }
       } catch (error) {
-        console.error("Error checking session:", error);
+        console.error("Erro ao verificar sessão:", error);
         if (location.pathname !== '/login') {
           navigate('/login', { replace: true });
         }
@@ -38,18 +42,23 @@ export function useAuthRedirect() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isSubscribed) return;
       
-      console.log("Auth state changed:", event, session?.user?.id);
+      console.log("Mudança no estado de autenticação:", {
+        event,
+        userId: session?.user?.id,
+        currentPath: location.pathname
+      });
       
       if (event === 'SIGNED_OUT') {
-        console.log("User signed out, redirecting to login");
+        console.log("Usuário deslogado, redirecionando para login");
         navigate('/login', { replace: true });
       } else if (event === 'SIGNED_IN' && session) {
-        console.log("User signed in, redirecting to dashboard");
+        console.log("Usuário logado, redirecionando para dashboard");
         navigate('/dashboard', { replace: true });
       }
     });
 
     return () => {
+      console.log("Limpando inscrição de auth redirect");
       isSubscribed = false;
       subscription.unsubscribe();
     };

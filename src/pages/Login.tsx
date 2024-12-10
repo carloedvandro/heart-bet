@@ -36,7 +36,7 @@ export default function Login() {
           return;
         }
 
-        if (profile) {
+        if (profile && isSubscribed) {
           console.log("Profile found, navigating to dashboard");
           navigate('/dashboard', { replace: true });
         }
@@ -48,19 +48,8 @@ export default function Login() {
 
     checkSession();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!isSubscribed) return;
-      
-      console.log("Auth state changed:", event, session?.user?.id);
-      
-      if (event === 'SIGNED_IN' && session) {
-        navigate('/dashboard', { replace: true });
-      }
-    });
-
     return () => {
       isSubscribed = false;
-      subscription.unsubscribe();
     };
   }, [navigate]);
 
