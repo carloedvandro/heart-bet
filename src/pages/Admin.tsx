@@ -140,7 +140,7 @@ export default function Admin() {
             className="p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
             onClick={() => {
               console.log("Navegando para a página de apostas detalhadas...");
-              navigate("/admin/detailed-bets");
+              navigate("/admin/bets");
             }}
           >
             <h3 className="text-lg font-semibold mb-4">Apostas Hoje</h3>
