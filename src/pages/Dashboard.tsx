@@ -6,6 +6,7 @@ import { Header } from "@/components/dashboard/Header";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { Profile } from "@/integrations/supabase/custom-types";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -17,19 +18,30 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!session?.user?.id) return;
+      if (!session?.user?.id) {
+        console.log("No session user ID found");
+        return;
+      }
 
       try {
+        console.log("Fetching profile for user:", session.user.id);
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", session.user.id)
           .single();
 
-        if (error) throw error;
+        if (error) {
+          console.error("Error fetching profile:", error);
+          toast.error("Erro ao carregar perfil");
+          throw error;
+        }
+        
+        console.log("Profile fetched successfully:", data);
         setProfile(data);
       } catch (error) {
-        console.error("Error fetching profile:", error);
+        console.error("Error in fetchProfile:", error);
+        toast.error("Erro ao carregar perfil");
       }
     };
 
@@ -47,10 +59,14 @@ export default function Dashboard() {
       navigate("/login");
     } catch (error) {
       console.error("Error logging out:", error);
+      toast.error("Erro ao fazer logout");
     }
   };
 
-  if (!session) return null;
+  if (!session) {
+    console.log("No session found, returning null");
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-pink-50 p-4">
