@@ -14,7 +14,6 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
   while (attempt < MAX_RETRIES) {
     try {
-      // Detailed logging of the request
       console.log('Fetch Request:', {
         url,
         method: init?.method || 'GET',
@@ -40,12 +39,22 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         headers
       });
 
-      // Detailed logging of the response
       console.log('Fetch Response:', {
         status: response.status,
         statusText: response.statusText,
         headers: Object.fromEntries(response.headers.entries())
       });
+
+      // Don't retry on authentication errors
+      if (response.status === 400 || response.status === 401) {
+        const errorText = await response.text();
+        console.error('Authentication error:', {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText
+        });
+        throw new Error(errorText);
+      }
 
       // Don't retry on rate limit errors
       if (response.status === 429) {
@@ -55,8 +64,7 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       }
 
       if (!response.ok) {
-        const errorClone = response.clone();
-        const errorText = await errorClone.text();
+        const errorText = await response.text();
         console.error('Response not OK:', {
           status: response.status,
           statusText: response.statusText,
@@ -65,11 +73,19 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
           body: errorText
         });
         
-        // Create a more informative error
         const error = new Error(`HTTP error! status: ${response.status}`);
         (error as any).status = response.status;
         (error as any).body = errorText;
         throw error;
+      }
+
+      // Clone the response before using it
+      const clonedResponse = response.clone();
+      
+      // Log the response body for debugging (only in development)
+      if (process.env.NODE_ENV === 'development') {
+        const responseBody = await clonedResponse.text();
+        console.log('Response body:', responseBody);
       }
 
       return response;
@@ -77,8 +93,9 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       attempt++;
       console.error(`Fetch attempt ${attempt} failed:`, error);
       
-      // Don't retry rate limit errors
-      if ((error as any).status === 429) {
+      if ((error as any).status === 400 || 
+          (error as any).status === 401 || 
+          (error as any).status === 429) {
         throw error;
       }
       
