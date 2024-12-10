@@ -107,11 +107,14 @@ export default {
         },
         float: {
           "0%, 100%": {
-            transform: "translateY(0) translateX(0)",
+            transform: "translateY(0) translateX(0) rotate(0deg)",
           },
-          "50%": {
-            transform: "translateY(-20px) translateX(10px)",
+          "33%": {
+            transform: "translateY(-30px) translateX(20px) rotate(10deg)",
           },
+          "66%": {
+            transform: "translateY(-15px) translateX(-20px) rotate(-10deg)",
+          }
         },
       },
       animation: {

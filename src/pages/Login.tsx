@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { AuthConfig } from "@/components/auth/AuthConfig";
 import { toast } from "sonner";
+import { Heart } from "lucide-react";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -105,18 +106,27 @@ export default function Login() {
       {/* Dark overlay with blur */}
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
       
-      {/* Floating particles effect */}
-      <div className="absolute inset-0">
-        {[...Array(6)].map((_, i) => (
+      {/* Floating hearts effect */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(12)].map((_, i) => (
           <div
             key={i}
-            className="absolute w-4 h-4 bg-white/10 rounded-full"
+            className="absolute animate-float"
             style={{
               top: `${Math.random() * 100}%`,
               left: `${Math.random() * 100}%`,
-              animation: `float-${i} ${8 + i * 2}s ease-in-out infinite`,
+              animation: `float ${10 + i * 2}s ease-in-out infinite`,
+              animationDelay: `${i * 0.5}s`,
+              opacity: 0.3 + Math.random() * 0.4,
+              transform: `scale(${0.5 + Math.random() * 0.5})`,
             }}
-          />
+          >
+            <Heart 
+              className="text-heart-pink animate-heart-beat" 
+              size={24 + Math.random() * 12}
+              fill="currentColor"
+            />
+          </div>
         ))}
       </div>
 
