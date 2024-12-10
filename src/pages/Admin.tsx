@@ -34,15 +34,17 @@ export default function Admin() {
     checkAdminStatus();
   }, [session, navigate]);
 
-  // Query para buscar apostas de hoje com valor total
+  // Query para buscar TODAS as apostas de hoje com valor total
   const { data: todayBetsData } = useQuery({
     queryKey: ['admin', 'today-bets'],
     queryFn: async () => {
-      console.log("Buscando apostas de hoje...");
+      console.log("Buscando todas as apostas de hoje...");
       const today = new Date().toISOString().split('T')[0];
+      
+      // Removida a condição de user_id para buscar todas as apostas
       const { data, error } = await supabase
         .from('bets')
-        .select('amount')
+        .select('amount, user_id')
         .eq('draw_date', today);
 
       if (error) {
@@ -50,15 +52,20 @@ export default function Admin() {
         throw error;
       }
       
+      // Calcula o total de todas as apostas
       const total = data?.reduce((acc, bet) => acc + Number(bet.amount), 0) || 0;
+      
+      // Conta o número de apostadores únicos
+      const uniqueBettors = new Set(data?.map(bet => bet.user_id)).size;
+
       return {
         count: data?.length || 0,
-        total: total
+        total: total,
+        uniqueBettors: uniqueBettors
       };
     }
   });
 
-  // Query para buscar recargas pendentes com valor total
   const { data: pendingRechargesData } = useQuery({
     queryKey: ['admin', 'pending-recharges'],
     queryFn: async () => {
@@ -156,6 +163,9 @@ export default function Admin() {
                 R$ {todayBetsData?.total?.toFixed(2) ?? '0.00'}
               </p>
               <p className="text-sm text-gray-500">Valor total apostado</p>
+              <p className="text-md font-medium text-blue-600">
+                {todayBetsData?.uniqueBettors ?? '0'} apostadores únicos
+              </p>
             </div>
           </Card>
 
