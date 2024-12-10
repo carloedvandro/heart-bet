@@ -107,7 +107,7 @@ export default function Admin() {
             <Button 
               variant="outline" 
               size="icon"
-              onClick={() => navigate("/dashboard")}
+              onClick={() => navigate("/admin-login")}
               className="h-9 w-9"
             >
               <ArrowLeft className="h-4 w-4" />

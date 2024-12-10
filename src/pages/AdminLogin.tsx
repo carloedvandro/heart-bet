@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Shield } from "lucide-react";
+import { Shield, ArrowLeft } from "lucide-react";
 
 export default function AdminLogin() {
   const [email, setEmail] = useState("");
@@ -55,10 +55,21 @@ export default function AdminLogin() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
       <div className="w-full max-w-md space-y-4">
-        <div className="text-center">
-          <div className="flex justify-center mb-4">
+        <div className="flex items-center justify-between mb-4">
+          <Button 
+            variant="outline" 
+            size="icon"
+            onClick={() => navigate("/dashboard")}
+            className="h-9 w-9"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div className="flex-1 flex justify-center">
             <Shield className="h-12 w-12 text-primary" />
           </div>
+        </div>
+
+        <div className="text-center">
           <h1 className="text-2xl font-bold text-gray-900">
             Área Administrativa
           </h1>
