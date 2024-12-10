@@ -20,7 +20,7 @@ export interface Bet {
   draw_period: DrawPeriod;
   draw_date: string;
   numbers: string[];
-  drawn_numbers?: string[] | null;
+  drawn_numbers?: number[] | null; // Changed from string[] to number[] to match Supabase schema
   prize_amount?: number | null;
   position: number;
   bet_number?: string | null;

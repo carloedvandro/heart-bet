@@ -90,7 +90,12 @@ export const useBetSubmission = (
       toast.success("Aposta registrada com sucesso!");
       
       clearCombinations();
-      onBetPlaced(data as Bet);
+      // Transform the data to match our Bet type
+      const transformedBet = {
+        ...data,
+        drawn_numbers: data.drawn_numbers as number[] | null,
+      } as Bet;
+      onBetPlaced(transformedBet);
       setIsSubmitting(false);
     } catch (error) {
       console.error("Erro ao registrar aposta:", error);

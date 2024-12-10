@@ -45,8 +45,13 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
 
       if (error) throw error;
       
-      // Explicitly type the data as Bet[] to ensure type safety
-      setBets(data as Bet[]);
+      // Transform the data to match our Bet type
+      const transformedBets = data?.map(bet => ({
+        ...bet,
+        drawn_numbers: bet.drawn_numbers as number[] | null,
+      })) as Bet[];
+      
+      setBets(transformedBets);
       if (count) {
         setTotalItems(count);
         setHasMore(count > (currentPage + 1) * itemsPerPage);
@@ -62,20 +67,6 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
   useEffect(() => {
     fetchBets();
   }, [fetchBets, refreshTrigger]);
-
-  const handleNextPage = () => {
-    if (hasMore) {
-      setCurrentPage(prev => prev + 1);
-    }
-  };
-
-  const handlePreviousPage = () => {
-    if (currentPage > 0) {
-      setCurrentPage(prev => prev - 1);
-    }
-  };
-
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   if (loading) return <p className="text-center p-4">Carregando suas apostas...</p>;
   if (!session?.user?.id) return <p className="text-center p-4">Você precisa estar logado para ver suas apostas.</p>;
