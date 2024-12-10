@@ -31,7 +31,7 @@ export function AdminAccessButton({ setProfile }: AdminAccessButtonProps) {
   return (
     <button 
       onClick={handleAdminAccess}
-      className="text-blue-600 hover:text-blue-800 transition-colors text-sm"
+      className="text-blue-600 hover:text-blue-800 transition-colors font-medium"
     >
       Acessar Área Administrativa
     </button>
