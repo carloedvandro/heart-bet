@@ -28,9 +28,9 @@ export default function Login() {
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
 
-          if (profileError && profileError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+          if (profileError) {
             console.error("Error checking profile:", profileError);
             toast.error("Erro ao verificar perfil");
             return;
@@ -52,8 +52,7 @@ export default function Login() {
                   balance: 0,
                   is_admin: false
                 }
-              ])
-              .single();
+              ]);
 
             if (createError) {
               console.error("Error creating profile:", createError);
