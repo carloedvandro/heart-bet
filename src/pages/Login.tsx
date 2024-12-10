@@ -11,26 +11,21 @@ export default function Login() {
 
   useEffect(() => {
     console.log("Login component mounted");
+    let isSubscribed = true; // Para evitar atualizações após o componente ser desmontado
     
     const checkSession = async () => {
       try {
-        // First check if we have a valid session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
           console.error("Session error:", sessionError);
-          // Clear any stale session data
           await supabase.auth.signOut({ scope: 'local' });
           return;
         }
 
-        if (session) {
+        if (session && isSubscribed) {
           console.log("Valid session found, checking profile for user:", session.user.id);
           
-          // Add a delay to ensure auth record is fully created
-          await new Promise(resolve => setTimeout(resolve, 2000));
-          
-          // Check if profile exists
           const { data: existingProfile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
@@ -43,11 +38,10 @@ export default function Login() {
             return;
           }
 
-          // If profile exists or we're waiting for the trigger to create it, proceed to dashboard
-          console.log("Profile check complete, navigating to dashboard");
-          navigate('/dashboard', { replace: true });
-        } else {
-          console.log("No valid session found");
+          if (existingProfile || session) {
+            console.log("Profile check complete, navigating to dashboard");
+            navigate('/dashboard', { replace: true });
+          }
         }
       } catch (error) {
         console.error("Unexpected error:", error);
@@ -57,22 +51,19 @@ export default function Login() {
 
     checkSession();
 
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session?.user?.id);
       
       if (event === 'SIGNED_OUT') {
         console.log("User signed out, staying on login page");
-        // Clear session data and reload for a fresh state
-        localStorage.clear(); // Clear all localStorage data
-        window.location.reload();
-      } else if (event === 'SIGNED_IN' && session) {
+      } else if (event === 'SIGNED_IN' && session && isSubscribed) {
         console.log("User signed in, redirecting to dashboard");
         navigate('/dashboard', { replace: true });
       }
     });
 
     return () => {
+      isSubscribed = false;
       subscription.unsubscribe();
     };
   }, [navigate]);
