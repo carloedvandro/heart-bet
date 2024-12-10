@@ -11,28 +11,31 @@ export function useSignIn() {
         password,
       });
 
+      console.log("Resposta do Supabase:", { data, error });
+
       if (error) {
         console.error("Erro detalhado no login:", error);
         
-        // Tratamento específico para credenciais inválidas
         if (error.message.includes("Invalid login credentials")) {
           toast.error("Email ou senha incorretos. Por favor, verifique suas credenciais.");
           return false;
         }
         
-        // Tratamento para email não confirmado
         if (error.message.includes("Email not confirmed")) {
           toast.error("Por favor, confirme seu email antes de fazer login");
           return false;
         }
         
-        // Erro genérico de autenticação
         toast.error("Erro ao tentar fazer login. Por favor, tente novamente.");
         return false;
       }
 
       if (data?.session) {
         console.log("Login bem sucedido para:", data.session.user.email);
+        
+        // Aguardar um momento para garantir que a sessão seja estabelecida
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         toast.success("Login realizado com sucesso!");
         return true;
       }

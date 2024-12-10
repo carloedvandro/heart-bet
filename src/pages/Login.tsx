@@ -38,7 +38,7 @@ export default function Login() {
 
         if (profile) {
           console.log("Profile found, navigating to dashboard");
-          navigate('/dashboard', { replace: true });
+          navigate('/dashboard');
         }
       } catch (error) {
         console.error("Unexpected error:", error);
@@ -50,11 +50,13 @@ export default function Login() {
     checkSession();
 
     // Listener para mudanças no estado de autenticação
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session?.user?.id);
       
       if (event === 'SIGNED_IN' && session && isSubscribed) {
-        navigate('/dashboard', { replace: true });
+        // Aguardar um momento antes de redirecionar
+        await new Promise(resolve => setTimeout(resolve, 500));
+        navigate('/dashboard');
       }
     });
 

@@ -11,38 +11,39 @@ export function useAuthRedirect() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
-        // Se não houver sessão e não estiver na página de login, redireciona para login
         if (!session && location.pathname !== '/login') {
           console.log("No session found, redirecting to login");
-          navigate('/login', { replace: true });
+          navigate('/login');
           return;
         }
 
-        // Se houver sessão e estiver na página de login ou index, redireciona para dashboard
         if (session && (location.pathname === '/login' || location.pathname === '/')) {
           console.log("Session found on login/index page, redirecting to dashboard");
-          navigate('/dashboard', { replace: true });
+          navigate('/dashboard');
           return;
         }
       } catch (error) {
         console.error("Error checking session:", error);
         if (location.pathname !== '/login') {
-          navigate('/login', { replace: true });
+          navigate('/login');
         }
       }
     };
 
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
-      console.log("Auth state changed:", event);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session?.user?.id);
       
       if (event === 'SIGNED_OUT') {
         console.log("User signed out, redirecting to login");
-        navigate('/login', { replace: true });
-      } else if (event === 'SIGNED_IN') {
+        navigate('/login');
+      } else if (event === 'SIGNED_IN' && session) {
         console.log("User signed in, redirecting to dashboard");
-        navigate('/dashboard', { replace: true });
+        // Aguardar um momento antes de redirecionar
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 500);
       }
     });
 
