@@ -2,19 +2,16 @@ import { useEffect, useState } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuthRedirect } from "@/hooks/use-auth-redirect";
-import { Card } from "@/components/ui/card";
-import { ProfileActions } from "@/components/dashboard/ProfileActions";
-import { BetsTable } from "@/components/dashboard/BetsTable";
-import BettingForm from "@/components/betting/BettingForm";
-import { RechargeDialog } from "@/components/dashboard/RechargeDialog";
-import { BalanceDisplay } from "@/components/dashboard/BalanceDisplay";
-import { AudioControl } from "@/components/dashboard/AudioControl";
+import { Header } from "@/components/dashboard/Header";
+import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { Profile } from "@/integrations/supabase/custom-types";
+import { useNavigate } from "react-router-dom";
 
 export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const session = useSession();
+  const navigate = useNavigate();
 
   useAuthRedirect();
 
@@ -43,43 +40,30 @@ export default function Dashboard() {
     setRefreshTrigger(prev => prev + 1);
   };
 
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate("/login");
+    } catch (error) {
+      console.error("Error logging out:", error);
+    }
+  };
+
   if (!session) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-pink-50 p-4">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="relative z-50 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg mb-6">
-          <div className="flex justify-between items-center flex-wrap gap-4">
-            <div className="flex items-center gap-4 flex-wrap">
-              <h1 className="text-3xl font-bold text-gray-800">Corações Premiados</h1>
-              <BalanceDisplay profile={profile} />
-            </div>
-            <div className="flex items-center gap-4">
-              <AudioControl />
-              <RechargeDialog />
-              <ProfileActions 
-                isAdmin={profile?.is_admin} 
-                setProfile={setProfile}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <Card className="bg-white/90 backdrop-blur">
-            <div className="p-6">
-              <h2 className="text-2xl font-semibold mb-4">Nova Aposta</h2>
-              <BettingForm onBetPlaced={handleBetPlaced} />
-            </div>
-          </Card>
-
-          <Card className="bg-white/90 backdrop-blur">
-            <div className="p-6">
-              <h2 className="text-2xl font-semibold mb-4">Suas Apostas</h2>
-              <BetsTable refreshTrigger={refreshTrigger} />
-            </div>
-          </Card>
-        </div>
+        <Header 
+          profile={profile} 
+          onLogout={handleLogout}
+        />
+        <DashboardContent 
+          profile={profile}
+          refreshTrigger={refreshTrigger}
+          onBetPlaced={handleBetPlaced}
+        />
       </div>
     </div>
   );

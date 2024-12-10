@@ -10,7 +10,7 @@ export function LogoutButton({ onLogout }: LogoutButtonProps) {
     <Button
       variant="outline"
       onClick={onLogout}
-      className="w-full gap-2"
+      className="flex items-center gap-2 whitespace-nowrap"
     >
       <LogOut className="h-4 w-4" />
       Sair

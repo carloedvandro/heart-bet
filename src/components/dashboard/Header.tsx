@@ -3,6 +3,7 @@ import { BalanceDisplay } from "./BalanceDisplay";
 import { RechargeDialog } from "./RechargeDialog";
 import { AudioControl } from "./AudioControl";
 import { LogoutButton } from "./LogoutButton";
+import { ProfileActions } from "./ProfileActions";
 
 interface HeaderProps {
   profile: Profile | null;
@@ -17,9 +18,13 @@ export function Header({ profile, onLogout }: HeaderProps) {
           <h1 className="text-3xl font-bold text-gray-800">Corações Premiados</h1>
           <BalanceDisplay profile={profile} />
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <AudioControl />
           <RechargeDialog />
+          <ProfileActions 
+            isAdmin={profile?.is_admin ?? false} 
+            setProfile={setProfile}
+          />
           <LogoutButton onLogout={onLogout} />
         </div>
       </div>
