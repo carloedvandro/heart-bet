@@ -61,10 +61,6 @@ export default function Login() {
           } else {
             console.log("Existing profile found:", existingProfile);
           }
-
-          // Navigate to dashboard after ensuring profile exists
-          console.log("Navigating to dashboard");
-          navigate("/dashboard", { replace: true });
         }
       } catch (error) {
         console.error("Unexpected error:", error);
