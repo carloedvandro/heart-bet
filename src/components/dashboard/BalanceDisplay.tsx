@@ -1,4 +1,5 @@
 import { Profile } from "@/integrations/supabase/custom-types";
+import { Card } from "@/components/ui/card";
 
 interface BalanceDisplayProps {
   profile: Profile | null;
@@ -11,10 +12,10 @@ export function BalanceDisplay({ profile }: BalanceDisplayProps) {
   }).format(profile?.balance || 0);
 
   return (
-    <div className="bg-green-50 px-4 py-2 rounded-lg">
-      <span className="text-green-800 font-medium">
+    <Card className="bg-green-50 border-green-100 px-6 py-3">
+      <span className="text-green-800 font-medium text-lg">
         Saldo: {formattedBalance}
       </span>
-    </div>
+    </Card>
   );
 }
