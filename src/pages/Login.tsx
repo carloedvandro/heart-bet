@@ -64,7 +64,7 @@ export default function Login() {
 
           // Navigate to dashboard after ensuring profile exists
           console.log("Navigating to dashboard");
-          navigate("/dashboard");
+          navigate("/dashboard", { replace: true });
         }
       } catch (error) {
         console.error("Unexpected error:", error);
@@ -72,21 +72,7 @@ export default function Login() {
       }
     };
 
-    // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session);
-      if (event === 'SIGNED_IN' && session) {
-        checkSession();
-      }
-    });
-
-    // Check session on component mount
     checkSession();
-
-    // Cleanup subscription
-    return () => {
-      subscription.unsubscribe();
-    };
   }, [navigate]);
 
   return (

@@ -11,7 +11,7 @@ export function useAuthRedirect() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         
-        if (!session) {
+        if (!session && location.pathname !== '/login') {
           console.log("No session found, redirecting to login");
           navigate('/login');
           return;
@@ -24,14 +24,16 @@ export function useAuthRedirect() {
         }
       } catch (error) {
         console.error("Error checking session:", error);
-        navigate('/login');
+        if (location.pathname !== '/login') {
+          navigate('/login');
+        }
       }
     };
 
     checkUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session);
+      console.log("Auth state changed:", event);
       
       if (event === 'SIGNED_OUT') {
         console.log("User signed out, redirecting to login");
