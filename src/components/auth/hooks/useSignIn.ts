@@ -3,7 +3,7 @@ import { toast } from "sonner";
 
 export function useSignIn() {
   const handleSignIn = async (email: string, password: string) => {
-    console.log("Iniciando login para:", email);
+    console.log("Iniciando tentativa de login para:", email);
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -11,10 +11,8 @@ export function useSignIn() {
         password,
       });
 
-      console.log("Resposta do Supabase:", { data, error });
-
       if (error) {
-        console.error("Erro detalhado no login:", error);
+        console.error("Erro no login:", error);
         
         if (error.message.includes("Invalid login credentials")) {
           toast.error("Email ou senha incorretos");
@@ -31,7 +29,7 @@ export function useSignIn() {
       }
 
       if (data?.session) {
-        console.log("Login bem sucedido para:", data.session.user.email);
+        console.log("Login bem sucedido para:", email);
         toast.success("Login realizado com sucesso!");
         return true;
       }

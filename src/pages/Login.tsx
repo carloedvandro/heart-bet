@@ -14,31 +14,25 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingSession, setIsCheckingSession] = useState(true);
 
-  // Verificar sessão existente
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        console.log("Sessão ativa encontrada, redirecionando para dashboard");
-        navigate("/dashboard", { replace: true });
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          console.log("Sessão ativa encontrada, redirecionando para dashboard");
+          navigate("/dashboard", { replace: true });
+        }
+      } catch (error) {
+        console.error("Erro ao verificar sessão:", error);
+        toast.error("Erro ao verificar sessão");
+      } finally {
+        setIsCheckingSession(false);
       }
     };
 
     checkSession();
-  }, [navigate]);
-
-  // Monitorar mudanças no estado de autenticação
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Mudança no estado de autenticação:", event, session?.user?.id);
-      
-      if (event === "SIGNED_IN" && session) {
-        navigate("/dashboard", { replace: true });
-      }
-    });
-
-    return () => subscription.unsubscribe();
   }, [navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -82,6 +76,14 @@ export default function Login() {
     }
   };
 
+  if (isCheckingSession) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500" />
+      </div>
+    );
+  }
+
   return (
     <div 
       className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center relative overflow-hidden"
@@ -117,6 +119,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="pl-10"
+                  disabled={isLoading}
                 />
                 <User className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
               </div>
@@ -132,12 +135,14 @@ export default function Login() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="pl-10 pr-10"
+                  disabled={isLoading}
                 />
                 <Lock className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+                  disabled={isLoading}
                 >
                   {showPassword ? (
                     <EyeOff className="h-5 w-5" />
@@ -174,6 +179,7 @@ export default function Login() {
                 type="button"
                 className="text-pink-500 hover:underline"
                 onClick={() => toast.info("Funcionalidade em desenvolvimento")}
+                disabled={isLoading}
               >
                 Cadastre-se
               </button>
@@ -183,6 +189,7 @@ export default function Login() {
                 type="button"
                 className="text-pink-500 hover:underline"
                 onClick={() => toast.info("Funcionalidade em desenvolvimento")}
+                disabled={isLoading}
               >
                 Esqueceu sua senha?
               </button>
