@@ -18,10 +18,10 @@ export function useAuthRedirect() {
 
         if (!session && location.pathname !== '/login') {
           console.log("Redirecionando para login - sem sessão");
-          navigate('/login');
+          navigate('/login', { replace: true });
         } else if (session && location.pathname === '/login') {
           console.log("Redirecionando para dashboard - sessão encontrada");
-          navigate('/dashboard');
+          navigate('/dashboard', { replace: true });
         }
       } catch (error) {
         console.error("Erro ao verificar sessão:", error);
@@ -40,9 +40,9 @@ export function useAuthRedirect() {
       console.log("Evento de autenticação:", event, "Sessão:", !!session);
       
       if (event === 'SIGNED_IN' && session) {
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       } else if (event === 'SIGNED_OUT') {
-        navigate('/login');
+        navigate('/login', { replace: true });
       }
     });
 

@@ -17,13 +17,9 @@ export default function Dashboard() {
   useAuthRedirect();
 
   useEffect(() => {
-    if (!session?.user?.id) {
-      console.log("No session found in Dashboard, redirecting to login");
-      navigate('/login');
-      return;
-    }
-
     const fetchProfile = async () => {
+      if (!session?.user?.id) return;
+
       try {
         const { data, error } = await supabase
           .from("profiles")
@@ -45,7 +41,7 @@ export default function Dashboard() {
     };
 
     fetchProfile();
-  }, [session, navigate]);
+  }, [session]);
 
   const handleBetPlaced = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -55,7 +51,7 @@ export default function Dashboard() {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      navigate("/login");
+      navigate("/login", { replace: true });
     } catch (error) {
       console.error("Error logging out:", error);
       toast.error("Erro ao fazer logout");
@@ -63,7 +59,11 @@ export default function Dashboard() {
   };
 
   if (!session) {
-    return null;
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-pink-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500" />
+      </div>
+    );
   }
 
   return (
