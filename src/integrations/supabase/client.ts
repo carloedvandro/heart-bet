@@ -21,17 +21,14 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         body: init?.body
       });
 
-      const headers = new Headers({
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Prefer': 'return=minimal'
-      });
-
-      if (init?.headers) {
-        const customHeaders = new Headers(init.headers);
-        customHeaders.forEach((value, key) => headers.set(key, value));
+      const headers = new Headers(init?.headers || {});
+      
+      // Ensure we have the required headers
+      if (!headers.has('apikey')) {
+        headers.set('apikey', supabaseKey);
+      }
+      if (!headers.has('Authorization')) {
+        headers.set('Authorization', `Bearer ${supabaseKey}`);
       }
 
       const response = await fetch(url, {
@@ -39,60 +36,53 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         headers
       });
 
+      // Clone response immediately
+      const clonedResponse = response.clone();
+
       console.log('Fetch Response:', {
         status: response.status,
         statusText: response.statusText,
         headers: Object.fromEntries(response.headers.entries())
       });
 
-      // Don't retry on authentication errors
+      // Handle authentication errors
       if (response.status === 400 || response.status === 401) {
-        const errorText = await response.text();
-        console.error('Authentication error:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText
-        });
-        throw new Error(errorText);
+        const errorData = await clonedResponse.json().catch(() => null);
+        console.error('Auth Error:', errorData);
+        
+        const error = new Error(errorData?.message || 'Authentication error');
+        (error as any).status = response.status;
+        (error as any).data = errorData;
+        throw error;
       }
 
-      // Don't retry on rate limit errors
+      // Handle rate limiting
       if (response.status === 429) {
         const error = new Error('Rate limit exceeded');
         (error as any).status = 429;
         throw error;
       }
 
+      // Handle other errors
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Response not OK:', {
+        const errorText = await clonedResponse.text();
+        console.error('Response Error:', {
           status: response.status,
           statusText: response.statusText,
-          url: response.url,
-          headers: Object.fromEntries(response.headers.entries()),
           body: errorText
         });
         
-        const error = new Error(`HTTP error! status: ${response.status}`);
+        const error = new Error(errorText);
         (error as any).status = response.status;
-        (error as any).body = errorText;
         throw error;
-      }
-
-      // Clone the response before using it
-      const clonedResponse = response.clone();
-      
-      // Log the response body for debugging (only in development)
-      if (process.env.NODE_ENV === 'development') {
-        const responseBody = await clonedResponse.text();
-        console.log('Response body:', responseBody);
       }
 
       return response;
     } catch (error) {
       attempt++;
-      console.error(`Fetch attempt ${attempt} failed:`, error);
+      console.error(`Attempt ${attempt} failed:`, error);
       
+      // Don't retry auth errors or rate limits
       if ((error as any).status === 400 || 
           (error as any).status === 401 || 
           (error as any).status === 429) {
@@ -103,6 +93,7 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         throw error;
       }
       
+      // Exponential backoff
       await new Promise(resolve => 
         setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt - 1), 5000))
       );
@@ -124,7 +115,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   }
 });
 
-// Only log auth state changes
+// Log auth state changes
 supabase.auth.onAuthStateChange((event) => {
   console.log('Auth state changed:', event);
 });
