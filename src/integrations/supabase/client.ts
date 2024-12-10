@@ -36,9 +36,6 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         headers
       });
 
-      // Clone response immediately
-      const clonedResponse = response.clone();
-
       console.log('Fetch Response:', {
         status: response.status,
         statusText: response.statusText,
@@ -47,7 +44,7 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
       // Handle authentication errors
       if (response.status === 400 || response.status === 401) {
-        const errorData = await clonedResponse.json().catch(() => null);
+        const errorData = await response.clone().json().catch(() => null);
         console.error('Auth Error:', errorData);
         
         const error = new Error(errorData?.message || 'Authentication error');
@@ -65,7 +62,7 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
       // Handle other errors
       if (!response.ok) {
-        const errorText = await clonedResponse.text();
+        const errorText = await response.clone().text();
         console.error('Response Error:', {
           status: response.status,
           statusText: response.statusText,
