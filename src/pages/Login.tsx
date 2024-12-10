@@ -28,17 +28,20 @@ export default function Login() {
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
-            .maybeSingle();
+            .single();
 
-          if (profileError) {
+          if (profileError && profileError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
             console.error("Error checking profile:", profileError);
             toast.error("Erro ao verificar perfil");
             return;
           }
 
-          // If no profile exists, create one
+          // If no profile exists, wait a moment and try to create one
           if (!existingProfile) {
-            console.log("No profile found, creating new profile for user:", session.user.id);
+            console.log("No profile found, waiting before creating profile for user:", session.user.id);
+            
+            // Wait for 1 second to ensure auth record is fully created
+            await new Promise(resolve => setTimeout(resolve, 1000));
             
             const { error: createError } = await supabase
               .from('profiles')
@@ -49,7 +52,8 @@ export default function Login() {
                   balance: 0,
                   is_admin: false
                 }
-              ]);
+              ])
+              .single();
 
             if (createError) {
               console.error("Error creating profile:", createError);
@@ -61,6 +65,9 @@ export default function Login() {
           } else {
             console.log("Existing profile found:", existingProfile);
           }
+
+          // Navigate to dashboard after successful profile check/creation
+          navigate('/dashboard', { replace: true });
         }
       } catch (error) {
         console.error("Unexpected error:", error);
