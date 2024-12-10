@@ -46,7 +46,7 @@ export function useSignUp() {
         return false;
       }
 
-      // Explicitly show success message with longer duration
+      // Mostrar mensagem de sucesso com duração mais longa e estilo personalizado
       toast.success(
         "Conta criada com sucesso! Por favor, verifique seu email para confirmar sua conta.", 
         {
@@ -60,6 +60,7 @@ export function useSignUp() {
         }
       );
       
+      console.log("Signup successful, user created:", data.user.id);
       return true;
     } catch (error) {
       console.error("Unexpected error during signup:", error);
