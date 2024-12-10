@@ -17,57 +17,23 @@ export function useAuthRedirect() {
         }
         
         if (session) {
-          console.log("User logged in, checking admin status");
-          
-          // Check if user is admin
-          const { data: profile, error: profileError } = await supabase
-            .from('profiles')
-            .select('is_admin')
-            .eq('id', session.user.id)
-            .single();
-            
-          if (profileError) {
-            console.error("Error checking admin status:", profileError);
-            return;
-          }
-
-          if (profile?.is_admin) {
-            console.log("Admin user detected, redirecting to admin dashboard");
-            navigate("/admin");
-          } else {
-            console.log("Regular user detected, redirecting to user dashboard");
-            navigate("/dashboard");
-          }
+          console.log("User already logged in, redirecting to dashboard");
+          navigate("/dashboard");
         }
       } catch (error) {
         console.error("Error checking session:", error);
       }
     };
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth event:", event, "Session:", session);
       
       if (event === 'SIGNED_IN') {
         console.log("User signed in successfully");
-        
-        // Check if user is admin
-        if (session) {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('is_admin')
-            .eq('id', session.user.id)
-            .single();
-            
-          if (profile?.is_admin) {
-            navigate("/admin");
-          } else {
-            navigate("/dashboard");
-          }
-        }
+        navigate("/dashboard");
       } else if (event === 'SIGNED_OUT') {
         console.log("User signed out");
         toast.info("Você foi desconectado");
-        navigate("/login");
       } else if (event === 'USER_UPDATED') {
         console.log("User updated:", session?.user);
       } else if (event === 'PASSWORD_RECOVERY') {
