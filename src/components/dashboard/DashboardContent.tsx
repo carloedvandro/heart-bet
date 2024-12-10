@@ -28,9 +28,11 @@ export const DashboardContent = ({
         </CardContent>
       </Card>
 
-      <div className="flex justify-center py-2">
-        <AdminAccessButton setProfile={setProfile} />
-      </div>
+      {profile?.is_admin && (
+        <div className="flex justify-center py-2">
+          <AdminAccessButton setProfile={setProfile} />
+        </div>
+      )}
 
       <Card className="bg-white/90 backdrop-blur">
         <CardHeader>
