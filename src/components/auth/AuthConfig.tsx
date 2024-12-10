@@ -98,20 +98,6 @@ export function AuthConfig() {
         providers={[]}
         magicLink={false}
         redirectTo={window.location.origin + "/dashboard"}
-        onError={(error) => {
-          console.error("Erro de autenticação:", error);
-
-          if (error.message.includes("User already registered")) {
-            toast.error("Este email já está registrado. Faça login.");
-            setView("sign_in");
-          } else if (error.message.includes("Invalid login credentials")) {
-            toast.error("Email ou senha incorretos");
-          } else if (error.message.includes("Email not confirmed")) {
-            toast.error("Por favor, confirme seu email antes de fazer login");
-          } else {
-            toast.error("Ocorreu um erro. Por favor, tente novamente.");
-          }
-        }}
       />
 
       <div className="text-center mt-4">
