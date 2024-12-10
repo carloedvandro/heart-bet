@@ -4,8 +4,6 @@ export const getBetTypeName = (type: string): string => {
     dozen: "Dezena",
     hundred: "Centena",
     thousand: "Milhar",
-    group_double: "Duque de Grupo",
-    group_triple: "Terno de Grupo",
   };
   return names[type] || type;
 };
