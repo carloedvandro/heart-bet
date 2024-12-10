@@ -78,6 +78,15 @@ export default {
           "0%": { opacity: "0", transform: "translateY(10px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        "fade-in-delayed": {
+          "0%": { opacity: "0", transform: "translateY(10px)" },
+          "50%": { opacity: "0", transform: "translateY(10px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "fade-in-up": {
+          "0%": { opacity: "0", transform: "translateY(20px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
         "deal-card": {
           "0%": { 
             transform: "translateY(-100px) rotate(-20deg)",
@@ -87,13 +96,33 @@ export default {
             transform: "translateY(0) rotate(0deg)",
             opacity: "1"
           }
-        }
+        },
+        gradient: {
+          "0%, 100%": {
+            backgroundPosition: "0% 50%",
+          },
+          "50%": {
+            backgroundPosition: "100% 50%",
+          },
+        },
+        float: {
+          "0%, 100%": {
+            transform: "translateY(0) translateX(0)",
+          },
+          "50%": {
+            transform: "translateY(-20px) translateX(10px)",
+          },
+        },
       },
       animation: {
         "heart-beat": "heart-beat 1s ease-in-out infinite",
         "heart-float": "heart-float 3s ease-in-out infinite",
         "fade-in": "fade-in 0.5s ease-out",
-        "deal-card": "deal-card 0.5s ease-out"
+        "fade-in-delayed": "fade-in-delayed 1s ease-out forwards",
+        "fade-in-up": "fade-in-up 0.8s ease-out",
+        "deal-card": "deal-card 0.5s ease-out",
+        "gradient-x": "gradient 15s ease infinite",
+        "float": "float 6s ease-in-out infinite",
       },
     },
   },

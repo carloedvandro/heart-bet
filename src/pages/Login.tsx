@@ -89,22 +89,47 @@ export default function Login() {
 
   return (
     <div 
-      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center"
+      className="min-h-screen flex items-center justify-center p-4 bg-cover bg-center relative overflow-hidden"
       style={{
         backgroundImage: 'url("/lovable-uploads/5a0e0336-aecf-49bc-961c-013d9aee3443.png")',
       }}
     >
+      {/* Animated overlay with gradient */}
+      <div 
+        className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-pink-500/30 animate-gradient-x"
+        style={{
+          animation: 'gradient 15s ease infinite',
+        }}
+      />
+      
+      {/* Dark overlay with blur */}
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
+      
+      {/* Floating particles effect */}
+      <div className="absolute inset-0">
+        {[...Array(6)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-4 h-4 bg-white/10 rounded-full"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animation: `float-${i} ${8 + i * 2}s ease-in-out infinite`,
+            }}
+          />
+        ))}
+      </div>
+
       <div className="relative z-10 w-full max-w-md space-y-4">
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-white drop-shadow-lg">
+          <h1 className="text-4xl font-bold text-white drop-shadow-lg animate-fade-in">
             Loto Corações Premiados
           </h1>
-          <p className="text-white/90 mt-2 text-lg drop-shadow">
+          <p className="text-white/90 mt-2 text-lg drop-shadow animate-fade-in-delayed">
             Aposte com o coração
           </p>
         </div>
-        <Card className="bg-white/95">
+        <Card className="bg-white/95 animate-fade-in-up">
           <CardContent className="pt-6">
             <AuthConfig />
           </CardContent>
