@@ -2,6 +2,7 @@ import { useState } from "react";
 import { AuthForm } from "./AuthForm";
 import { AuthLinks } from "./AuthLinks";
 import { useAuthHandlers } from "./hooks/useAuthHandlers";
+import { toast } from "@/hooks/use-toast"; // Add this import
 
 export function AuthConfig() {
   const [email, setEmail] = useState("");
