@@ -51,6 +51,12 @@ export function AuthConfig() {
 
       if (error) {
         console.error("Signup error:", error);
+        
+        if (error.status === 429) {
+          toast.error("Muitas tentativas em pouco tempo. Por favor, aguarde alguns minutos antes de tentar novamente.");
+          return;
+        }
+        
         toast.error("Erro ao tentar criar conta. Por favor, tente novamente.");
       } else {
         toast.success("Conta criada com sucesso! Verifique seu email para confirmar.");
@@ -58,6 +64,13 @@ export function AuthConfig() {
       }
     } catch (error) {
       console.error("Erro no cadastro:", error);
+      
+      // @ts-ignore - Adicionando verificação específica para rate limit
+      if (error?.status === 429) {
+        toast.error("Muitas tentativas em pouco tempo. Por favor, aguarde alguns minutos antes de tentar novamente.");
+        return;
+      }
+      
       toast.error("Ocorreu um erro ao tentar criar conta. Tente novamente.");
     } finally {
       setIsLoading(false);
@@ -66,10 +79,12 @@ export function AuthConfig() {
 
   const handleResetPassword = async () => {
     const currentTime = Date.now();
+    const COOLDOWN_PERIOD = 15 * 60 * 1000; // 15 minutos em milissegundos
     
-    // Basic rate limiting
-    if (resetAttempts >= 3 && currentTime - lastResetAttempt < 15 * 60 * 1000) {
-      toast.error("Muitas tentativas. Tente novamente em 15 minutos.");
+    // Verificar o período de espera
+    if (resetAttempts >= 3 && currentTime - lastResetAttempt < COOLDOWN_PERIOD) {
+      const minutesLeft = Math.ceil((COOLDOWN_PERIOD - (currentTime - lastResetAttempt)) / 60000);
+      toast.error(`Muitas tentativas. Tente novamente em ${minutesLeft} minutos.`);
       return;
     }
 
@@ -81,31 +96,34 @@ export function AuthConfig() {
         return;
       }
 
-      console.log(`Attempting password reset for email: ${email}`);
+      console.log(`Tentando resetar senha para o email: ${email}`);
 
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + '/reset-password'
       });
 
       if (error) {
-        console.error("Detailed Reset Password Error:", error);
+        console.error("Erro detalhado no reset de senha:", error);
         
-        // Update reset attempts
+        // Atualizar contagem de tentativas
         setResetAttempts(prev => prev + 1);
         setLastResetAttempt(currentTime);
 
+        if (error.status === 429) {
+          const minutesLeft = Math.ceil(COOLDOWN_PERIOD / 60000);
+          toast.error(`Muitas tentativas. Por favor, aguarde ${minutesLeft} minutos antes de tentar novamente.`);
+          return;
+        }
+
         switch (error.message) {
-          case "Error sending recovery email":
-            toast.error("Não foi possível enviar o email de recuperação. Tente novamente mais tarde.");
+          case "For security purposes, you can only request this once every 60 seconds":
+            toast.error("Por segurança, você só pode solicitar isso uma vez a cada 60 segundos.");
             break;
           case "User not found":
             toast.error("Não encontramos uma conta com este email.");
             break;
-          case "email rate limit exceeded":
-            toast.error("Limite de envio de emails excedido. Tente novamente mais tarde.");
-            break;
           default:
-            toast.error(`Erro ao resetar senha: ${error.message}`);
+            toast.error("Erro ao tentar resetar senha. Por favor, tente novamente mais tarde.");
         }
       } else {
         toast.success("Se existe uma conta com este email, você receberá instruções para resetar sua senha.");
@@ -113,8 +131,15 @@ export function AuthConfig() {
         setIsResetMode(false);
       }
     } catch (error) {
-      console.error("Unexpected error in password reset:", error);
-      toast.error("Ocorreu um erro inesperado. Tente novamente.");
+      console.error("Erro inesperado no reset de senha:", error);
+      
+      // @ts-ignore - Adicionando verificação específica para rate limit
+      if (error?.status === 429) {
+        toast.error("Muitas tentativas em pouco tempo. Por favor, aguarde alguns minutos antes de tentar novamente.");
+        return;
+      }
+      
+      toast.error("Ocorreu um erro inesperado. Tente novamente mais tarde.");
     } finally {
       setIsLoading(false);
     }
