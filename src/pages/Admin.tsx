@@ -6,6 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
+import { Card } from "@/components/ui/card";
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -33,14 +34,15 @@ export default function Admin() {
     checkAdminStatus();
   }, [session, navigate]);
 
-  const { data: todayBets } = useQuery({
+  // Query para buscar apostas de hoje com valor total
+  const { data: todayBetsData } = useQuery({
     queryKey: ['admin', 'today-bets'],
     queryFn: async () => {
       console.log("Buscando apostas de hoje...");
       const today = new Date().toISOString().split('T')[0];
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from('bets')
-        .select('*', { count: 'exact', head: true })
+        .select('amount')
         .eq('draw_date', today);
 
       if (error) {
@@ -48,39 +50,64 @@ export default function Admin() {
         throw error;
       }
       
-      console.log("Total de apostas hoje:", count);
-      return count || 0;
+      const total = data?.reduce((acc, bet) => acc + Number(bet.amount), 0) || 0;
+      return {
+        count: data?.length || 0,
+        total: total
+      };
     }
   });
 
-  const { data: pendingRecharges } = useQuery({
+  // Query para buscar recargas pendentes com valor total
+  const { data: pendingRechargesData } = useQuery({
     queryKey: ['admin', 'pending-recharges'],
     queryFn: async () => {
-      const { count, error } = await supabase
+      const { data, error } = await supabase
         .from('recharges')
-        .select('*', { count: 'exact', head: true })
+        .select('amount')
         .eq('status', 'pending');
 
       if (error) throw error;
-      return count || 0;
+
+      const total = data?.reduce((acc, recharge) => acc + Number(recharge.amount), 0) || 0;
+      return {
+        count: data?.length || 0,
+        total: total
+      };
     }
   });
 
-  const { data: totalUsers } = useQuery({
-    queryKey: ['admin', 'total-users'],
+  // Query para buscar usuários ativos (com apostas nos últimos 7 dias)
+  const { data: usersData } = useQuery({
+    queryKey: ['admin', 'users-stats'],
     queryFn: async () => {
-      console.log("Buscando total de usuários...");
-      const { count, error } = await supabase
+      console.log("Buscando estatísticas de usuários...");
+      
+      // Buscar total de usuários
+      const { count: totalUsers, error: countError } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
-      if (error) {
-        console.error("Erro ao buscar total de usuários:", error);
-        throw error;
-      }
+      if (countError) throw countError;
 
-      console.log("Total de usuários encontrados:", count);
-      return count || 0;
+      // Buscar usuários ativos (com apostas nos últimos 7 dias)
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      const { data: activeBettors, error: activeError } = await supabase
+        .from('bets')
+        .select('user_id')
+        .gte('created_at', sevenDaysAgo.toISOString())
+        .order('created_at', { ascending: false });
+
+      if (activeError) throw activeError;
+
+      // Contar usuários únicos ativos
+      const uniqueActiveBettors = new Set(activeBettors?.map(bet => bet.user_id));
+
+      return {
+        total: totalUsers || 0,
+        active: uniqueActiveBettors.size
+      };
     }
   });
 
@@ -120,20 +147,41 @@ export default function Admin() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          <div className="p-6 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-2">Apostas Hoje</h3>
-            <p className="text-3xl font-bold">{todayBets ?? '...'}</p>
-          </div>
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Apostas Hoje</h3>
+            <div className="space-y-2">
+              <p className="text-3xl font-bold">{todayBetsData?.count ?? '...'}</p>
+              <p className="text-sm text-gray-500">Total de apostas</p>
+              <p className="text-xl font-semibold text-green-600">
+                R$ {todayBetsData?.total?.toFixed(2) ?? '0.00'}
+              </p>
+              <p className="text-sm text-gray-500">Valor total apostado</p>
+            </div>
+          </Card>
 
-          <div className="p-6 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-2">Recargas Pendentes</h3>
-            <p className="text-3xl font-bold">{pendingRecharges ?? '...'}</p>
-          </div>
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Recargas Pendentes</h3>
+            <div className="space-y-2">
+              <p className="text-3xl font-bold">{pendingRechargesData?.count ?? '...'}</p>
+              <p className="text-sm text-gray-500">Aguardando aprovação</p>
+              <p className="text-xl font-semibold text-blue-600">
+                R$ {pendingRechargesData?.total?.toFixed(2) ?? '0.00'}
+              </p>
+              <p className="text-sm text-gray-500">Valor total pendente</p>
+            </div>
+          </Card>
 
-          <div className="p-6 bg-white rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-2">Total de Usuários</h3>
-            <p className="text-3xl font-bold">{totalUsers ?? '...'}</p>
-          </div>
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4">Usuários</h3>
+            <div className="space-y-2">
+              <p className="text-3xl font-bold">{usersData?.total ?? '...'}</p>
+              <p className="text-sm text-gray-500">Total de usuários</p>
+              <p className="text-xl font-semibold text-purple-600">
+                {usersData?.active ?? '0'}
+              </p>
+              <p className="text-sm text-gray-500">Ativos nos últimos 7 dias</p>
+            </div>
+          </Card>
         </div>
       </div>
     </div>
