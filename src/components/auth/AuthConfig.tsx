@@ -48,7 +48,7 @@ export function AuthConfig() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-md mx-auto space-y-6 p-6 bg-white/95 rounded-lg shadow-xl backdrop-blur-sm">
       <div className="text-center mb-6">
         <h2 className="text-2xl font-semibold text-gray-900">
           {isResetMode 

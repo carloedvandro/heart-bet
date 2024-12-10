@@ -12,16 +12,17 @@ export function AuthLinks({
   onSignUpMode 
 }: AuthLinksProps) {
   return (
-    <div className="text-center mt-4 space-y-2">
+    <div className="text-center space-y-2">
       {!isResetMode && !isSignUpMode && (
         <p className="text-sm">
           Não tem uma conta?{" "}
-          <span
-            className="text-pink-500 cursor-pointer hover:underline"
+          <button
+            type="button"
+            className="text-pink-500 hover:underline focus:outline-none"
             onClick={() => onSignUpMode(true)}
           >
             Cadastre-se
-          </span>
+          </button>
         </p>
       )}
 
@@ -29,32 +30,35 @@ export function AuthLinks({
         {isResetMode ? (
           <>
             Lembrou sua senha?{" "}
-            <span
-              className="text-pink-500 cursor-pointer hover:underline"
+            <button
+              type="button"
+              className="text-pink-500 hover:underline focus:outline-none"
               onClick={() => onResetMode(false)}
             >
               Voltar ao login
-            </span>
+            </button>
           </>
         ) : isSignUpMode ? (
           <>
             Já tem uma conta?{" "}
-            <span
-              className="text-pink-500 cursor-pointer hover:underline"
+            <button
+              type="button"
+              className="text-pink-500 hover:underline focus:outline-none"
               onClick={() => onSignUpMode(false)}
             >
               Fazer login
-            </span>
+            </button>
           </>
         ) : (
           <>
             Esqueceu sua senha?{" "}
-            <span
-              className="text-pink-500 cursor-pointer hover:underline"
+            <button
+              type="button"
+              className="text-pink-500 hover:underline focus:outline-none"
               onClick={() => onResetMode(true)}
             >
               Recuperar senha
-            </span>
+            </button>
           </>
         )}
       </p>

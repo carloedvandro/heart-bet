@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { AuthFormProps } from "./types";
 import { EmailInput } from "./form/EmailInput";
 import { PasswordInput } from "./form/PasswordInput";
