@@ -124,7 +124,7 @@ export default function Dashboard() {
   };
 
   const handleAdminAccess = () => {
-    window.location.href = "https://admin.lotocoracao.com";
+    navigate("/admin");
   };
 
   if (!session) return null;
