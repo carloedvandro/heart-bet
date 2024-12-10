@@ -32,10 +32,6 @@ export function useSignIn() {
 
       if (data?.session) {
         console.log("Login bem sucedido para:", data.session.user.email);
-        
-        // Aguardar um momento para garantir que a sessão seja estabelecida
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
         toast.success("Login realizado com sucesso!");
         return true;
       }
