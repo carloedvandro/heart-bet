@@ -232,7 +232,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_all_bets_today: {
+        Args: {
+          today_date: string
+        }
+        Returns: {
+          id: string
+          user_id: string
+          amount: number
+          created_at: string
+        }[]
+      }
     }
     Enums: {
       bet_type:
