@@ -14,13 +14,13 @@ export const useAdminStatus = () => {
     const checkAdminStatus = async () => {
       try {
         if (!session?.user?.id) {
-          console.log("No session found, setting isAdmin to false");
+          console.log("Nenhuma sessão encontrada, definindo isAdmin como false");
           setIsAdmin(false);
           setIsLoading(false);
           return;
         }
 
-        console.log("Checking admin status for user:", session.user.id);
+        console.log("Verificando status de admin para usuário:", session.user.id);
         
         const { data: profile, error } = await supabase
           .from('profiles')
@@ -29,10 +29,10 @@ export const useAdminStatus = () => {
           .single();
         
         if (error) {
-          console.error('Error fetching admin status:', error);
+          console.error('Erro ao buscar status de admin:', error);
           
           if (retryCount < MAX_RETRIES) {
-            console.log(`Retrying... Attempt ${retryCount + 1} of ${MAX_RETRIES}`);
+            console.log(`Tentando novamente... Tentativa ${retryCount + 1} de ${MAX_RETRIES}`);
             setRetryCount(prev => prev + 1);
             return;
           }
@@ -40,15 +40,15 @@ export const useAdminStatus = () => {
           toast.error('Erro ao verificar status de administrador');
           setIsAdmin(false);
         } else {
-          console.log("Admin status response:", profile);
-          setIsAdmin(!!profile?.is_admin);
-          setRetryCount(0); // Reset retry count on success
+          console.log("Resposta do status de admin:", profile);
+          setIsAdmin(profile?.is_admin === true);
+          setRetryCount(0); // Resetar contador de tentativas em caso de sucesso
         }
       } catch (error) {
-        console.error('Error in checkAdminStatus:', error);
+        console.error('Erro em checkAdminStatus:', error);
         
         if (retryCount < MAX_RETRIES) {
-          console.log(`Retrying... Attempt ${retryCount + 1} of ${MAX_RETRIES}`);
+          console.log(`Tentando novamente... Tentativa ${retryCount + 1} de ${MAX_RETRIES}`);
           setRetryCount(prev => prev + 1);
           return;
         }

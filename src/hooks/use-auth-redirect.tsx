@@ -9,18 +9,18 @@ export function useAuthRedirect() {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        console.log("Checking user session...");
+        console.log("Verificando sessão do usuário...");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
-          console.error("Session error:", sessionError);
+          console.error("Erro na sessão:", sessionError);
           return;
         }
         
         if (session) {
-          console.log("Session found, user ID:", session.user.id);
+          console.log("Sessão encontrada, ID do usuário:", session.user.id);
           
-          // Check if user is admin
+          // Verificar se o usuário é admin
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('is_admin, email')
@@ -28,32 +28,32 @@ export function useAuthRedirect() {
             .single();
             
           if (profileError) {
-            console.error("Error checking admin status:", profileError);
+            console.error("Erro ao verificar status de admin:", profileError);
             return;
           }
 
-          console.log("Profile data:", profile);
+          console.log("Dados do perfil:", profile);
 
-          if (profile?.is_admin) {
-            console.log("Admin user detected, redirecting to admin dashboard");
+          if (profile?.is_admin === true) {
+            console.log("Usuário admin detectado, redirecionando para painel admin");
             navigate("/admin");
           } else {
-            console.log("Regular user detected, redirecting to user dashboard");
+            console.log("Usuário comum detectado, redirecionando para dashboard");
             navigate("/dashboard");
           }
         } else {
-          console.log("No session found");
+          console.log("Nenhuma sessão encontrada");
         }
       } catch (error) {
-        console.error("Error checking session:", error);
+        console.error("Erro ao verificar sessão:", error);
       }
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth event:", event);
+      console.log("Evento de autenticação:", event);
       
       if (event === 'SIGNED_IN') {
-        console.log("User signed in, checking admin status");
+        console.log("Usuário logado, verificando status de admin");
         
         if (session) {
           const { data: profile, error: profileError } = await supabase
@@ -63,28 +63,29 @@ export function useAuthRedirect() {
             .single();
             
           if (profileError) {
-            console.error("Error checking admin status:", profileError);
+            console.error("Erro ao verificar status de admin:", profileError);
             return;
           }
 
-          console.log("Profile data after sign in:", profile);
+          console.log("Dados do perfil após login:", profile);
 
-          if (profile?.is_admin) {
-            console.log("Admin user confirmed, navigating to admin");
+          if (profile?.is_admin === true) {
+            console.log("Usuário admin confirmado, navegando para admin");
             navigate("/admin");
+            toast.success("Bem-vindo ao painel administrativo!");
           } else {
-            console.log("Regular user confirmed, navigating to dashboard");
+            console.log("Usuário comum confirmado, navegando para dashboard");
             navigate("/dashboard");
           }
         }
       } else if (event === 'SIGNED_OUT') {
-        console.log("User signed out");
+        console.log("Usuário deslogado");
         toast.info("Você foi desconectado");
         navigate("/login");
       }
     });
 
-    // Check user status on component mount
+    // Verificar status do usuário ao montar o componente
     checkUser();
 
     return () => {
