@@ -46,9 +46,20 @@ export function useSignUp() {
         return false;
       }
 
-      toast.success("Conta criada com sucesso! Por favor, verifique seu email para confirmar sua conta.", {
-        duration: 6000
-      });
+      // Explicitly show success message with longer duration
+      toast.success(
+        "Conta criada com sucesso! Por favor, verifique seu email para confirmar sua conta.", 
+        {
+          duration: 6000,
+          position: "top-center",
+          style: { 
+            background: "#4CAF50",
+            color: "white",
+            border: "none"
+          }
+        }
+      );
+      
       return true;
     } catch (error) {
       console.error("Unexpected error during signup:", error);
