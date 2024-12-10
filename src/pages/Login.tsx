@@ -140,8 +140,13 @@ export default function Login() {
           </p>
         </div>
         <Card className="bg-white/95 animate-fade-in-up">
-          <CardContent className="pt-6">
+          <CardContent className="pt-6 relative">
             <AuthConfig />
+            <div className="text-center mt-4">
+              <p className="text-xs text-gray-400 opacity-70">
+                created by Lovablebr.dev
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
