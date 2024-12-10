@@ -1,11 +1,10 @@
 import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export function useAuthRedirect() {
   const navigate = useNavigate();
-  const location = useLocation();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -13,108 +12,73 @@ export function useAuthRedirect() {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
-          console.error("Erro na sessão:", sessionError);
+          console.error("Session error:", sessionError);
           return;
         }
-
-        // Se não houver sessão
-        if (!session) {
-          // Se estiver tentando acessar área administrativa
-          if (location.pathname.startsWith('/admin')) {
-            console.log("Sem sessão, redirecionando para login admin");
-            navigate('/admin-login');
-            return;
-          }
+        
+        if (session) {
+          console.log("User logged in, checking admin status");
           
-          // Se estiver tentando acessar área de usuário
-          if (location.pathname !== '/login' && location.pathname !== '/admin-login') {
-            navigate('/login');
-          }
-          return;
-        }
-
-        // Se houver sessão, verificar o tipo de usuário
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profileError) {
-          console.error("Erro ao verificar perfil:", profileError);
-          return;
-        }
-
-        // Definir rotas administrativas válidas
-        const validAdminRoutes = ['/admin', '/admin/bets'];
-
-        // Lógica para usuários administrativos
-        if (profile?.is_admin) {
-          console.log("Usuário admin detectado, verificando rota:", location.pathname);
-          
-          // Se admin estiver em páginas de login, redirecionar para admin
-          if (location.pathname === '/admin-login' || location.pathname === '/login') {
-            navigate('/admin');
-            return;
-          }
-          
-          // Se admin estiver em páginas de usuário comum
-          if (location.pathname === '/dashboard') {
-            console.log("Admin tentando acessar dashboard, redirecionando para /admin");
-            toast.error("Administradores devem usar o painel administrativo");
-            navigate('/admin');
+          // Check if user is admin
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (profileError) {
+            console.error("Error checking admin status:", profileError);
             return;
           }
 
-          // Se admin estiver em uma rota administrativa válida, permitir
-          if (validAdminRoutes.includes(location.pathname)) {
-            console.log("Admin acessando rota administrativa válida:", location.pathname);
-            return;
-          }
-
-          // Se admin estiver em qualquer outra rota, redirecionar para /admin
-          if (!validAdminRoutes.includes(location.pathname)) {
-            console.log("Admin em rota inválida, redirecionando para /admin");
-            navigate('/admin');
-          }
-          return;
-        }
-
-        // Lógica para usuários comuns
-        if (!profile?.is_admin) {
-          // Se usuário comum tentar acessar área admin
-          if (location.pathname.startsWith('/admin')) {
-            toast.error("Acesso não autorizado");
-            navigate('/dashboard');
-            return;
-          }
-
-          // Se usuário comum estiver na página de login
-          if (location.pathname === '/login') {
-            navigate('/dashboard');
-            return;
+          if (profile?.is_admin) {
+            console.log("Admin user detected, redirecting to admin dashboard");
+            navigate("/admin");
+          } else {
+            console.log("Regular user detected, redirecting to user dashboard");
+            navigate("/dashboard");
           }
         }
       } catch (error) {
-        console.error("Erro ao verificar sessão:", error);
+        console.error("Error checking session:", error);
       }
     };
 
-    checkUser();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_OUT') {
-        // Verificar se estava na área administrativa
-        if (location.pathname.startsWith('/admin')) {
-          navigate('/admin-login');
-        } else {
-          navigate('/login');
+      console.log("Auth event:", event, "Session:", session);
+      
+      if (event === 'SIGNED_IN') {
+        console.log("User signed in successfully");
+        
+        // Check if user is admin
+        if (session) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('is_admin')
+            .eq('id', session.user.id)
+            .single();
+            
+          if (profile?.is_admin) {
+            navigate("/admin");
+          } else {
+            navigate("/dashboard");
+          }
         }
+      } else if (event === 'SIGNED_OUT') {
+        console.log("User signed out");
+        toast.info("Você foi desconectado");
+        navigate("/login");
+      } else if (event === 'USER_UPDATED') {
+        console.log("User updated:", session?.user);
+      } else if (event === 'PASSWORD_RECOVERY') {
+        toast.info("Verifique seu email para redefinir sua senha");
       }
     });
+
+    checkUser();
 
     return () => {
       subscription.unsubscribe();
     };
-  }, [navigate, location.pathname]);
+  }, [navigate]);
 }

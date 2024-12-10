@@ -2,11 +2,9 @@ import { useState, useEffect } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useNavigate } from "react-router-dom";
 
 export const useAdminStatus = () => {
   const session = useSession();
-  const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [retryCount, setRetryCount] = useState(0);
@@ -16,13 +14,14 @@ export const useAdminStatus = () => {
     const checkAdminStatus = async () => {
       try {
         if (!session?.user?.id) {
-          console.log("Nenhuma sessão encontrada, redirecionando para login admin");
-          navigate('/admin-login');
+          console.log("No session found, setting isAdmin to false");
+          setIsAdmin(false);
           setIsLoading(false);
           return;
         }
 
-        console.log("Verificando status de admin para usuário:", session.user.id);
+        console.log("Checking admin status for user:", session.user.id);
+        console.log("Current retry count:", retryCount);
         
         const { data: profile, error } = await supabase
           .from('profiles')
@@ -31,49 +30,48 @@ export const useAdminStatus = () => {
           .single();
         
         if (error) {
-          console.error('Erro ao buscar status de admin:', error);
+          console.error('Error fetching admin status:', error);
+          console.log('Error details:', {
+            message: error.message,
+            code: error.code,
+            details: error.details
+          });
           
           if (retryCount < MAX_RETRIES) {
-            console.log(`Tentando novamente... Tentativa ${retryCount + 1} de ${MAX_RETRIES}`);
+            console.log(`Retrying... Attempt ${retryCount + 1} of ${MAX_RETRIES}`);
             setRetryCount(prev => prev + 1);
             return;
           }
           
           toast.error('Erro ao verificar status de administrador');
-          navigate('/admin-login');
           setIsAdmin(false);
         } else {
-          console.log("Resposta do status de admin:", profile);
-          
-          if (!profile?.is_admin) {
-            console.log("Usuário não é admin, redirecionando...");
-            toast.error("Acesso não autorizado");
-            navigate('/dashboard');
-            return;
-          }
-          
-          setIsAdmin(true);
-          setRetryCount(0);
+          console.log("Admin status response:", profile);
+          setIsAdmin(!!profile?.is_admin);
+          setRetryCount(0); // Reset retry count on success
         }
       } catch (error) {
-        console.error('Erro em checkAdminStatus:', error);
+        console.error('Error in checkAdminStatus:', error);
         
         if (retryCount < MAX_RETRIES) {
-          console.log(`Tentando novamente... Tentativa ${retryCount + 1} de ${MAX_RETRIES}`);
+          console.log(`Retrying... Attempt ${retryCount + 1} of ${MAX_RETRIES}`);
           setRetryCount(prev => prev + 1);
           return;
         }
         
         toast.error('Erro ao verificar status de administrador');
-        navigate('/admin-login');
         setIsAdmin(false);
       } finally {
-        setIsLoading(false);
+        if (retryCount >= MAX_RETRIES) {
+          setIsLoading(false);
+        }
       }
     };
 
-    checkAdminStatus();
-  }, [session?.user?.id, retryCount, navigate]);
+    const retryTimeout = setTimeout(checkAdminStatus, retryCount * 1000);
+    
+    return () => clearTimeout(retryTimeout);
+  }, [session?.user?.id, retryCount]);
 
   return { isAdmin, isLoading };
 };

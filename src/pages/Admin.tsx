@@ -1,133 +1,52 @@
-import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import { AdminLayout } from "@/components/admin/layout/AdminLayout";
-import { DashboardCard } from "@/components/admin/dashboard/DashboardCard";
+import { useEffect } from "react";
+import { Routes, Route, useNavigate } from "react-router-dom";
+import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
+import { AdminPixCodes } from "@/components/admin/AdminPixCodes";
+import { AdminPaymentProofs } from "@/components/admin/AdminPaymentProofs";
+import { AdminBets } from "@/components/admin/AdminBets";
 import { useAdminStatus } from "@/hooks/useAdminStatus";
+import { useSession } from "@supabase/auth-helpers-react";
+import { toast } from "sonner";
 
 export default function Admin() {
-  const navigate = useNavigate();
   const { isAdmin, isLoading } = useAdminStatus();
+  const session = useSession();
+  const navigate = useNavigate();
 
-  const { data: todayBetsData } = useQuery({
-    queryKey: ['admin', 'today-bets'],
-    queryFn: async () => {
-      console.log("Buscando todas as apostas de hoje...");
-      const today = new Date().toISOString().split('T')[0];
-      
-      const { data, error } = await supabase
-        .rpc('get_all_bets_today', { today_date: today });
+  useEffect(() => {
+    if (!session) {
+      navigate("/login");
+      return;
+    }
 
-      if (error) {
-        console.error("Erro ao buscar apostas:", error);
-        throw error;
-      }
-      
-      if (!data || data.length === 0) {
-        return {
-          count: 0,
-          total: 0,
-          uniqueBettors: 0
-        };
-      }
+    if (!isLoading && !isAdmin) {
+      console.log("User is not admin, redirecting to dashboard");
+      toast.error("Acesso negado. Você não tem permissão para acessar esta área.");
+      navigate("/dashboard");
+    }
+  }, [session, isAdmin, isLoading, navigate]);
 
-      const total = data.reduce((acc, bet) => acc + Number(bet.amount), 0);
-      const uniqueBettors = new Set(data.map(bet => bet.user_id)).size;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
+      </div>
+    );
+  }
 
-      return {
-        count: data.length,
-        total: total,
-        uniqueBettors: uniqueBettors
-      };
-    },
-    enabled: !isLoading && isAdmin
-  });
-
-  const { data: pendingRechargesData } = useQuery({
-    queryKey: ['admin', 'pending-recharges'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('recharges')
-        .select('amount')
-        .eq('status', 'pending');
-
-      if (error) throw error;
-
-      const total = data?.reduce((acc, recharge) => acc + Number(recharge.amount), 0) || 0;
-      return {
-        count: data?.length || 0,
-        total: total
-      };
-    },
-    enabled: !isLoading && isAdmin
-  });
-
-  const { data: usersData } = useQuery({
-    queryKey: ['admin', 'users-stats'],
-    queryFn: async () => {
-      console.log("Buscando estatísticas de usuários...");
-      
-      const { count: totalUsers, error: countError } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-
-      if (countError) throw countError;
-
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-      const { data: activeBettors, error: activeError } = await supabase
-        .from('bets')
-        .select('user_id')
-        .gte('created_at', sevenDaysAgo.toISOString())
-        .order('created_at', { ascending: false });
-
-      if (activeError) throw activeError;
-
-      const uniqueActiveBettors = new Set(activeBettors?.map(bet => bet.user_id));
-
-      return {
-        total: totalUsers || 0,
-        active: uniqueActiveBettors.size
-      };
-    },
-    enabled: !isLoading && isAdmin
-  });
-
-  if (isLoading || !isAdmin) return null;
+  if (!isAdmin) {
+    return null;
+  }
 
   return (
-    <AdminLayout title="Painel Administrativo">
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        <DashboardCard
-          title="Apostas Hoje"
-          mainValue={todayBetsData?.count ?? '...'}
-          mainLabel="Total de apostas"
-          secondaryValue={`R$ ${todayBetsData?.total?.toFixed(2) ?? '0.00'}`}
-          secondaryLabel="Valor total apostado"
-          tertiaryValue={`${todayBetsData?.uniqueBettors ?? '0'} apostadores únicos`}
-          tertiaryLabel="Apostadores únicos hoje"
-          onClick={() => {
-            console.log("Navegando para a página de apostas detalhadas...");
-            navigate("/admin/bets");
-          }}
-        />
-
-        <DashboardCard
-          title="Recargas Pendentes"
-          mainValue={pendingRechargesData?.count ?? '...'}
-          mainLabel="Aguardando aprovação"
-          secondaryValue={`R$ ${pendingRechargesData?.total?.toFixed(2) ?? '0.00'}`}
-          secondaryLabel="Valor total pendente"
-        />
-
-        <DashboardCard
-          title="Usuários"
-          mainValue={usersData?.total ?? '...'}
-          mainLabel="Total de usuários"
-          secondaryValue={usersData?.active ?? '0'}
-          secondaryLabel="Ativos nos últimos 7 dias"
-        />
-      </div>
+    <AdminLayout>
+      <Routes>
+        <Route index element={<AdminDashboard />} />
+        <Route path="pix-codes" element={<AdminPixCodes />} />
+        <Route path="payment-proofs" element={<AdminPaymentProofs />} />
+        <Route path="bets" element={<AdminBets />} />
+      </Routes>
     </AdminLayout>
   );
 }
