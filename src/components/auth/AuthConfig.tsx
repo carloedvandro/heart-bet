@@ -10,6 +10,8 @@ export function AuthConfig() {
   const [isLoading, setIsLoading] = useState(false);
   const [isResetMode, setIsResetMode] = useState(false);
   const [isSignUpMode, setIsSignUpMode] = useState(false);
+  const [resetAttempts, setResetAttempts] = useState(0);
+  const [lastResetAttempt, setLastResetAttempt] = useState(0);
 
   const handleSignIn = async () => {
     try {
@@ -63,6 +65,14 @@ export function AuthConfig() {
   };
 
   const handleResetPassword = async () => {
+    const currentTime = Date.now();
+    
+    // Basic rate limiting
+    if (resetAttempts >= 3 && currentTime - lastResetAttempt < 15 * 60 * 1000) {
+      toast.error("Muitas tentativas. Tente novamente em 15 minutos.");
+      return;
+    }
+
     try {
       setIsLoading(true);
       
@@ -71,11 +81,19 @@ export function AuthConfig() {
         return;
       }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email);
+      console.log(`Attempting password reset for email: ${email}`);
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + '/reset-password'
+      });
 
       if (error) {
         console.error("Detailed Reset Password Error:", error);
         
+        // Update reset attempts
+        setResetAttempts(prev => prev + 1);
+        setLastResetAttempt(currentTime);
+
         switch (error.message) {
           case "Error sending recovery email":
             toast.error("Não foi possível enviar o email de recuperação. Tente novamente mais tarde.");
@@ -83,11 +101,15 @@ export function AuthConfig() {
           case "User not found":
             toast.error("Não encontramos uma conta com este email.");
             break;
+          case "email rate limit exceeded":
+            toast.error("Limite de envio de emails excedido. Tente novamente mais tarde.");
+            break;
           default:
             toast.error(`Erro ao resetar senha: ${error.message}`);
         }
       } else {
         toast.success("Se existe uma conta com este email, você receberá instruções para resetar sua senha.");
+        setResetAttempts(0);
         setIsResetMode(false);
       }
     } catch (error) {
