@@ -81,13 +81,6 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     persistSession: true,
     detectSessionInUrl: false,
     flowType: 'pkce',
-    sessionTimeout: 600, // 10 minutes in seconds
-    inactivityTimeout: 600 // 10 minutes in seconds
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 1
-    }
   },
   global: {
     fetch: customFetch
