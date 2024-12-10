@@ -18,7 +18,6 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         url,
         method: init?.method || 'GET',
         headers: init?.headers,
-        body: init?.body
       });
 
       const headers = new Headers(init?.headers || {});
@@ -33,23 +32,21 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
       const response = await fetch(url, {
         ...init,
-        headers
+        headers,
+        credentials: 'include', // Important for session handling
       });
 
       console.log('Fetch Response:', {
         status: response.status,
         statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries())
       });
 
-      // Handle rate limiting
       if (response.status === 429) {
         const error = new Error('Rate limit exceeded');
         (error as any).status = 429;
         throw error;
       }
 
-      // Handle other errors
       if (!response.ok) {
         const errorText = await response.clone().text();
         console.error('Response Error:', {
@@ -68,7 +65,6 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       attempt++;
       console.error(`Attempt ${attempt} failed:`, error);
       
-      // Don't retry rate limits
       if ((error as any).status === 429) {
         throw error;
       }
@@ -77,7 +73,6 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         throw error;
       }
       
-      // Exponential backoff
       await new Promise(resolve => 
         setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt - 1), 5000))
       );
@@ -91,9 +86,10 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    detectSessionInUrl: true,
     flowType: 'pkce',
-    storage: window.localStorage,
+    storage: localStorage,
+    storageKey: 'supabase.auth.token',
   },
   global: {
     fetch: customFetch
@@ -101,6 +97,6 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
 });
 
 // Log auth state changes
-supabase.auth.onAuthStateChange((event) => {
-  console.log('Auth state changed:', event);
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth state changed:', event, session?.user?.id);
 });

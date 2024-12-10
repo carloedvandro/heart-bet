@@ -19,6 +19,8 @@ export default function Login() {
         
         if (sessionError) {
           console.error("Session error:", sessionError);
+          // Clear any stale session data
+          await supabase.auth.signOut({ scope: 'local' });
           return;
         }
 
@@ -61,9 +63,9 @@ export default function Login() {
       
       if (event === 'SIGNED_OUT') {
         console.log("User signed out, staying on login page");
-        // Clear any local storage data to prevent stale tokens
-        localStorage.removeItem('supabase.auth.token');
-        window.location.reload(); // Force a clean reload of the page
+        // Clear session data and reload for a fresh state
+        localStorage.clear(); // Clear all localStorage data
+        window.location.reload();
       } else if (event === 'SIGNED_IN' && session) {
         console.log("User signed in, redirecting to dashboard");
         navigate('/dashboard', { replace: true });
