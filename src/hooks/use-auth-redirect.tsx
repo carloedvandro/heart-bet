@@ -47,6 +47,8 @@ export function useAuthRedirect() {
 
         // Lógica para usuários administrativos
         if (profile?.is_admin) {
+          console.log("Usuário admin detectado, verificando rota:", location.pathname);
+          
           // Se admin estiver em páginas de login, redirecionar para admin
           if (location.pathname === '/admin-login' || location.pathname === '/login') {
             navigate('/admin');
@@ -55,6 +57,8 @@ export function useAuthRedirect() {
           
           // Se admin estiver em páginas de usuário comum, redirecionar para admin
           if (location.pathname === '/dashboard') {
+            console.log("Admin tentando acessar dashboard, redirecionando para /admin");
+            toast.error("Administradores devem usar o painel administrativo");
             navigate('/admin');
             return;
           }
@@ -64,6 +68,9 @@ export function useAuthRedirect() {
             console.log("Admin acessando rota administrativa:", location.pathname);
             return;
           }
+
+          // Se admin estiver em qualquer outra rota, redirecionar para /admin
+          navigate('/admin');
           return;
         }
 
