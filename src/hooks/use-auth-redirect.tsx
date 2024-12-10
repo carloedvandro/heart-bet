@@ -21,6 +21,7 @@ export function useAuthRedirect() {
         if (!session) {
           // Se estiver tentando acessar área administrativa
           if (location.pathname.startsWith('/admin')) {
+            console.log("Sem sessão, redirecionando para login admin");
             navigate('/admin-login');
             return;
           }
@@ -55,6 +56,12 @@ export function useAuthRedirect() {
           // Se admin estiver em páginas de usuário comum, redirecionar para admin
           if (location.pathname === '/dashboard') {
             navigate('/admin');
+            return;
+          }
+
+          // Se admin estiver tentando acessar rotas admin, permitir
+          if (location.pathname.startsWith('/admin')) {
+            console.log("Admin acessando rota administrativa:", location.pathname);
             return;
           }
           return;
