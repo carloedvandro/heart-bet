@@ -14,7 +14,6 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
   while (attempt < MAX_RETRIES) {
     try {
-      // Create new headers object with all required headers
       const headers = new Headers({
         'apikey': supabaseKey,
         'Authorization': `Bearer ${supabaseKey}`,
@@ -23,7 +22,6 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         'Prefer': 'return=minimal'
       });
 
-      // If there are any custom headers in init, add them
       if (init?.headers) {
         const customHeaders = new Headers(init.headers);
         customHeaders.forEach((value, key) => headers.set(key, value));
@@ -34,14 +32,26 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         headers
       });
 
+      // Clone the response before reading its body
+      const responseClone = response.clone();
+
       if (!response.ok) {
+        const errorText = await responseClone.text();
         console.error('Response not OK:', {
           status: response.status,
           statusText: response.statusText,
           url: response.url,
           headers: Object.fromEntries(response.headers.entries()),
-          body: await response.text()
+          body: errorText
         });
+        
+        // For rate limit errors, throw immediately without retrying
+        if (response.status === 429) {
+          const error = new Error('Rate limit exceeded');
+          (error as any).status = 429;
+          throw error;
+        }
+
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -50,11 +60,15 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       attempt++;
       console.error(`Fetch attempt ${attempt} failed:`, error);
       
+      // Don't retry rate limit errors
+      if ((error as any).status === 429) {
+        throw error;
+      }
+      
       if (attempt === MAX_RETRIES) {
         throw error;
       }
       
-      // Wait with exponential backoff before retrying
       await new Promise(resolve => 
         setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt - 1), 5000))
       );
@@ -80,7 +94,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   }
 });
 
-// Only log auth state changes, remove any additional processing
+// Only log auth state changes
 supabase.auth.onAuthStateChange((event) => {
   console.log('Auth state changed:', event);
 });
