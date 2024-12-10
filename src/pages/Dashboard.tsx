@@ -17,9 +17,13 @@ export default function Dashboard() {
   useAuthRedirect();
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!session?.user?.id) return;
+    if (!session?.user?.id) {
+      console.log("No session found in Dashboard, redirecting to login");
+      navigate('/login');
+      return;
+    }
 
+    const fetchProfile = async () => {
       try {
         const { data, error } = await supabase
           .from("profiles")
@@ -41,7 +45,7 @@ export default function Dashboard() {
     };
 
     fetchProfile();
-  }, [session]);
+  }, [session, navigate]);
 
   const handleBetPlaced = () => {
     setRefreshTrigger(prev => prev + 1);
