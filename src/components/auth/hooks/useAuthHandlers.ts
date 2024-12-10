@@ -64,7 +64,7 @@ export function useAuthHandlers() {
       setIsLoading(true);
       console.log("Attempting signup for email:", email);
       
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       });
@@ -74,6 +74,11 @@ export function useAuthHandlers() {
 
       if (error) {
         console.error("Signup error:", error);
+        
+        if (error.message?.includes("User already registered")) {
+          toast.error("Este email já está registrado. Por favor, faça login.");
+          return false;
+        }
         
         // Handle email rate limit error specifically
         if (error.message?.includes("email rate limit exceeded") || 
@@ -87,8 +92,24 @@ export function useAuthHandlers() {
         return false;
       }
 
-      toast.success("Conta criada com sucesso! Verifique seu email para confirmar.");
-      return true;
+      // Check if email confirmation is required
+      if (data?.user?.identities?.length === 0) {
+        toast.error("Este email já está registrado. Por favor, faça login.");
+        return false;
+      }
+
+      if (data?.user?.confirmation_sent_at) {
+        toast.success("Conta criada com sucesso! Por favor, verifique seu email para confirmar sua conta.", {
+          duration: 6000
+        });
+        return true;
+      } else {
+        toast.success("Conta criada com sucesso! Você já pode fazer login.", {
+          duration: 4000
+        });
+        return true;
+      }
+
     } catch (error: any) {
       console.error("Erro no cadastro:", error);
       
