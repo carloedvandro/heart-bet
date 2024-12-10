@@ -6,50 +6,35 @@ import { Header } from "@/components/dashboard/Header";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
 import { Profile } from "@/integrations/supabase/custom-types";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
 
 export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const session = useSession();
   const navigate = useNavigate();
 
+  useAuthRedirect();
+
   useEffect(() => {
     const fetchProfile = async () => {
-      try {
-        if (!session?.user?.id) {
-          console.log("No session found, redirecting to login");
-          navigate("/login", { replace: true });
-          return;
-        }
+      if (!session?.user?.id) return;
 
-        console.log("Fetching profile for user:", session.user.id);
+      try {
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
           .eq("id", session.user.id)
           .single();
 
-        if (error) {
-          console.error("Error fetching profile:", error);
-          toast.error("Erro ao carregar perfil");
-          return;
-        }
-        
-        console.log("Profile loaded successfully:", data);
+        if (error) throw error;
         setProfile(data);
       } catch (error) {
-        console.error("Error in fetchProfile:", error);
-        toast.error("Erro ao carregar perfil");
-      } finally {
-        setIsLoading(false);
+        console.error("Error fetching profile:", error);
       }
     };
 
     fetchProfile();
-  }, [session, navigate]);
+  }, [session]);
 
   const handleBetPlaced = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -57,37 +42,19 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     try {
-      console.log("Iniciando logout...");
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      console.log("Logout realizado com sucesso");
-      navigate("/login", { replace: true });
+      navigate("/login");
     } catch (error) {
       console.error("Error logging out:", error);
-      toast.error("Erro ao fazer logout");
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-pink-50">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-8 w-8 animate-spin text-pink-500" />
-          <p className="text-gray-600">Carregando...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!session) {
-    console.log("No session found in render, redirecting to login");
-    navigate("/login", { replace: true });
-    return null;
-  }
+  if (!session) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-pink-50">
-      <div className="max-w-7xl mx-auto p-4 space-y-6">
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-pink-50 p-4">
+      <div className="max-w-7xl mx-auto space-y-6">
         <Header 
           profile={profile} 
           onLogout={handleLogout}

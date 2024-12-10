@@ -8,15 +8,17 @@ interface PasswordInputProps {
 
 export function PasswordInput({ password, setPassword }: PasswordInputProps) {
   return (
-    <div className="space-y-2">
-      <Label htmlFor="password">Senha</Label>
+    <div>
+      <Label htmlFor="password" className="block text-gray-700 font-medium mb-1">
+        Senha
+      </Label>
       <Input
         id="password"
         type="password"
-        placeholder="••••••••"
+        placeholder="Sua senha"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="w-full"
+        required
       />
     </div>
   );

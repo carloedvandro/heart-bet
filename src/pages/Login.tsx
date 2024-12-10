@@ -1,55 +1,92 @@
-import React, { useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import { AuthConfig } from "@/components/auth/AuthConfig";
 import { toast } from "sonner";
+import { Heart } from "lucide-react";
 
-const Login = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+export default function Login() {
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!email || !password) {
-      toast.error("Por favor, preencha todos os campos.");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      console.log("Iniciando tentativa de login para:", email);
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
-      if (error) {
-        console.error("Erro no login:", error);
-        if (error.message.includes("Invalid login credentials")) {
-          toast.error("Email ou senha incorretos.");
-        } else if (error.message.includes("Email not confirmed")) {
-          toast.error("Por favor, confirme seu email antes de fazer login.");
-        } else {
-          toast.error("Erro ao tentar fazer login.");
+  useEffect(() => {
+    const checkSession = async () => {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          return;
         }
-        return;
-      }
 
-      if (data?.session) {
-        console.log("Login bem sucedido, redirecionando...");
-        toast.success("Login realizado com sucesso!");
-        navigate("/dashboard", { replace: true });
+        if (session) {
+          console.log("Session found, checking profile for user:", session.user.id);
+          
+          // First check if profile exists
+          const { data: existingProfile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (profileError) {
+            console.error("Error checking profile:", profileError);
+            toast.error("Erro ao verificar perfil");
+            return;
+          }
+
+          // If no profile exists, create one
+          if (!existingProfile) {
+            console.log("No profile found, creating new profile for user:", session.user.id);
+            
+            const { error: createError } = await supabase
+              .from('profiles')
+              .insert([
+                {
+                  id: session.user.id,
+                  email: session.user.email,
+                  balance: 0,
+                  is_admin: false
+                }
+              ]);
+
+            if (createError) {
+              console.error("Error creating profile:", createError);
+              toast.error("Erro ao criar perfil");
+              return;
+            }
+            
+            console.log("Profile created successfully");
+          } else {
+            console.log("Existing profile found:", existingProfile);
+          }
+
+          // Navigate to dashboard after ensuring profile exists
+          console.log("Navigating to dashboard");
+          navigate("/dashboard");
+        }
+      } catch (error) {
+        console.error("Unexpected error:", error);
+        toast.error("Erro inesperado ao verificar sessão");
       }
-    } catch (error) {
-      console.error("Erro inesperado:", error);
-      toast.error("Erro inesperado ao fazer login.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    };
+
+    // Set up auth state change listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session);
+      if (event === 'SIGNED_IN' && session) {
+        checkSession();
+      }
+    });
+
+    // Check session on component mount
+    checkSession();
+
+    // Cleanup subscription
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
 
   return (
     <div 
@@ -58,89 +95,61 @@ const Login = () => {
         backgroundImage: 'url("/lovable-uploads/5a0e0336-aecf-49bc-961c-013d9aee3443.png")',
       }}
     >
-      {/* Overlay com gradiente */}
-      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-pink-500/30 animate-gradient-x" />
+      {/* Animated overlay with gradient */}
+      <div 
+        className="absolute inset-0 bg-gradient-to-r from-purple-500/30 to-pink-500/30 animate-gradient-x"
+        style={{
+          animation: 'gradient 15s ease infinite',
+        }}
+      />
       
-      {/* Overlay escuro com blur */}
+      {/* Dark overlay with blur */}
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" />
-
-      <div className="w-full max-w-md bg-white/95 rounded-lg shadow-xl backdrop-blur-sm p-6 relative z-10">
-        <h2 className="text-2xl font-semibold text-center text-gray-900">
-          Bem-vindo de volta!
-        </h2>
-        <p className="text-sm text-center text-gray-600 mt-2">
-          Entre com suas credenciais para continuar
-        </p>
-
-        <form onSubmit={handleLogin} className="mt-6 space-y-4">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Email
-            </label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Seu email"
-              className="mt-1 w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-pink-500 focus:outline-none"
-              required
+      
+      {/* Floating hearts effect */}
+      <div className="absolute inset-0 overflow-hidden">
+        {[...Array(24)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute animate-float"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+              animation: `float ${6 + i * 1.5}s ease-in-out infinite`,
+              animationDelay: `${i * 0.3}s`,
+              opacity: 0.3 + Math.random() * 0.4,
+              transform: `scale(${0.5 + Math.random() * 0.5})`,
+            }}
+          >
+            <Heart 
+              className="text-heart-pink animate-heart-beat" 
+              size={24 + Math.random() * 12}
+              fill="currentColor"
             />
           </div>
+        ))}
+      </div>
 
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Senha
-            </label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Sua senha"
-              className="mt-1 w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-pink-500 focus:outline-none"
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            className={`w-full py-2 px-4 rounded bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold transition-all duration-200 ${
-              isLoading 
-                ? "opacity-70 cursor-not-allowed" 
-                : "hover:from-purple-700 hover:to-pink-700 hover:shadow-lg transform hover:-translate-y-0.5"
-            }`}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <div className="flex items-center justify-center">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
-                Entrando...
-              </div>
-            ) : (
-              "Entrar"
-            )}
-          </button>
-        </form>
-
-        <p className="mt-4 text-sm text-center text-gray-600">
-          Não tem uma conta?{" "}
-          <button
-            onClick={() => navigate("/signup")}
-            className="text-pink-600 hover:text-pink-700 hover:underline font-medium"
-          >
-            Cadastre-se
-          </button>
-        </p>
+      <div className="relative z-10 w-full max-w-md space-y-4">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-white drop-shadow-lg animate-fade-in">
+            Loto Corações Premiados
+          </h1>
+          <p className="text-white/90 mt-2 text-lg drop-shadow animate-fade-in-delayed">
+            Aposte com o coração
+          </p>
+        </div>
+        <Card className="bg-white/95 animate-fade-in-up">
+          <CardContent className="pt-6 relative">
+            <AuthConfig />
+            <div className="text-center mt-4">
+              <p className="text-xs text-gray-400 opacity-70">
+                created by Lovablebr.dev
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
-};
-
-export default Login;
+}

@@ -18,8 +18,8 @@ export const DashboardContent = ({
   setProfile
 }: DashboardContentProps) => {
   return (
-    <div className="space-y-6">
-      <Card className="bg-white/90 backdrop-blur shadow-xl">
+    <div className="max-w-7xl mx-auto space-y-6 relative z-10">
+      <Card className="bg-white/90 backdrop-blur">
         <CardHeader>
           <CardTitle>Nova Aposta</CardTitle>
         </CardHeader>
@@ -34,7 +34,7 @@ export const DashboardContent = ({
         </div>
       )}
 
-      <Card className="bg-white/90 backdrop-blur shadow-xl">
+      <Card className="bg-white/90 backdrop-blur">
         <CardHeader>
           <CardTitle>Suas Apostas</CardTitle>
         </CardHeader>

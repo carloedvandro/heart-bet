@@ -8,15 +8,17 @@ interface EmailInputProps {
 
 export function EmailInput({ email, setEmail }: EmailInputProps) {
   return (
-    <div className="space-y-2">
-      <Label htmlFor="email">Email</Label>
+    <div>
+      <Label htmlFor="email" className="block text-gray-700 font-medium mb-1">
+        Email
+      </Label>
       <Input
         id="email"
         type="email"
-        placeholder="seu@email.com"
+        placeholder="Seu email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="w-full"
+        required
       />
     </div>
   );

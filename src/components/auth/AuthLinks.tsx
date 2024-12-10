@@ -12,20 +12,16 @@ export function AuthLinks({
   onSignUpMode 
 }: AuthLinksProps) {
   return (
-    <div className="text-center space-y-2">
+    <div className="text-center mt-4 space-y-2">
       {!isResetMode && !isSignUpMode && (
         <p className="text-sm">
           Não tem uma conta?{" "}
-          <button
-            type="button"
-            onClick={() => {
-              console.log("Clicou em Cadastre-se");
-              onSignUpMode(true);
-            }}
-            className="text-pink-500 hover:text-pink-600 hover:underline focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 rounded-sm px-1 py-0.5 transition-colors"
+          <span
+            className="text-pink-500 cursor-pointer hover:underline"
+            onClick={() => onSignUpMode(true)}
           >
             Cadastre-se
-          </button>
+          </span>
         </p>
       )}
 
@@ -33,44 +29,32 @@ export function AuthLinks({
         {isResetMode ? (
           <>
             Lembrou sua senha?{" "}
-            <button
-              type="button"
-              onClick={() => {
-                console.log("Voltando ao login");
-                onResetMode(false);
-              }}
-              className="text-pink-500 hover:text-pink-600 hover:underline focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 rounded-sm px-1 py-0.5 transition-colors"
+            <span
+              className="text-pink-500 cursor-pointer hover:underline"
+              onClick={() => onResetMode(false)}
             >
               Voltar ao login
-            </button>
+            </span>
           </>
         ) : isSignUpMode ? (
           <>
             Já tem uma conta?{" "}
-            <button
-              type="button"
-              onClick={() => {
-                console.log("Voltando ao login do modo cadastro");
-                onSignUpMode(false);
-              }}
-              className="text-pink-500 hover:text-pink-600 hover:underline focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 rounded-sm px-1 py-0.5 transition-colors"
+            <span
+              className="text-pink-500 cursor-pointer hover:underline"
+              onClick={() => onSignUpMode(false)}
             >
               Fazer login
-            </button>
+            </span>
           </>
         ) : (
           <>
             Esqueceu sua senha?{" "}
-            <button
-              type="button"
-              onClick={() => {
-                console.log("Indo para recuperação de senha");
-                onResetMode(true);
-              }}
-              className="text-pink-500 hover:text-pink-600 hover:underline focus:outline-none focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 rounded-sm px-1 py-0.5 transition-colors"
+            <span
+              className="text-pink-500 cursor-pointer hover:underline"
+              onClick={() => onResetMode(true)}
             >
               Recuperar senha
-            </button>
+            </span>
           </>
         )}
       </p>
