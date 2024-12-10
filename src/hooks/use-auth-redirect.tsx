@@ -9,21 +9,18 @@ export function useAuthRedirect() {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (sessionError) {
-          console.error("Erro na sessão:", sessionError);
-          return;
-        }
-
         // Se não houver sessão e não estiver na página de login
         if (!session && location.pathname !== '/login') {
+          console.log('No session found, redirecting to login');
           navigate('/login');
           return;
         }
 
         // Se houver sessão e estiver na página de login
         if (session && location.pathname === '/login') {
+          console.log('Session found, redirecting to dashboard');
           navigate('/dashboard');
           return;
         }
@@ -34,9 +31,12 @@ export function useAuthRedirect() {
 
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session);
       if (event === 'SIGNED_OUT') {
         navigate('/login');
+      } else if (event === 'SIGNED_IN' && session) {
+        navigate('/dashboard');
       }
     });
 
