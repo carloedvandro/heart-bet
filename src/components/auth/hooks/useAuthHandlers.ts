@@ -44,7 +44,7 @@ export function useAuthHandlers() {
             toast.error("Email ou senha incorretos. Verifique suas credenciais.");
             break;
           case "Email not confirmed":
-            toast.error("Por favor, confirme seu email antes de fazer login.");
+            toast.error("Por favor, confirme seu email antes de fazer login. Verifique sua caixa de entrada.");
             break;
           default:
             toast.error("Erro ao fazer login. Tente novamente.");
