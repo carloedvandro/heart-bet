@@ -32,11 +32,16 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         headers
       });
 
-      // Clone the response before reading its body
-      const responseClone = response.clone();
+      // Don't retry on rate limit errors
+      if (response.status === 429) {
+        const error = new Error('Rate limit exceeded');
+        (error as any).status = 429;
+        throw error;
+      }
 
       if (!response.ok) {
-        const errorText = await responseClone.text();
+        const errorClone = response.clone();
+        const errorText = await errorClone.text();
         console.error('Response not OK:', {
           status: response.status,
           statusText: response.statusText,
@@ -44,14 +49,6 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
           headers: Object.fromEntries(response.headers.entries()),
           body: errorText
         });
-        
-        // For rate limit errors, throw immediately without retrying
-        if (response.status === 429) {
-          const error = new Error('Rate limit exceeded');
-          (error as any).status = 429;
-          throw error;
-        }
-
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
