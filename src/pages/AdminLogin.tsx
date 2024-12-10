@@ -15,37 +15,64 @@ export default function AdminLogin() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!email || !password) {
+      toast.error("Por favor, preencha todos os campos");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
+      console.log("Tentando fazer login com:", email);
+      
       const { data: { session }, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password
       });
 
-      if (signInError) throw signInError;
-
-      if (session) {
-        // Verificar se o usuário é admin
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('is_admin')
-          .eq('id', session.user.id)
-          .single();
-
-        if (profileError) throw profileError;
-
-        if (profile?.is_admin) {
-          toast.success("Bem-vindo ao painel administrativo!");
-          navigate("/admin");
+      if (signInError) {
+        console.error("Erro no login:", signInError);
+        if (signInError.message.includes("Invalid login credentials")) {
+          toast.error("Email ou senha incorretos");
         } else {
-          // Se não for admin, fazer logout e mostrar erro
-          await supabase.auth.signOut();
-          toast.error("Acesso não autorizado");
+          toast.error("Erro ao fazer login. Tente novamente.");
         }
+        return;
       }
+
+      if (!session?.user) {
+        toast.error("Erro ao iniciar sessão");
+        return;
+      }
+
+      // Verificar se o usuário é admin
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('is_admin')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileError) {
+        console.error("Erro ao verificar perfil:", profileError);
+        toast.error("Erro ao verificar permissões");
+        return;
+      }
+
+      if (!profile?.is_admin) {
+        // Se não for admin, fazer logout e mostrar erro
+        await supabase.auth.signOut();
+        toast.error("Acesso não autorizado");
+        return;
+      }
+
+      // Se chegou até aqui, é um admin válido
+      console.log("Login admin bem-sucedido");
+      toast.success("Bem-vindo ao painel administrativo!");
+      navigate("/admin");
+      
     } catch (error) {
-      console.error("Erro no login:", error);
+      console.error("Erro inesperado no login:", error);
       toast.error("Erro ao fazer login");
     } finally {
       setIsLoading(false);
@@ -59,7 +86,7 @@ export default function AdminLogin() {
           <Button 
             variant="outline" 
             size="icon"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/login")}
             className="h-9 w-9"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -92,6 +119,7 @@ export default function AdminLogin() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="admin@exemplo.com"
                   required
+                  disabled={isLoading}
                 />
               </div>
 
@@ -105,6 +133,7 @@ export default function AdminLogin() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
               </div>
 
