@@ -66,20 +66,16 @@ export function AuthConfig() {
     try {
       setIsLoading(true);
       
-      // Adicionar validação de email antes de enviar
       if (!email || !email.includes('@')) {
         toast.error("Por favor, insira um email válido.");
         return;
       }
 
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/dashboard`,
-      });
+      const { error } = await supabase.auth.resetPasswordForEmail(email);
 
       if (error) {
         console.error("Detailed Reset Password Error:", error);
         
-        // Tratamento de erro mais específico
         switch (error.message) {
           case "Error sending recovery email":
             toast.error("Não foi possível enviar o email de recuperação. Tente novamente mais tarde.");
