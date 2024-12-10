@@ -14,6 +14,14 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
   while (attempt < MAX_RETRIES) {
     try {
+      // Detailed logging of the request
+      console.log('Fetch Request:', {
+        url,
+        method: init?.method || 'GET',
+        headers: init?.headers,
+        body: init?.body
+      });
+
       const headers = new Headers({
         'apikey': supabaseKey,
         'Authorization': `Bearer ${supabaseKey}`,
@@ -30,6 +38,13 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       const response = await fetch(url, {
         ...init,
         headers
+      });
+
+      // Detailed logging of the response
+      console.log('Fetch Response:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
       });
 
       // Don't retry on rate limit errors
@@ -49,7 +64,12 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
           headers: Object.fromEntries(response.headers.entries()),
           body: errorText
         });
-        throw new Error(`HTTP error! status: ${response.status}`);
+        
+        // Create a more informative error
+        const error = new Error(`HTTP error! status: ${response.status}`);
+        (error as any).status = response.status;
+        (error as any).body = errorText;
+        throw error;
       }
 
       return response;
