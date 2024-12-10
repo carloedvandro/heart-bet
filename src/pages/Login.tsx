@@ -27,7 +27,7 @@ export default function Login() {
           // Wait for a moment to ensure auth record is fully created
           await new Promise(resolve => setTimeout(resolve, 1000));
           
-          // First check if profile exists
+          // Check if profile exists
           const { data: existingProfile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
@@ -40,57 +40,8 @@ export default function Login() {
             return;
           }
 
-          // If no profile exists, create one
-          if (!existingProfile) {
-            console.log("No profile found, creating profile for user:", session.user.id);
-            
-            const { error: createError } = await supabase
-              .from('profiles')
-              .insert([
-                {
-                  id: session.user.id,
-                  email: session.user.email,
-                  balance: 0,
-                  is_admin: false
-                }
-              ]);
-
-            if (createError) {
-              console.error("Error creating profile:", createError);
-              
-              // If we get a foreign key error, wait a bit longer and try one more time
-              if (createError.code === '23503') {
-                console.log("Foreign key error, waiting and retrying...");
-                await new Promise(resolve => setTimeout(resolve, 2000));
-                
-                const { error: retryError } = await supabase
-                  .from('profiles')
-                  .insert([
-                    {
-                      id: session.user.id,
-                      email: session.user.email,
-                      balance: 0,
-                      is_admin: false
-                    }
-                  ]);
-                
-                if (retryError) {
-                  console.error("Error in retry attempt:", retryError);
-                  toast.error("Erro ao criar perfil");
-                  return;
-                }
-              } else {
-                toast.error("Erro ao criar perfil");
-                return;
-              }
-            }
-            
-            console.log("Profile created successfully");
-          } else {
-            console.log("Existing profile found:", existingProfile);
-          }
-
-          // Navigate to dashboard after successful profile check/creation
+          // If profile exists or we're waiting for the trigger to create it, proceed to dashboard
+          console.log("Profile check complete, navigating to dashboard");
           navigate('/dashboard', { replace: true });
         }
       } catch (error) {
