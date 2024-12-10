@@ -1,33 +1,39 @@
 import { useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
-import { useSession } from "@supabase/auth-helpers-react";
 import { AdminLayout } from "@/components/admin/AdminLayout";
+import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { AdminPixCodes } from "@/components/admin/AdminPixCodes";
 import { AdminPaymentProofs } from "@/components/admin/AdminPaymentProofs";
 import { AdminBets } from "@/components/admin/AdminBets";
-import { AdminDashboard } from "@/components/admin/AdminDashboard";
 import { useAdminStatus } from "@/hooks/useAdminStatus";
-import { toast } from "@/hooks/use-toast";
+import { useSession } from "@supabase/auth-helpers-react";
 
-const Admin = () => {
+export default function Admin() {
+  const { isAdmin, isLoading } = useAdminStatus();
   const session = useSession();
   const navigate = useNavigate();
-  const { isAdmin, isLoading } = useAdminStatus();
 
   useEffect(() => {
     if (!session) {
       navigate("/login");
-    } else if (!isLoading && !isAdmin) {
-      toast({
-        variant: "destructive",
-        title: "Acesso negado",
-        description: "Você não tem permissão para acessar esta área."
-      });
+      return;
+    }
+
+    if (!isLoading && !isAdmin) {
+      console.log("User is not admin, redirecting to dashboard");
       navigate("/dashboard");
     }
   }, [session, isAdmin, isLoading, navigate]);
 
-  if (isLoading || !isAdmin) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
+      </div>
+    );
+  }
+
+  if (!isAdmin) {
     return null;
   }
 
@@ -41,6 +47,4 @@ const Admin = () => {
       </Routes>
     </AdminLayout>
   );
-};
-
-export default Admin;
+}
