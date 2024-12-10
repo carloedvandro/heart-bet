@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AuthForm } from "./AuthForm";
 import { AuthLinks } from "./AuthLinks";
 import { useAuthHandlers } from "./hooks/useAuthHandlers";
-import { toast } from "@/hooks/use-toast"; // Add this import
+import { toast } from "@/hooks/use-toast";
 
 export function AuthConfig() {
   const [email, setEmail] = useState("");
@@ -15,12 +15,20 @@ export function AuthConfig() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
-      toast.error("Por favor, preencha o email.");
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Por favor, preencha o email."
+      });
       return;
     }
 
     if (!isResetMode && !password) {
-      toast.error("Por favor, preencha a senha.");
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: "Por favor, preencha a senha."
+      });
       return;
     }
 
