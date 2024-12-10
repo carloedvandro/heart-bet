@@ -9,7 +9,9 @@ export function useAuthHandlers() {
   const [resetAttempts, setResetAttempts] = useState(0);
   const [lastResetAttempt, setLastResetAttempt] = useState(0);
 
-  const COOLDOWN_PERIOD = 60 * 1000; // 1 minute in milliseconds
+  // Aumentando o limite de tentativas para 5 e reduzindo o período de espera para 30 segundos
+  const MAX_ATTEMPTS = 5;
+  const COOLDOWN_PERIOD = 30 * 1000; // 30 seconds in milliseconds
 
   const handleSignIn = async (email: string, password: string) => {
     try {
@@ -42,7 +44,7 @@ export function useAuthHandlers() {
   const handleSignUp = async (email: string, password: string) => {
     const currentTime = Date.now();
     
-    if (signUpAttempts >= 3 && currentTime - lastSignUpAttempt < COOLDOWN_PERIOD) {
+    if (signUpAttempts >= MAX_ATTEMPTS && currentTime - lastSignUpAttempt < COOLDOWN_PERIOD) {
       const secondsLeft = Math.ceil((COOLDOWN_PERIOD - (currentTime - lastSignUpAttempt)) / 1000);
       toast.error(`Muitas tentativas. Aguarde ${secondsLeft} segundos antes de tentar novamente.`);
       return false;
@@ -98,7 +100,7 @@ export function useAuthHandlers() {
   const handleResetPassword = async (email: string) => {
     const currentTime = Date.now();
     
-    if (resetAttempts >= 3 && currentTime - lastResetAttempt < COOLDOWN_PERIOD) {
+    if (resetAttempts >= MAX_ATTEMPTS && currentTime - lastResetAttempt < COOLDOWN_PERIOD) {
       const secondsLeft = Math.ceil((COOLDOWN_PERIOD - (currentTime - lastResetAttempt)) / 1000);
       toast.error(`Muitas tentativas. Aguarde ${secondsLeft} segundos antes de tentar novamente.`);
       return false;
