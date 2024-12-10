@@ -1,5 +1,4 @@
 import { useNavigate } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -30,12 +29,11 @@ export function AdminAccessButton({ setProfile }: AdminAccessButtonProps) {
   };
 
   return (
-    <Button 
-      variant="outline" 
+    <button 
       onClick={handleAdminAccess}
-      className="w-full"
+      className="text-blue-600 hover:text-blue-800 transition-colors font-medium"
     >
       Acessar Área Administrativa
-    </Button>
+    </button>
   );
 }

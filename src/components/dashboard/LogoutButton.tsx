@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
 interface LogoutButtonProps {
@@ -7,13 +6,12 @@ interface LogoutButtonProps {
 
 export function LogoutButton({ onLogout }: LogoutButtonProps) {
   return (
-    <Button
-      variant="outline"
+    <button
       onClick={onLogout}
-      className="flex items-center gap-2 whitespace-nowrap"
+      className="flex items-center gap-2 text-gray-600 hover:text-gray-800 transition-colors"
     >
       <LogOut className="h-4 w-4" />
-      Sair
-    </Button>
+      <span className="font-medium">Sair</span>
+    </button>
   );
 }
