@@ -3,7 +3,6 @@ import { BalanceDisplay } from "./BalanceDisplay";
 import { RechargeDialog } from "./RechargeDialog";
 import { AudioControl } from "./AudioControl";
 import { LogoutButton } from "./LogoutButton";
-import { ProfileActions } from "./ProfileActions";
 
 interface HeaderProps {
   profile: Profile | null;
@@ -21,10 +20,6 @@ export function Header({ profile, onLogout, setProfile }: HeaderProps) {
           <BalanceDisplay profile={profile} />
           <RechargeDialog />
           <LogoutButton onLogout={onLogout} />
-          <ProfileActions 
-            isAdmin={profile?.is_admin ?? false} 
-            setProfile={setProfile}
-          />
         </div>
       </div>
     </div>

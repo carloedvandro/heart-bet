@@ -2,17 +2,20 @@ import { Profile } from "@/integrations/supabase/custom-types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import HeartGrid from "@/components/HeartGrid";
 import { BetsTable } from "./BetsTable";
+import { AdminAccessButton } from "./AdminAccessButton";
 
 interface DashboardContentProps {
   profile: Profile | null;
   refreshTrigger: number;
   onBetPlaced: () => void;
+  setProfile: (profile: Profile | null) => void;
 }
 
 export const DashboardContent = ({ 
   profile, 
   refreshTrigger, 
-  onBetPlaced 
+  onBetPlaced,
+  setProfile
 }: DashboardContentProps) => {
   return (
     <div className="max-w-7xl mx-auto space-y-6 relative z-10">
@@ -24,6 +27,10 @@ export const DashboardContent = ({
           <HeartGrid onBetPlaced={onBetPlaced} />
         </CardContent>
       </Card>
+
+      <div className="flex justify-center py-2">
+        <AdminAccessButton setProfile={setProfile} />
+      </div>
 
       <Card className="bg-white/90 backdrop-blur">
         <CardHeader>
