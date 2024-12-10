@@ -9,32 +9,39 @@ export function useAuthHandlers() {
   const [resetAttempts, setResetAttempts] = useState(0);
   const [lastResetAttempt, setLastResetAttempt] = useState(0);
 
-  // Aumentando o limite de tentativas para 5 e reduzindo o período de espera para 30 segundos
   const MAX_ATTEMPTS = 5;
-  const COOLDOWN_PERIOD = 30 * 1000; // 30 seconds in milliseconds
+  const COOLDOWN_PERIOD = 30 * 1000;
 
   const handleSignIn = async (email: string, password: string) => {
     try {
+      console.log("Iniciando login para:", email);
       setIsLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
+      console.log("Resposta do login:", { data, error });
+
       if (error) {
-        console.error("Signin error:", error);
+        console.error("Erro no login:", error);
         
-        if (error.status === 400 && error.message.includes("Invalid login credentials")) {
-          toast.error("Email ou senha incorretos.");
+        if (error.message.includes("Invalid login credentials")) {
+          toast.error("Email ou senha incorretos");
           return;
         }
         
         toast.error("Erro ao tentar fazer login. Por favor, tente novamente.");
-      } else {
+        return;
+      }
+
+      if (data.session) {
+        console.log("Login bem sucedido, sessão criada");
         toast.success("Login realizado com sucesso!");
       }
     } catch (error) {
-      console.error("Erro no login:", error);
+      console.error("Erro inesperado no login:", error);
       toast.error("Ocorreu um erro ao tentar entrar. Tente novamente.");
     } finally {
       setIsLoading(false);

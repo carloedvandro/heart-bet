@@ -2,7 +2,7 @@ import { useState } from "react";
 import { AuthForm } from "./AuthForm";
 import { AuthLinks } from "./AuthLinks";
 import { useAuthHandlers } from "./hooks/useAuthHandlers";
-import { toast } from "@/hooks/use-toast";
+import { toast } from "sonner";
 
 export function AuthConfig() {
   const [email, setEmail] = useState("");
@@ -14,36 +14,35 @@ export function AuthConfig() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Formulário submetido", { email, password, isResetMode, isSignUpMode });
+
     if (!email) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Por favor, preencha o email."
-      });
+      toast.error("Por favor, preencha o email.");
       return;
     }
 
     if (!isResetMode && !password) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: "Por favor, preencha a senha."
-      });
+      toast.error("Por favor, preencha a senha.");
       return;
     }
 
-    if (isResetMode) {
-      const success = await handleResetPassword(email);
-      if (success) {
-        setIsResetMode(false);
+    try {
+      if (isResetMode) {
+        const success = await handleResetPassword(email);
+        if (success) {
+          setIsResetMode(false);
+        }
+      } else if (isSignUpMode) {
+        const success = await handleSignUp(email, password);
+        if (success) {
+          setIsSignUpMode(false);
+        }
+      } else {
+        await handleSignIn(email, password);
       }
-    } else if (isSignUpMode) {
-      const success = await handleSignUp(email, password);
-      if (success) {
-        setIsSignUpMode(false);
-      }
-    } else {
-      await handleSignIn(email, password);
+    } catch (error) {
+      console.error("Erro no submit do formulário:", error);
+      toast.error("Ocorreu um erro. Por favor, tente novamente.");
     }
   };
 
