@@ -58,6 +58,7 @@ export default function Dashboard() {
         <Header 
           profile={profile} 
           onLogout={handleLogout}
+          setProfile={setProfile}
         />
         <DashboardContent 
           profile={profile}
