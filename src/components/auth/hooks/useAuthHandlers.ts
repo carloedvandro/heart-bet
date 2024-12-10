@@ -9,7 +9,7 @@ export function useAuthHandlers() {
   const [resetAttempts, setResetAttempts] = useState(0);
   const [lastResetAttempt, setLastResetAttempt] = useState(0);
 
-  const COOLDOWN_PERIOD = 15 * 60 * 1000; // 15 minutes in milliseconds
+  const COOLDOWN_PERIOD = 60 * 1000; // 1 minuto em milissegundos
 
   const handleSignIn = async (email: string, password: string) => {
     try {
@@ -43,8 +43,8 @@ export function useAuthHandlers() {
     const currentTime = Date.now();
     
     if (signUpAttempts >= 3 && currentTime - lastSignUpAttempt < COOLDOWN_PERIOD) {
-      const minutesLeft = Math.ceil((COOLDOWN_PERIOD - (currentTime - lastSignUpAttempt)) / 60000);
-      toast.error(`Muitas tentativas. Aguarde ${minutesLeft} minutos antes de tentar novamente.`);
+      const secondsLeft = Math.ceil((COOLDOWN_PERIOD - (currentTime - lastSignUpAttempt)) / 1000);
+      toast.error(`Muitas tentativas. Aguarde ${secondsLeft} segundos antes de tentar novamente.`);
       return;
     }
 
@@ -64,7 +64,7 @@ export function useAuthHandlers() {
         console.error("Signup error:", error);
         
         if (error.status === 429) {
-          toast.error("Limite de emails excedido. Por favor, aguarde alguns minutos antes de tentar novamente.");
+          toast.error("Limite de emails excedido. Por favor, aguarde alguns segundos antes de tentar novamente.");
           return;
         }
         
@@ -77,7 +77,7 @@ export function useAuthHandlers() {
       console.error("Erro no cadastro:", error);
       // @ts-ignore
       if (error?.status === 429) {
-        toast.error("Limite de emails excedido. Por favor, aguarde alguns minutos antes de tentar novamente.");
+        toast.error("Limite de emails excedido. Por favor, aguarde alguns segundos antes de tentar novamente.");
         return;
       }
       toast.error("Ocorreu um erro ao tentar criar conta. Tente novamente.");
@@ -91,8 +91,8 @@ export function useAuthHandlers() {
     const currentTime = Date.now();
     
     if (resetAttempts >= 3 && currentTime - lastResetAttempt < COOLDOWN_PERIOD) {
-      const minutesLeft = Math.ceil((COOLDOWN_PERIOD - (currentTime - lastResetAttempt)) / 60000);
-      toast.error(`Muitas tentativas. Aguarde ${minutesLeft} minutos antes de tentar novamente.`);
+      const secondsLeft = Math.ceil((COOLDOWN_PERIOD - (currentTime - lastResetAttempt)) / 1000);
+      toast.error(`Muitas tentativas. Aguarde ${secondsLeft} segundos antes de tentar novamente.`);
       return false;
     }
 
