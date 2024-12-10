@@ -62,18 +62,16 @@ export default function Admin() {
   const { data: totalUsers } = useQuery({
     queryKey: ['admin', 'total-users'],
     queryFn: async () => {
-      // Removendo o .single() e usando count diretamente
-      const { data, error } = await supabase
+      const { count, error } = await supabase
         .from('profiles')
-        .select('id', { count: 'exact' });
+        .select('*', { count: 'exact' });
 
       if (error) {
         console.error('Erro ao buscar total de usuários:', error);
         throw error;
       }
 
-      // Retornando o comprimento do array de dados
-      return data?.length || 0;
+      return count || 0;
     }
   });
 
