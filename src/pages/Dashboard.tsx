@@ -63,8 +63,17 @@ export default function Dashboard() {
     }
   };
 
+  // Renderiza um loading state enquanto verifica a sessão
+  if (session === undefined) {
+    return <div className="flex items-center justify-center min-h-screen">
+      <p className="text-lg">Carregando...</p>
+    </div>;
+  }
+
+  // Redireciona para login se não houver sessão
   if (!session) {
-    console.log("No session found, returning null");
+    console.log("No session found, redirecting to login");
+    navigate("/login");
     return null;
   }
 
