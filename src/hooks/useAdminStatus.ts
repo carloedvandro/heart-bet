@@ -56,15 +56,11 @@ export const useAdminStatus = () => {
         toast.error('Erro ao verificar status de administrador');
         setIsAdmin(false);
       } finally {
-        if (retryCount >= MAX_RETRIES) {
-          setIsLoading(false);
-        }
+        setIsLoading(false);
       }
     };
 
-    const retryTimeout = setTimeout(checkAdminStatus, retryCount * 1000);
-    
-    return () => clearTimeout(retryTimeout);
+    checkAdminStatus();
   }, [session?.user?.id, retryCount]);
 
   return { isAdmin, isLoading };

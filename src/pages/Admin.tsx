@@ -16,19 +16,19 @@ export default function Admin() {
 
   useEffect(() => {
     const checkAccess = async () => {
-      console.log("Checking admin access...");
-      console.log("Session:", session);
-      console.log("Is admin:", isAdmin);
-      console.log("Is loading:", isLoading);
+      console.log("Verificando acesso administrativo...");
+      console.log("Sessão:", session);
+      console.log("É admin:", isAdmin);
+      console.log("Está carregando:", isLoading);
 
       if (!session) {
-        console.log("No session found, redirecting to login");
+        console.log("Nenhuma sessão encontrada, redirecionando para login");
         navigate("/login");
         return;
       }
 
       if (!isLoading && !isAdmin) {
-        console.log("User is not admin, redirecting to dashboard");
+        console.log("Usuário não é admin, redirecionando para dashboard");
         toast.error("Acesso negado. Você não tem permissão para acessar esta área.");
         navigate("/dashboard");
       }
