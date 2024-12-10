@@ -25,10 +25,6 @@ export function AuthConfig() {
         console.log("User updated:", session?.user);
       } else if (event === 'PASSWORD_RECOVERY') {
         toast.info("Verifique seu email para redefinir sua senha");
-      } else if (event === 'USER_DELETED') {
-        toast.info("Sua conta foi deletada");
-      } else if (event === 'ERROR') {
-        toast.error("Erro na autenticação. Tente novamente.");
       }
     });
 

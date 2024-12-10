@@ -13,28 +13,26 @@ import Admin from "./pages/Admin";
 
 const queryClient = new QueryClient();
 
-const App = () => {
+function App() {
   return (
-    <StrictMode>
+    <SessionContextProvider supabaseClient={supabase}>
       <QueryClientProvider client={queryClient}>
-        <SessionContextProvider supabaseClient={supabase}>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Navigate to="/login" replace />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/admin/*" element={<Admin />} />
-                <Route path="*" element={<Navigate to="/login" replace />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </SessionContextProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Navigate to="/login" replace />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/admin/*" element={<Admin />} />
+              <Route path="*" element={<Navigate to="/login" replace />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
       </QueryClientProvider>
-    </StrictMode>
+    </SessionContextProvider>
   );
-};
+}
 
 export default App;
