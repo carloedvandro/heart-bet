@@ -18,13 +18,9 @@ export default function Dashboard() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!session?.user?.id) {
-        console.log("No session user ID found");
-        return;
-      }
+      if (!session?.user?.id) return;
 
       try {
-        console.log("Fetching profile for user:", session.user.id);
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
@@ -34,10 +30,9 @@ export default function Dashboard() {
         if (error) {
           console.error("Error fetching profile:", error);
           toast.error("Erro ao carregar perfil");
-          throw error;
+          return;
         }
         
-        console.log("Profile fetched successfully:", data);
         setProfile(data);
       } catch (error) {
         console.error("Error in fetchProfile:", error);
@@ -63,17 +58,7 @@ export default function Dashboard() {
     }
   };
 
-  // Renderiza um loading state enquanto verifica a sessão
-  if (session === undefined) {
-    return <div className="flex items-center justify-center min-h-screen">
-      <p className="text-lg">Carregando...</p>
-    </div>;
-  }
-
-  // Redireciona para login se não houver sessão
   if (!session) {
-    console.log("No session found, redirecting to login");
-    navigate("/login");
     return null;
   }
 
