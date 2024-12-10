@@ -66,8 +66,8 @@ export function RechargeDialog() {
           size="sm"
           className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-600 hover:text-blue-700"
         >
-          <Wallet className="mr-2 h-4 w-4" />
-          <span className="whitespace-nowrap">Recarregar</span>
+          <Wallet className="mr-1 h-4 w-4" />
+          Recarregar
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

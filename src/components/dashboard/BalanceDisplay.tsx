@@ -12,7 +12,7 @@ export function BalanceDisplay({ profile }: BalanceDisplayProps) {
 
   return (
     <div className="bg-green-50 px-3 py-1.5 rounded-lg">
-      <span className="text-green-800 font-medium whitespace-nowrap">
+      <span className="text-green-800 font-medium">
         Saldo: {formattedBalance}
       </span>
     </div>
