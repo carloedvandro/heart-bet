@@ -48,23 +48,37 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gray-50 p-4">
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="grid gap-6 md:grid-cols-[300px,1fr]">
-          <div className="space-y-6">
-            <Card className="p-4 space-y-4">
+        <div className="relative z-50 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg mb-6">
+          <div className="flex justify-between items-center flex-wrap gap-4">
+            <div className="flex items-center gap-4 flex-wrap">
+              <h1 className="text-3xl font-bold text-gray-800">Corações Premiados</h1>
               <BalanceDisplay profile={profile} />
+            </div>
+            <div className="flex items-center gap-4">
+              <AudioControl />
+              <RechargeDialog />
               <ProfileActions 
                 isAdmin={profile?.is_admin} 
                 setProfile={setProfile}
               />
-            </Card>
-            <AudioControl />
-            <RechargeDialog />
+            </div>
           </div>
+        </div>
 
-          <div className="space-y-6">
-            <BettingForm onBetPlaced={handleBetPlaced} />
-            <BetsTable refreshTrigger={refreshTrigger} />
-          </div>
+        <div className="space-y-6">
+          <Card className="bg-white/90 backdrop-blur">
+            <div className="p-6">
+              <h2 className="text-2xl font-semibold mb-4">Nova Aposta</h2>
+              <BettingForm onBetPlaced={handleBetPlaced} />
+            </div>
+          </Card>
+
+          <Card className="bg-white/90 backdrop-blur">
+            <div className="p-6">
+              <h2 className="text-2xl font-semibold mb-4">Suas Apostas</h2>
+              <BetsTable refreshTrigger={refreshTrigger} />
+            </div>
+          </Card>
         </div>
       </div>
     </div>

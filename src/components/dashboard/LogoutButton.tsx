@@ -9,9 +9,8 @@ export function LogoutButton({ onLogout }: LogoutButtonProps) {
   return (
     <Button
       variant="outline"
-      size="sm"
       onClick={onLogout}
-      className="gap-2"
+      className="w-full gap-2"
     >
       <LogOut className="h-4 w-4" />
       Sair
