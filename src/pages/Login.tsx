@@ -11,37 +11,34 @@ export default function Login() {
 
   useEffect(() => {
     console.log("Login component mounted");
-    let isSubscribed = true; // Para evitar atualizações após o componente ser desmontado
-    
+    let isSubscribed = true;
+
     const checkSession = async () => {
       try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
         
-        if (sessionError) {
-          console.error("Session error:", sessionError);
-          await supabase.auth.signOut({ scope: 'local' });
+        if (!session || !isSubscribed) {
+          console.log("No valid session, staying on login page");
           return;
         }
 
-        if (session && isSubscribed) {
-          console.log("Valid session found, checking profile for user:", session.user.id);
-          
-          const { data: existingProfile, error: profileError } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .maybeSingle();
+        console.log("Valid session found, checking profile for user:", session.user.id);
+        
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .maybeSingle();
 
-          if (profileError) {
-            console.error("Error checking profile:", profileError);
-            toast.error("Erro ao verificar perfil");
-            return;
-          }
+        if (profileError) {
+          console.error("Error checking profile:", profileError);
+          toast.error("Erro ao verificar perfil");
+          return;
+        }
 
-          if (existingProfile || session) {
-            console.log("Profile check complete, navigating to dashboard");
-            navigate('/dashboard', { replace: true });
-          }
+        if (profile) {
+          console.log("Profile found, navigating to dashboard");
+          navigate('/dashboard', { replace: true });
         }
       } catch (error) {
         console.error("Unexpected error:", error);
@@ -49,15 +46,14 @@ export default function Login() {
       }
     };
 
+    // Verificação inicial da sessão
     checkSession();
 
+    // Listener para mudanças no estado de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session?.user?.id);
+      console.log("Auth state changed:", event);
       
-      if (event === 'SIGNED_OUT') {
-        console.log("User signed out, staying on login page");
-      } else if (event === 'SIGNED_IN' && session && isSubscribed) {
-        console.log("User signed in, redirecting to dashboard");
+      if (event === 'SIGNED_IN' && session && isSubscribed) {
         navigate('/dashboard', { replace: true });
       }
     });
