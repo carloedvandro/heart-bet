@@ -36,9 +36,19 @@ export function AuthConfig() {
         const success = await handleSignUp(email, password);
         if (success) {
           setIsSignUpMode(false);
+          setEmail("");
+          setPassword("");
         }
       } else {
-        await handleSignIn(email, password);
+        const success = await handleSignIn(email, password);
+        if (!success) {
+          // Mantém os dados apenas se houver erro
+          console.log("Login falhou, mantendo dados do formulário");
+        } else {
+          // Limpa os dados apenas após sucesso
+          setEmail("");
+          setPassword("");
+        }
       }
     } catch (error) {
       console.error("Erro no submit do formulário:", error);

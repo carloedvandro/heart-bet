@@ -12,7 +12,8 @@ export function useAuthHandlers() {
   const handleSignIn = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      await signIn.handleSignIn(email, password);
+      const success = await signIn.handleSignIn(email, password);
+      return success;
     } finally {
       setIsLoading(false);
     }
