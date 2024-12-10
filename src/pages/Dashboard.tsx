@@ -7,6 +7,8 @@ import { Header } from "@/components/dashboard/Header";
 import { useSession } from "@supabase/auth-helpers-react";
 import { playSounds } from "@/utils/soundEffects";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
+import { Button } from "@/components/ui/button";
+import { Shield } from "lucide-react";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type RechargeRow = Database['public']['Tables']['recharges']['Row'];
@@ -121,6 +123,10 @@ export default function Dashboard() {
     }
   };
 
+  const handleAdminAccess = () => {
+    window.location.href = "https://admin.lotocoracao.com";
+  };
+
   if (!session) return null;
 
   return (
@@ -133,6 +139,17 @@ export default function Dashboard() {
       <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
       <div className="relative z-10">
         <Header profile={profile} onLogout={handleLogout} />
+        {profile?.is_admin && (
+          <div className="max-w-7xl mx-auto mb-6">
+            <Button
+              onClick={handleAdminAccess}
+              className="w-full sm:w-auto bg-pink-600 hover:bg-pink-700 text-white"
+            >
+              <Shield className="mr-2 h-4 w-4" />
+              Acessar Área Administrativa
+            </Button>
+          </div>
+        )}
         <DashboardContent 
           profile={profile}
           refreshTrigger={refreshTrigger}
