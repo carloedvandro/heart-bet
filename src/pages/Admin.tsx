@@ -13,9 +13,6 @@ export default function Admin() {
   const session = useSession();
   const { isAdmin, isLoading } = useAdminStatus();
 
-  // Se estiver carregando, mostra nada
-  if (isLoading || !isAdmin) return null;
-
   // Query para buscar TODAS as apostas de hoje com valor total
   const { data: todayBetsData } = useQuery({
     queryKey: ['admin', 'today-bets'],
@@ -41,7 +38,8 @@ export default function Admin() {
         total: total,
         uniqueBettors: uniqueBettors
       };
-    }
+    },
+    enabled: !isLoading && isAdmin // Only run query when admin status is confirmed
   });
 
   const { data: pendingRechargesData } = useQuery({
@@ -59,7 +57,8 @@ export default function Admin() {
         count: data?.length || 0,
         total: total
       };
-    }
+    },
+    enabled: !isLoading && isAdmin // Only run query when admin status is confirmed
   });
 
   const { data: usersData } = useQuery({
@@ -89,7 +88,8 @@ export default function Admin() {
         total: totalUsers || 0,
         active: uniqueActiveBettors.size
       };
-    }
+    },
+    enabled: !isLoading && isAdmin // Only run query when admin status is confirmed
   });
 
   const handleLogout = async () => {
@@ -104,6 +104,9 @@ export default function Admin() {
       toast.error("Erro ao desconectar");
     }
   };
+
+  // Se estiver carregando ou não for admin, mostra nada
+  if (isLoading || !isAdmin) return null;
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
