@@ -95,6 +95,82 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_proofs: {
+        Row: {
+          created_at: string
+          file_path: string
+          id: string
+          recharge_id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          file_path: string
+          id?: string
+          recharge_id: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          file_path?: string
+          id?: string
+          recharge_id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_recharge"
+            columns: ["recharge_id"]
+            isOneToOne: false
+            referencedRelation: "recharges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_proofs_recharge_id_fkey"
+            columns: ["recharge_id"]
+            isOneToOne: false
+            referencedRelation: "recharges"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payment_proofs_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pix_codes: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          status: string
+          value: number
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          status?: string
+          value: number
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          status?: string
+          value?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           balance: number
