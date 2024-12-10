@@ -11,16 +11,20 @@ import { toast } from "sonner";
 export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
   const session = useSession();
   const navigate = useNavigate();
 
-  useAuthRedirect();
-
   useEffect(() => {
     const fetchProfile = async () => {
-      if (!session?.user?.id) return;
-
       try {
+        if (!session?.user?.id) {
+          console.log("No session found, redirecting to login");
+          navigate("/login", { replace: true });
+          return;
+        }
+
+        console.log("Fetching profile for user:", session.user.id);
         const { data, error } = await supabase
           .from("profiles")
           .select("*")
@@ -33,15 +37,18 @@ export default function Dashboard() {
           return;
         }
         
+        console.log("Profile loaded successfully:", data);
         setProfile(data);
       } catch (error) {
         console.error("Error in fetchProfile:", error);
         toast.error("Erro ao carregar perfil");
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchProfile();
-  }, [session]);
+  }, [session, navigate]);
 
   const handleBetPlaced = () => {
     setRefreshTrigger(prev => prev + 1);
@@ -49,8 +56,10 @@ export default function Dashboard() {
 
   const handleLogout = async () => {
     try {
+      console.log("Iniciando logout...");
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      console.log("Logout realizado com sucesso");
       navigate("/login", { replace: true });
     } catch (error) {
       console.error("Error logging out:", error);
@@ -58,12 +67,21 @@ export default function Dashboard() {
     }
   };
 
-  if (!session) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-50 to-pink-50">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500" />
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500" />
+          <p className="text-gray-600">Carregando...</p>
+        </div>
       </div>
     );
+  }
+
+  if (!session) {
+    console.log("No session found in render, redirecting to login");
+    navigate("/login", { replace: true });
+    return null;
   }
 
   return (

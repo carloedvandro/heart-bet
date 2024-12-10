@@ -11,16 +11,14 @@ export function useAuthRedirect() {
 
     const checkSession = async () => {
       try {
+        console.log("Verificando sessão...");
         const { data: { session } } = await supabase.auth.getSession();
         
         if (!isSubscribed) return;
 
         if (!session && location.pathname !== '/login') {
-          console.log("Redirecionando para login - sem sessão");
+          console.log("Sem sessão ativa, redirecionando para login");
           navigate('/login', { replace: true });
-        } else if (session && location.pathname === '/login') {
-          console.log("Redirecionando para dashboard - sessão encontrada");
-          navigate('/dashboard', { replace: true });
         }
       } catch (error) {
         console.error("Erro ao verificar sessão:", error);
@@ -34,14 +32,14 @@ export function useAuthRedirect() {
       
       console.log("Evento de autenticação:", event);
       
-      if (event === 'SIGNED_IN' && session && location.pathname === '/login') {
-        navigate('/dashboard', { replace: true });
-      } else if (event === 'SIGNED_OUT' && location.pathname !== '/login') {
+      if (event === 'SIGNED_OUT') {
+        console.log("Usuário deslogado, redirecionando para login");
         navigate('/login', { replace: true });
       }
     });
 
     return () => {
+      console.log("Limpando inscrição de auth redirect");
       isSubscribed = false;
       subscription.unsubscribe();
     };
