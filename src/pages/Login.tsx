@@ -14,6 +14,16 @@ export default function Login() {
     
     const checkSession = async () => {
       try {
+        // Clear any stale session data first
+        const { error: signOutError } = await supabase.auth.signOut({
+          scope: 'local'
+        });
+        
+        if (signOutError) {
+          console.error("Error clearing session:", signOutError);
+        }
+
+        // Now check for a valid session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -24,8 +34,8 @@ export default function Login() {
         if (session) {
           console.log("Session found, checking profile for user:", session.user.id);
           
-          // Wait for a moment to ensure auth record is fully created
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          // Add a longer delay to ensure auth record is fully created
+          await new Promise(resolve => setTimeout(resolve, 2000));
           
           // Check if profile exists
           const { data: existingProfile, error: profileError } = await supabase

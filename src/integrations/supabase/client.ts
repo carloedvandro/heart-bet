@@ -42,17 +42,6 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         headers: Object.fromEntries(response.headers.entries())
       });
 
-      // Handle authentication errors
-      if (response.status === 400 || response.status === 401) {
-        const errorData = await response.clone().json().catch(() => null);
-        console.error('Auth Error:', errorData);
-        
-        const error = new Error(errorData?.message || 'Authentication error');
-        (error as any).status = response.status;
-        (error as any).data = errorData;
-        throw error;
-      }
-
       // Handle rate limiting
       if (response.status === 429) {
         const error = new Error('Rate limit exceeded');
@@ -79,10 +68,8 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       attempt++;
       console.error(`Attempt ${attempt} failed:`, error);
       
-      // Don't retry auth errors or rate limits
-      if ((error as any).status === 400 || 
-          (error as any).status === 401 || 
-          (error as any).status === 429) {
+      // Don't retry rate limits
+      if ((error as any).status === 429) {
         throw error;
       }
       
@@ -106,6 +93,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     persistSession: true,
     detectSessionInUrl: false,
     flowType: 'pkce',
+    storage: window.localStorage,
   },
   global: {
     fetch: customFetch
