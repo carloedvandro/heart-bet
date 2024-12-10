@@ -9,7 +9,7 @@ export function useAuthHandlers() {
   const [resetAttempts, setResetAttempts] = useState(0);
   const [lastResetAttempt, setLastResetAttempt] = useState(0);
 
-  const COOLDOWN_PERIOD = 60 * 1000; // 1 minuto em milissegundos
+  const COOLDOWN_PERIOD = 60 * 1000; // 1 minute in milliseconds
 
   const handleSignIn = async (email: string, password: string) => {
     try {
@@ -45,7 +45,7 @@ export function useAuthHandlers() {
     if (signUpAttempts >= 3 && currentTime - lastSignUpAttempt < COOLDOWN_PERIOD) {
       const secondsLeft = Math.ceil((COOLDOWN_PERIOD - (currentTime - lastSignUpAttempt)) / 1000);
       toast.error(`Muitas tentativas. Aguarde ${secondsLeft} segundos antes de tentar novamente.`);
-      return;
+      return false;
     }
 
     try {
@@ -63,28 +63,36 @@ export function useAuthHandlers() {
       if (error) {
         console.error("Signup error:", error);
         
-        if (error.status === 429) {
-          toast.error("Limite de emails excedido. Por favor, aguarde alguns segundos antes de tentar novamente.");
-          return;
+        // Handle email rate limit error specifically
+        if (error.message?.includes("email rate limit exceeded") || 
+            error.message?.includes("over_email_send_rate_limit") ||
+            error.status === 429) {
+          toast.error("Limite de envio de emails excedido. Por favor, aguarde alguns minutos antes de tentar novamente.");
+          return false;
         }
         
         toast.error("Erro ao tentar criar conta. Por favor, tente novamente.");
-      } else {
-        toast.success("Conta criada com sucesso! Verifique seu email para confirmar.");
-        return true;
+        return false;
       }
-    } catch (error) {
+
+      toast.success("Conta criada com sucesso! Verifique seu email para confirmar.");
+      return true;
+    } catch (error: any) {
       console.error("Erro no cadastro:", error);
-      // @ts-ignore
-      if (error?.status === 429) {
-        toast.error("Limite de emails excedido. Por favor, aguarde alguns segundos antes de tentar novamente.");
-        return;
+      
+      // Additional check for rate limit in catch block
+      if (error?.status === 429 || 
+          error?.message?.includes("email rate limit exceeded") ||
+          error?.message?.includes("over_email_send_rate_limit")) {
+        toast.error("Limite de envio de emails excedido. Por favor, aguarde alguns minutos antes de tentar novamente.");
+        return false;
       }
+      
       toast.error("Ocorreu um erro ao tentar criar conta. Tente novamente.");
+      return false;
     } finally {
       setIsLoading(false);
     }
-    return false;
   };
 
   const handleResetPassword = async (email: string) => {
