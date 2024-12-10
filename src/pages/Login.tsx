@@ -11,6 +11,7 @@ export default function Login() {
 
   useEffect(() => {
     console.log("Login component mounted");
+    
     const checkSession = async () => {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -22,6 +23,9 @@ export default function Login() {
 
         if (session) {
           console.log("Session found, checking profile for user:", session.user.id);
+          
+          // Wait for a moment to ensure auth record is fully created
+          await new Promise(resolve => setTimeout(resolve, 1000));
           
           // First check if profile exists
           const { data: existingProfile, error: profileError } = await supabase
@@ -36,12 +40,9 @@ export default function Login() {
             return;
           }
 
-          // If no profile exists, wait a moment and try to create one
+          // If no profile exists, create one
           if (!existingProfile) {
-            console.log("No profile found, waiting before creating profile for user:", session.user.id);
-            
-            // Wait for 1 second to ensure auth record is fully created
-            await new Promise(resolve => setTimeout(resolve, 1000));
+            console.log("No profile found, creating profile for user:", session.user.id);
             
             const { error: createError } = await supabase
               .from('profiles')
@@ -56,8 +57,32 @@ export default function Login() {
 
             if (createError) {
               console.error("Error creating profile:", createError);
-              toast.error("Erro ao criar perfil");
-              return;
+              
+              // If we get a foreign key error, wait a bit longer and try one more time
+              if (createError.code === '23503') {
+                console.log("Foreign key error, waiting and retrying...");
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                const { error: retryError } = await supabase
+                  .from('profiles')
+                  .insert([
+                    {
+                      id: session.user.id,
+                      email: session.user.email,
+                      balance: 0,
+                      is_admin: false
+                    }
+                  ]);
+                
+                if (retryError) {
+                  console.error("Error in retry attempt:", retryError);
+                  toast.error("Erro ao criar perfil");
+                  return;
+                }
+              } else {
+                toast.error("Erro ao criar perfil");
+                return;
+              }
             }
             
             console.log("Profile created successfully");
