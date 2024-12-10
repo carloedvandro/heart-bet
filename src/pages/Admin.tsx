@@ -138,7 +138,10 @@ export default function Admin() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           <Card 
             className="p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
-            onClick={() => navigate("/admin/bets")}
+            onClick={() => {
+              console.log("Navegando para a página de apostas detalhadas...");
+              navigate("/admin/detailed-bets");
+            }}
           >
             <h3 className="text-lg font-semibold mb-4">Apostas Hoje</h3>
             <div className="space-y-2">
