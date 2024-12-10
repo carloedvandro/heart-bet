@@ -9,6 +9,7 @@ export function useAuthRedirect() {
   useEffect(() => {
     const checkUser = async () => {
       try {
+        console.log("Checking user session...");
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
         if (sessionError) {
@@ -17,12 +18,12 @@ export function useAuthRedirect() {
         }
         
         if (session) {
-          console.log("User logged in, checking admin status");
+          console.log("Session found, user ID:", session.user.id);
           
           // Check if user is admin
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('is_admin')
+            .select('is_admin, email')
             .eq('id', session.user.id)
             .single();
             
@@ -30,6 +31,8 @@ export function useAuthRedirect() {
             console.error("Error checking admin status:", profileError);
             return;
           }
+
+          console.log("Profile data:", profile);
 
           if (profile?.is_admin) {
             console.log("Admin user detected, redirecting to admin dashboard");
@@ -38,6 +41,8 @@ export function useAuthRedirect() {
             console.log("Regular user detected, redirecting to user dashboard");
             navigate("/dashboard");
           }
+        } else {
+          console.log("No session found");
         }
       } catch (error) {
         console.error("Error checking session:", error);
@@ -45,16 +50,15 @@ export function useAuthRedirect() {
     };
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth event:", event, "Session:", session);
+      console.log("Auth event:", event);
       
       if (event === 'SIGNED_IN') {
-        console.log("User signed in successfully");
+        console.log("User signed in, checking admin status");
         
-        // Check if user is admin
         if (session) {
           const { data: profile, error: profileError } = await supabase
             .from('profiles')
-            .select('is_admin')
+            .select('is_admin, email')
             .eq('id', session.user.id)
             .single();
             
@@ -63,11 +67,13 @@ export function useAuthRedirect() {
             return;
           }
 
+          console.log("Profile data after sign in:", profile);
+
           if (profile?.is_admin) {
-            console.log("Admin user detected, redirecting to admin");
+            console.log("Admin user confirmed, navigating to admin");
             navigate("/admin");
           } else {
-            console.log("Regular user detected, redirecting to dashboard");
+            console.log("Regular user confirmed, navigating to dashboard");
             navigate("/dashboard");
           }
         }
@@ -78,6 +84,7 @@ export function useAuthRedirect() {
       }
     });
 
+    // Check user status on component mount
     checkUser();
 
     return () => {
