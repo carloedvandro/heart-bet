@@ -11,7 +11,6 @@ import { toast } from "sonner";
 export default function Dashboard() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
   const session = useSession();
   const navigate = useNavigate();
 
@@ -20,7 +19,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchProfile = async () => {
       if (!session?.user?.id) {
-        setIsLoading(false);
+        console.log("No session user ID found");
         return;
       }
 
@@ -43,8 +42,6 @@ export default function Dashboard() {
       } catch (error) {
         console.error("Error in fetchProfile:", error);
         toast.error("Erro ao carregar perfil");
-      } finally {
-        setIsLoading(false);
       }
     };
 
@@ -59,24 +56,24 @@ export default function Dashboard() {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
-      navigate("/login", { replace: true });
+      navigate("/login");
     } catch (error) {
       console.error("Error logging out:", error);
       toast.error("Erro ao fazer logout");
     }
   };
 
-  // Mostra loading enquanto verifica a sessão e carrega o perfil
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-lg">Carregando...</p>
-      </div>
-    );
+  // Renderiza um loading state enquanto verifica a sessão
+  if (session === undefined) {
+    return <div className="flex items-center justify-center min-h-screen">
+      <p className="text-lg">Carregando...</p>
+    </div>;
   }
 
-  // Não redireciona aqui, deixa o useAuthRedirect cuidar disso
+  // Redireciona para login se não houver sessão
   if (!session) {
+    console.log("No session found, redirecting to login");
+    navigate("/login");
     return null;
   }
 

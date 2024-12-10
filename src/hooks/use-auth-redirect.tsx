@@ -14,14 +14,14 @@ export function useAuthRedirect() {
         // Se não houver sessão e não estiver na página de login
         if (!session && location.pathname !== '/login') {
           console.log('No session found, redirecting to login');
-          navigate('/login', { replace: true });
+          navigate('/login');
           return;
         }
 
         // Se houver sessão e estiver na página de login
         if (session && location.pathname === '/login') {
           console.log('Session found, redirecting to dashboard');
-          navigate('/dashboard', { replace: true });
+          navigate('/dashboard');
           return;
         }
       } catch (error) {
@@ -34,9 +34,9 @@ export function useAuthRedirect() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log("Auth state changed:", event, session);
       if (event === 'SIGNED_OUT') {
-        navigate('/login', { replace: true });
+        navigate('/login');
       } else if (event === 'SIGNED_IN' && session) {
-        navigate('/dashboard', { replace: true });
+        navigate('/dashboard');
       }
     });
 
