@@ -20,21 +20,29 @@ export default function Admin() {
       console.log("Buscando todas as apostas de hoje...");
       const today = new Date().toISOString().split('T')[0];
       
+      // Usando RPC para bypass do RLS e buscar todas as apostas
       const { data, error } = await supabase
-        .from('bets')
-        .select('amount, user_id')
-        .eq('draw_date', today);
+        .rpc('get_all_bets_today', { today_date: today });
 
       if (error) {
         console.error("Erro ao buscar apostas:", error);
         throw error;
       }
       
-      const total = data?.reduce((acc, bet) => acc + Number(bet.amount), 0) || 0;
-      const uniqueBettors = new Set(data?.map(bet => bet.user_id)).size;
+      // Se não houver dados, retorna valores zerados
+      if (!data || data.length === 0) {
+        return {
+          count: 0,
+          total: 0,
+          uniqueBettors: 0
+        };
+      }
+
+      const total = data.reduce((acc, bet) => acc + Number(bet.amount), 0);
+      const uniqueBettors = new Set(data.map(bet => bet.user_id)).size;
 
       return {
-        count: data?.length || 0,
+        count: data.length,
         total: total,
         uniqueBettors: uniqueBettors
       };
