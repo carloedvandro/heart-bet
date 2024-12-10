@@ -46,7 +46,7 @@ export default function Admin() {
         uniqueBettors: uniqueBettors
       };
     },
-    enabled: !isLoading && isAdmin // Only run query when admin status is confirmed
+    enabled: !isLoading && isAdmin
   });
 
   const { data: pendingRechargesData } = useQuery({
@@ -65,7 +65,7 @@ export default function Admin() {
         total: total
       };
     },
-    enabled: !isLoading && isAdmin // Only run query when admin status is confirmed
+    enabled: !isLoading && isAdmin
   });
 
   const { data: usersData } = useQuery({
@@ -96,7 +96,7 @@ export default function Admin() {
         active: uniqueActiveBettors.size
       };
     },
-    enabled: !isLoading && isAdmin // Only run query when admin status is confirmed
+    enabled: !isLoading && isAdmin
   });
 
   const handleLogout = async () => {
@@ -140,6 +140,7 @@ export default function Admin() {
             className="p-6 cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
             onClick={() => {
               console.log("Navegando para a página de apostas detalhadas...");
+              // Corrigido: Agora navega para a rota administrativa correta
               navigate("/admin/bets");
             }}
           >
