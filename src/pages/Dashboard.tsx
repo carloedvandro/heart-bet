@@ -123,8 +123,25 @@ export default function Dashboard() {
     }
   };
 
-  const handleAdminAccess = () => {
-    navigate("/admin");
+  const handleAdminAccess = async () => {
+    try {
+      // Fazer logout da sessão atual
+      localStorage.clear();
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error("Logout error:", error);
+        toast.error("Erro ao acessar área administrativa");
+        return;
+      }
+
+      // Redirecionar para a página de login administrativo
+      setProfile(null);
+      navigate("/admin-login");
+      toast.success("Por favor, faça login como administrador");
+    } catch (error) {
+      console.error("Error accessing admin area:", error);
+      toast.error("Erro ao acessar área administrativa");
+    }
   };
 
   if (!session) return null;
