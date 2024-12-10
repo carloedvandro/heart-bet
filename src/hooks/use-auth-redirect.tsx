@@ -45,6 +45,9 @@ export function useAuthRedirect() {
           return;
         }
 
+        // Definir rotas administrativas válidas
+        const validAdminRoutes = ['/admin', '/admin/bets'];
+
         // Lógica para usuários administrativos
         if (profile?.is_admin) {
           console.log("Usuário admin detectado, verificando rota:", location.pathname);
@@ -55,25 +58,26 @@ export function useAuthRedirect() {
             return;
           }
           
-          // Se admin estiver em páginas de usuário comum, redirecionar para admin
-          if (!location.pathname.startsWith('/admin')) {
-            console.log("Admin tentando acessar área de usuário, redirecionando para /admin");
+          // Se admin estiver em páginas de usuário comum
+          if (location.pathname === '/dashboard') {
+            console.log("Admin tentando acessar dashboard, redirecionando para /admin");
             toast.error("Administradores devem usar o painel administrativo");
             navigate('/admin');
             return;
           }
 
-          // Se admin estiver em rotas administrativas válidas, permitir
-          if (location.pathname === '/admin' || location.pathname === '/admin/bets') {
+          // Se admin estiver em uma rota administrativa válida, permitir
+          if (validAdminRoutes.includes(location.pathname)) {
             console.log("Admin acessando rota administrativa válida:", location.pathname);
             return;
           }
 
-          // Se admin estiver em qualquer outra rota administrativa inválida, redirecionar para /admin
-          if (location.pathname.startsWith('/admin')) {
+          // Se admin estiver em qualquer outra rota, redirecionar para /admin
+          if (!validAdminRoutes.includes(location.pathname)) {
+            console.log("Admin em rota inválida, redirecionando para /admin");
             navigate('/admin');
-            return;
           }
+          return;
         }
 
         // Lógica para usuários comuns
