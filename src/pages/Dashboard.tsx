@@ -1,177 +1,65 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Database } from "@/integrations/supabase/types";
-import { toast } from "sonner";
-import { Header } from "@/components/dashboard/Header";
+import { useEffect, useState } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
-import { playSounds } from "@/utils/soundEffects";
-import { DashboardContent } from "@/components/dashboard/DashboardContent";
-import { Button } from "@/components/ui/button";
-import { Shield } from "lucide-react";
-
-type Profile = Database['public']['Tables']['profiles']['Row'];
-type RechargeRow = Database['public']['Tables']['recharges']['Row'];
+import { supabase } from "@/integrations/supabase/client";
+import { useAuthRedirect } from "@/hooks/use-auth-redirect";
+import { Card } from "@/components/ui/card";
+import { ProfileActions } from "@/components/dashboard/ProfileActions";
+import { BetsTable } from "@/components/dashboard/BetsTable";
+import { BettingForm } from "@/components/betting/BettingForm";
+import { RechargeDialog } from "@/components/dashboard/RechargeDialog";
+import { BalanceDisplay } from "@/components/dashboard/BalanceDisplay";
+import { AudioControl } from "@/components/dashboard/AudioControl";
 
 export default function Dashboard() {
-  const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<Profile | null>(null);
+  const [profile, setProfile] = useState<any>(null);
   const session = useSession();
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-  const [previousBalance, setPreviousBalance] = useState<number>(0);
 
-  const fetchProfile = useCallback(async () => {
-    try {
-      if (!session?.user?.id) {
-        console.log("No session found, redirecting to login");
-        navigate("/login");
-        setLoading(false);
-        return;
-      }
-
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", session.user.id)
-        .single();
-
-      if (error) throw error;
-      
-      if (data && data.balance > previousBalance) {
-        console.log('Balance increased, playing coin sound');
-        await playSounds.coin();
-      }
-      
-      setPreviousBalance(data?.balance || 0);
-      setProfile(data);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      toast.error("Erro ao carregar perfil");
-    } finally {
-      setLoading(false);
-    }
-  }, [session?.user?.id, navigate, previousBalance]);
+  useAuthRedirect();
 
   useEffect(() => {
-    if (!session) {
-      console.log("No session in useEffect, redirecting to login");
-      navigate("/login");
-      return;
-    }
-    fetchProfile();
-  }, [session, navigate, fetchProfile]);
+    const fetchProfile = async () => {
+      if (!session?.user?.id) return;
 
-  useEffect(() => {
-    if (!session?.user?.id) return;
+      try {
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("id", session.user.id)
+          .single();
 
-    const channel = supabase.channel('recharge_updates')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'recharges',
-          filter: `user_id=eq.${session.user.id}`,
-        },
-        async (payload) => {
-          const newData = payload.new as RechargeRow;
-          const oldData = payload.old as RechargeRow;
-          
-          if (newData.status === 'completed' && oldData.status === 'pending') {
-            await playSounds.recharge();
-            toast.success(`Recarga de R$ ${newData.amount} completada!`);
-            await fetchProfile();
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
+        if (error) throw error;
+        setProfile(data);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
     };
-  }, [session?.user?.id, fetchProfile]);
 
-  useEffect(() => {
-    if (!session?.user?.id) return;
-    
-    const interval = setInterval(() => {
-      fetchProfile();
-    }, 10000);
-
-    return () => clearInterval(interval);
-  }, [session?.user?.id, fetchProfile]);
-
-  const handleLogout = async () => {
-    try {
-      localStorage.clear();
-      
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Logout error:", error);
-        toast.error("Erro ao desconectar");
-        return;
-      }
-
-      setProfile(null);
-      navigate("/login");
-      toast.success("Desconectado com sucesso");
-      
-    } catch (error) {
-      console.error("Unexpected logout error:", error);
-      toast.error("Erro inesperado ao desconectar");
-    }
-  };
-
-  const handleAdminAccess = async () => {
-    try {
-      // Fazer logout da sessão atual
-      localStorage.clear();
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        console.error("Logout error:", error);
-        toast.error("Erro ao acessar área administrativa");
-        return;
-      }
-
-      // Redirecionar para a página de login administrativo
-      setProfile(null);
-      navigate("/admin-login");
-      toast.success("Por favor, faça login como administrador");
-    } catch (error) {
-      console.error("Error accessing admin area:", error);
-      toast.error("Erro ao acessar área administrativa");
-    }
-  };
+    fetchProfile();
+  }, [session]);
 
   if (!session) return null;
 
   return (
-    <div 
-      className="min-h-screen bg-gray-50 p-4 md:p-6 bg-cover bg-center relative"
-      style={{
-        backgroundImage: 'url("/lovable-uploads/5a0e0336-aecf-49bc-961c-013d9aee3443.png")',
-      }}
-    >
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
-      <div className="relative z-10">
-        <Header profile={profile} onLogout={handleLogout} />
-        {profile?.is_admin && (
-          <div className="max-w-7xl mx-auto mb-6">
-            <Button
-              onClick={handleAdminAccess}
-              className="w-full sm:w-auto bg-pink-600 hover:bg-pink-700 text-white"
-            >
-              <Shield className="mr-2 h-4 w-4" />
-              Acessar Área Administrativa
-            </Button>
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="grid gap-6 md:grid-cols-[300px,1fr]">
+          <div className="space-y-6">
+            <Card className="p-4 space-y-4">
+              <BalanceDisplay balance={profile?.balance} />
+              <ProfileActions 
+                isAdmin={profile?.is_admin} 
+                setProfile={setProfile}
+              />
+            </Card>
+            <AudioControl />
+            <RechargeDialog />
           </div>
-        )}
-        <DashboardContent 
-          profile={profile}
-          refreshTrigger={refreshTrigger}
-          onBetPlaced={() => setRefreshTrigger(prev => prev + 1)}
-        />
+
+          <div className="space-y-6">
+            <BettingForm />
+            <BetsTable userId={session.user.id} />
+          </div>
+        </div>
       </div>
     </div>
   );

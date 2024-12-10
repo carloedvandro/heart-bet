@@ -1,18 +1,30 @@
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
-interface LogoutButtonProps {
-  onLogout?: () => void;
-}
+export function LogoutButton() {
+  const navigate = useNavigate();
 
-export function LogoutButton({ onLogout }: LogoutButtonProps) {
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      navigate("/login");
+      toast.success("Desconectado com sucesso");
+    } catch (error) {
+      console.error("Erro ao desconectar:", error);
+      toast.error("Erro ao desconectar");
+    }
+  };
+
   return (
     <Button 
       variant="outline" 
-      onClick={onLogout} 
-      className="bg-red-50 hover:bg-red-100 border-red-200 text-red-600 hover:text-red-700"
+      onClick={handleLogout}
+      className="w-full"
     >
-      <LogOut className="mr-2 h-4 w-4" />
       Sair
     </Button>
   );
