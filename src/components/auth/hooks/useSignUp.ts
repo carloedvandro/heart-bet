@@ -35,20 +35,18 @@ export function useSignUp() {
       return false;
     }
 
-    if (data?.user?.identities?.length === 0) {
+    if (!data.user) {
+      toast.error("Erro ao criar usuário. Por favor, tente novamente.");
+      return false;
+    }
+
+    if (data.user.identities?.length === 0) {
       toast.error("Este email já está registrado. Por favor, faça login.");
       return false;
     }
 
-    if (data?.user?.confirmation_sent_at) {
-      toast.success("Conta criada com sucesso! Por favor, verifique seu email para confirmar sua conta.", {
-        duration: 6000
-      });
-      return true;
-    }
-
-    toast.success("Conta criada com sucesso! Você já pode fazer login.", {
-      duration: 4000
+    toast.success("Conta criada com sucesso! Por favor, verifique seu email para confirmar sua conta.", {
+      duration: 6000
     });
     return true;
   };
