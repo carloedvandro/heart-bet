@@ -12,6 +12,7 @@ export function useAuthRedirect() {
     const checkUser = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
+        console.log("Checking session:", session?.user?.id);
         
         if (!session && location.pathname !== '/login') {
           console.log("No session found, redirecting to login");
@@ -19,8 +20,8 @@ export function useAuthRedirect() {
           return;
         }
 
-        if (session && (location.pathname === '/login' || location.pathname === '/')) {
-          console.log("Session found on login/index page, redirecting to dashboard");
+        if (session && location.pathname === '/login') {
+          console.log("Session found on login page, redirecting to dashboard");
           navigate('/dashboard', { replace: true });
           return;
         }

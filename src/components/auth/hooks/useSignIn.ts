@@ -17,7 +17,7 @@ export function useSignIn() {
         console.error("Erro detalhado no login:", error);
         
         if (error.message.includes("Invalid login credentials")) {
-          toast.error("Email ou senha incorretos. Por favor, verifique suas credenciais.");
+          toast.error("Email ou senha incorretos");
           return false;
         }
         
@@ -26,7 +26,7 @@ export function useSignIn() {
           return false;
         }
         
-        toast.error("Erro ao tentar fazer login. Por favor, tente novamente.");
+        toast.error("Erro ao tentar fazer login");
         return false;
       }
 
