@@ -10,6 +10,7 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log("Login component mounted");
     const checkSession = async () => {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
