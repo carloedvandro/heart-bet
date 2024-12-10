@@ -56,11 +56,14 @@ export default function Login() {
     checkSession();
 
     // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log("Auth state changed:", event, session?.user?.id);
       
       if (event === 'SIGNED_OUT') {
         console.log("User signed out, staying on login page");
+        // Clear any local storage data to prevent stale tokens
+        localStorage.removeItem('supabase.auth.token');
+        window.location.reload(); // Force a clean reload of the page
       } else if (event === 'SIGNED_IN' && session) {
         console.log("User signed in, redirecting to dashboard");
         navigate('/dashboard', { replace: true });
