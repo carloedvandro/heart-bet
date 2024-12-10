@@ -14,28 +14,52 @@ export function useAuthHandlers() {
   const COOLDOWN_PERIOD = 30 * 1000; // 30 seconds in milliseconds
 
   const handleSignIn = async (email: string, password: string) => {
+    // Validate input first
+    if (!email || !password) {
+      toast.error("Por favor, preencha email e senha");
+      return false;
+    }
+
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({
+      
+      // Log the attempt for debugging
+      console.log(`Attempting sign-in for email: ${email}`);
+
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
-        console.error("Signin error:", error);
+        console.error("Signin error details:", {
+          name: error.name,
+          message: error.message,
+          status: error.status
+        });
         
-        if (error.status === 400 && error.message.includes("Invalid login credentials")) {
-          toast.error("Email ou senha incorretos.");
-          return;
+        // More specific error handling
+        switch (error.message) {
+          case "Invalid login credentials":
+            toast.error("Email ou senha incorretos. Verifique suas credenciais.");
+            break;
+          case "Email not confirmed":
+            toast.error("Por favor, confirme seu email antes de fazer login.");
+            break;
+          default:
+            toast.error("Erro ao fazer login. Tente novamente.");
         }
         
-        toast.error("Erro ao tentar fazer login. Por favor, tente novamente.");
-      } else {
-        toast.success("Login realizado com sucesso!");
+        return false;
       }
+
+      // Successful login
+      toast.success("Login realizado com sucesso!");
+      return true;
     } catch (error) {
-      console.error("Erro no login:", error);
-      toast.error("Ocorreu um erro ao tentar entrar. Tente novamente.");
+      console.error("Unexpected error during sign-in:", error);
+      toast.error("Ocorreu um erro inesperado. Tente novamente.");
+      return false;
     } finally {
       setIsLoading(false);
     }
