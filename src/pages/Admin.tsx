@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { ArrowLeft } from "lucide-react";
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -102,7 +103,17 @@ export default function Admin() {
     <div className="min-h-screen bg-gray-50 p-4 md:p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Painel Administrativo</h1>
+          <div className="flex items-center gap-4">
+            <Button 
+              variant="outline" 
+              size="icon"
+              onClick={() => navigate("/dashboard")}
+              className="h-9 w-9"
+            >
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-3xl font-bold text-gray-900">Painel Administrativo</h1>
+          </div>
           <Button variant="outline" onClick={handleLogout}>
             Sair
           </Button>
