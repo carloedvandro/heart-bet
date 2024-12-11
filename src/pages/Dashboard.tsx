@@ -46,15 +46,39 @@ export default function Dashboard() {
         console.log("Current balance:", profileData.balance);
         console.log("Previous balance:", previousBalance);
         
-        if (profileData.balance > previousBalance) {
-          console.log('Balance increased from', previousBalance, 'to', profileData.balance);
+        // Ensure balance is a number
+        const currentBalance = Number(profileData.balance);
+        
+        if (currentBalance > previousBalance) {
+          console.log('Balance increased from', previousBalance, 'to', currentBalance);
           await playSounds.coin();
         }
         
-        setPreviousBalance(profileData.balance || 0);
+        setPreviousBalance(currentBalance);
         setProfile(profileData);
       } else {
         console.log("No profile data found");
+        // If no profile exists, create one
+        const { data: newProfile, error: createError } = await supabase
+          .from("profiles")
+          .insert([
+            { 
+              id: session.user.id,
+              email: session.user.email,
+              balance: 0
+            }
+          ])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error("Error creating profile:", createError);
+          throw createError;
+        }
+
+        if (newProfile) {
+          setProfile(newProfile);
+        }
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -62,7 +86,7 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.id, navigate, previousBalance]);
+  }, [session?.user?.id, session?.user?.email, navigate, previousBalance]);
 
   useEffect(() => {
     if (!session) {
