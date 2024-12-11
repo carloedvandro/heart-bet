@@ -10,24 +10,23 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleAuthRedirect = async () => {
+    const handleAuthState = async () => {
       try {
-        // Check URL for auth redirect
-        const { data: { session }, error: hashError } = await supabase.auth.getSession();
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (hashError) {
-          console.error("Error getting session:", hashError);
+        if (error) {
+          console.error("Session error:", error);
           return;
         }
 
-        if (session) {
-          console.log("Session found, checking profile for user:", session.user.id);
+        if (session?.user) {
+          console.log("Active session found for user:", session.user.id);
           
-          const { data: existingProfile, error: profileError } = await supabase
+          const { data: profile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
-            .maybeSingle();
+            .single();
 
           if (profileError) {
             console.error("Error checking profile:", profileError);
@@ -35,47 +34,41 @@ export default function Login() {
             return;
           }
 
-          if (!existingProfile) {
-            console.log("No profile found, creating new profile for user:", session.user.id);
+          if (!profile) {
+            console.log("Creating profile for user:", session.user.id);
             
             const { error: createError } = await supabase
               .from('profiles')
-              .insert([
-                {
-                  id: session.user.id,
-                  email: session.user.email,
-                  balance: 0,
-                  is_admin: false
-                }
-              ]);
+              .insert([{
+                id: session.user.id,
+                email: session.user.email,
+                balance: 0,
+                is_admin: false
+              }]);
 
             if (createError) {
               console.error("Error creating profile:", createError);
               toast.error("Erro ao criar perfil");
               return;
             }
-            
-            console.log("Profile created successfully");
-          } else {
-            console.log("Existing profile found:", existingProfile);
           }
 
-          // Navigate to dashboard after ensuring profile exists
-          console.log("Navigating to dashboard");
           navigate("/dashboard");
         }
       } catch (error) {
-        console.error("Unexpected error during auth redirect:", error);
-        toast.error("Erro inesperado ao processar autenticação");
+        console.error("Auth state handling error:", error);
+        toast.error("Erro ao processar autenticação");
       }
     };
 
-    handleAuthRedirect();
+    // Initial check
+    handleAuthState();
 
+    // Set up auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session);
+      console.log("Auth state change detected:", event);
       if (event === 'SIGNED_IN' && session) {
-        await handleAuthRedirect();
+        await handleAuthState();
       }
     });
 
@@ -125,7 +118,7 @@ export default function Login() {
           </div>
         ))}
       </div>
-
+      
       <div className="relative z-10 w-full max-w-md space-y-4">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-white drop-shadow-lg animate-fade-in">

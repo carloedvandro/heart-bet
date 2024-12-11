@@ -20,6 +20,7 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
           ...init?.headers,
           'apikey': supabaseKey,
           'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
         },
       });
 
@@ -38,8 +39,7 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      const clonedResponse = response.clone();
-      return clonedResponse;
+      return response.clone();
     } catch (error) {
       attempt++;
       console.error(`Fetch attempt ${attempt} failed:`, error);
@@ -66,16 +66,24 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: true,
-    flowType: 'pkce',
-    storage: window.localStorage,
-    storageKey: 'supabase.auth.token',
+    storage: localStorage,
+    storageKey: 'sb-auth-token',
   },
   global: {
     fetch: customFetch
   }
 });
 
-// Log auth state changes for debugging
+// Enhanced logging for auth state changes
 supabase.auth.onAuthStateChange((event, session) => {
-  console.log('Auth state changed:', { event, session });
+  console.log('Auth state changed:', { 
+    event, 
+    session: session ? {
+      ...session,
+      user: {
+        ...session.user,
+        id: session.user.id
+      }
+    } : null 
+  });
 });
