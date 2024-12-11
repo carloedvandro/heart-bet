@@ -7,7 +7,7 @@ interface BalanceDisplayProps {
 export function BalanceDisplay({ profile }: BalanceDisplayProps) {
   console.log("BalanceDisplay - Profile:", profile);
   
-  // Garante que o balance seja sempre um número
+  // Garante que o balance seja sempre um número válido
   const balanceValue = profile?.balance ? parseFloat(profile.balance.toString()) : 0;
   console.log("BalanceDisplay - Balance value:", balanceValue);
   
