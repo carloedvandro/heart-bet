@@ -90,17 +90,10 @@ export default function AdminDashboard() {
       const { data: dailyBets, error: betsError } = await supabase
         .from('bets')
         .select(`
-          id,
-          user_id,
-          amount,
-          created_at,
-          bet_type,
-          draw_period,
-          position,
-          numbers,
-          hearts,
+          *,
           profiles (
-            email
+            email,
+            balance
           )
         `)
         .gte('created_at', startOfDay)
