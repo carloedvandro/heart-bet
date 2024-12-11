@@ -28,6 +28,8 @@ export default function Dashboard() {
         return;
       }
 
+      console.log("Fetching profile for user:", session.user.id);
+      
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
@@ -41,12 +43,18 @@ export default function Dashboard() {
 
       if (profileData) {
         console.log("Profile data fetched:", profileData);
+        console.log("Current balance:", profileData.balance);
+        console.log("Previous balance:", previousBalance);
+        
         if (profileData.balance > previousBalance) {
           console.log('Balance increased from', previousBalance, 'to', profileData.balance);
           await playSounds.coin();
         }
+        
         setPreviousBalance(profileData.balance || 0);
         setProfile(profileData);
+      } else {
+        console.log("No profile data found");
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
