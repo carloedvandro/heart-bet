@@ -5,7 +5,9 @@ export const getBetTypeName = (type: BetType): string => {
     simple_group: 'Grupo Simples',
     dozen: 'Dezena',
     hundred: 'Centena',
-    thousand: 'Milhar'
+    thousand: 'Milhar',
+    group_double: 'Grupo Duplo',
+    group_triple: 'Grupo Triplo'
   };
   return names[type];
 };
