@@ -17,22 +17,15 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
-
-interface DailyBet {
-  id: string;
-  user_id: string;
-  amount: number;
-  created_at: string;
-  profiles?: {
-    email: string | null;
-  };
-}
+import { getBetTypeName, getDrawPeriodName } from "@/utils/betFormatters";
+import { BetSequenceDisplay } from "@/components/bet-receipt/receipt-details/BetSequenceDisplay";
+import { Bet } from "@/integrations/supabase/custom-types";
 
 interface DailyBetsListProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onDateSelect: (date: Date) => void;
-  bets: DailyBet[];
+  bets: Bet[];
   selectedDate: Date | undefined;
 }
 
@@ -45,7 +38,7 @@ export function DailyBetsList({
 }: DailyBetsListProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Apostas do Dia</DialogTitle>
           <DialogDescription>
@@ -67,6 +60,10 @@ export function DailyBetsList({
               <TableHeader>
                 <TableRow>
                   <TableHead>Email</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Período</TableHead>
+                  <TableHead>Posição</TableHead>
+                  <TableHead>Números/Cores</TableHead>
                   <TableHead>Valor</TableHead>
                   <TableHead>Horário</TableHead>
                 </TableRow>
@@ -74,7 +71,7 @@ export function DailyBetsList({
               <TableBody>
                 {bets.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center">
+                    <TableCell colSpan={7} className="text-center">
                       Nenhuma aposta encontrada para esta data
                     </TableCell>
                   </TableRow>
@@ -82,6 +79,12 @@ export function DailyBetsList({
                   bets.map((bet) => (
                     <TableRow key={bet.id}>
                       <TableCell>{bet.profiles?.email || "Email não disponível"}</TableCell>
+                      <TableCell>{getBetTypeName(bet.bet_type)}</TableCell>
+                      <TableCell>{getDrawPeriodName(bet.draw_period)}</TableCell>
+                      <TableCell>{bet.position}º</TableCell>
+                      <TableCell>
+                        <BetSequenceDisplay bet={bet} />
+                      </TableCell>
                       <TableCell>R$ {bet.amount.toFixed(2)}</TableCell>
                       <TableCell>
                         {format(new Date(bet.created_at), "HH:mm:ss")}

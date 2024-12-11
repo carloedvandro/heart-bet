@@ -7,21 +7,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartBar, Upload, Users } from "lucide-react";
 import { DailyBetsList } from "@/components/admin/DailyBetsList";
 import { format } from "date-fns";
+import { Bet } from "@/integrations/supabase/custom-types";
 
 interface DashboardStats {
   dailyBets: number;
   pendingRecharges: number;
   totalUsers: number;
-}
-
-interface DailyBet {
-  id: string;
-  user_id: string;
-  amount: number;
-  created_at: string;
-  profiles?: {
-    email: string | null;
-  };
 }
 
 export default function AdminDashboard() {
@@ -31,7 +22,7 @@ export default function AdminDashboard() {
     pendingRecharges: 0,
     totalUsers: 0,
   });
-  const [dailyBetsList, setDailyBetsList] = useState<DailyBet[]>([]);
+  const [dailyBetsList, setDailyBetsList] = useState<Bet[]>([]);
   const [showBetsDialog, setShowBetsDialog] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date>();
 
@@ -103,6 +94,11 @@ export default function AdminDashboard() {
           user_id,
           amount,
           created_at,
+          bet_type,
+          draw_period,
+          position,
+          numbers,
+          hearts,
           profiles (
             email
           )
