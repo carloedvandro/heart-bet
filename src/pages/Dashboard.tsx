@@ -37,8 +37,35 @@ export default function Dashboard() {
         .single();
 
       if (profileError) {
+        if (profileError.code === 'PGRST116') {
+          console.log("Profile not found, creating new profile");
+          const { data: newProfile, error: createError } = await supabase
+            .from("profiles")
+            .insert([
+              { 
+                id: session.user.id,
+                email: session.user.email,
+                balance: 0
+              }
+            ])
+            .select()
+            .single();
+
+          if (createError) {
+            console.error("Error creating profile:", createError);
+            toast.error("Erro ao criar perfil");
+            return;
+          }
+
+          console.log("New profile created:", newProfile);
+          setProfile(newProfile);
+          setPreviousBalance(0);
+          return;
+        }
+        
         console.error("Error fetching profile:", profileError);
-        throw profileError;
+        toast.error("Erro ao carregar perfil");
+        return;
       }
 
       if (profileData) {
@@ -46,7 +73,6 @@ export default function Dashboard() {
         console.log("Current balance:", profileData.balance);
         console.log("Previous balance:", previousBalance);
         
-        // Ensure balance is a number
         const currentBalance = Number(profileData.balance);
         
         if (currentBalance > previousBalance) {
@@ -56,29 +82,6 @@ export default function Dashboard() {
         
         setPreviousBalance(currentBalance);
         setProfile(profileData);
-      } else {
-        console.log("No profile data found");
-        // If no profile exists, create one
-        const { data: newProfile, error: createError } = await supabase
-          .from("profiles")
-          .insert([
-            { 
-              id: session.user.id,
-              email: session.user.email,
-              balance: 0
-            }
-          ])
-          .select()
-          .single();
-
-        if (createError) {
-          console.error("Error creating profile:", createError);
-          throw createError;
-        }
-
-        if (newProfile) {
-          setProfile(newProfile);
-        }
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
