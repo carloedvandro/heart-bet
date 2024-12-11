@@ -40,8 +40,7 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       }
 
       if (!response.ok) {
-        const errorClone = response.clone();
-        const errorText = await errorClone.text();
+        const errorText = await response.text();
         console.error('Response not OK:', {
           status: response.status,
           statusText: response.statusText,

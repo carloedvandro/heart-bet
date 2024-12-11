@@ -49,19 +49,38 @@ export default function AdminDashboard() {
     try {
       // Fetch daily bets
       const today = new Date().toISOString().split('T')[0];
-      const { data: dailyBets } = await supabase
+      console.log('Fetching bets for date:', today);
+      
+      const { data: dailyBets, error: betsError } = await supabase
         .rpc('get_all_bets_today', { today_date: today });
 
+      if (betsError) {
+        console.error('Error fetching daily bets:', betsError);
+        throw betsError;
+      }
+
+      console.log('Daily bets data:', dailyBets);
+
       // Fetch pending recharges
-      const { data: pendingRecharges } = await supabase
+      const { data: pendingRecharges, error: rechargesError } = await supabase
         .from('recharges')
         .select('*')
         .eq('status', 'pending');
 
+      if (rechargesError) {
+        console.error('Error fetching pending recharges:', rechargesError);
+        throw rechargesError;
+      }
+
       // Fetch total users
-      const { count: totalUsers } = await supabase
+      const { count: totalUsers, error: usersError } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
+
+      if (usersError) {
+        console.error('Error fetching total users:', usersError);
+        throw usersError;
+      }
 
       setStats({
         dailyBets: dailyBets?.length || 0,
