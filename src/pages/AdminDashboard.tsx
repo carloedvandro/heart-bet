@@ -5,11 +5,22 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartBar, Upload, Users } from "lucide-react";
+import { DailyBetsList } from "@/components/admin/DailyBetsList";
 
 interface DashboardStats {
   dailyBets: number;
   pendingRecharges: number;
   totalUsers: number;
+}
+
+interface DailyBet {
+  id: string;
+  user_id: string;
+  amount: number;
+  created_at: string;
+  profiles?: {
+    email: string | null;
+  };
 }
 
 export default function AdminDashboard() {
@@ -19,6 +30,8 @@ export default function AdminDashboard() {
     pendingRecharges: 0,
     totalUsers: 0,
   });
+  const [dailyBetsList, setDailyBetsList] = useState<DailyBet[]>([]);
+  const [showBetsDialog, setShowBetsDialog] = useState(false);
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -47,12 +60,22 @@ export default function AdminDashboard() {
 
   const fetchDashboardStats = async () => {
     try {
-      // Fetch daily bets
+      // Fetch daily bets with user email
       const today = new Date().toISOString().split('T')[0];
       console.log('Fetching bets for date:', today);
       
       const { data: dailyBets, error: betsError } = await supabase
-        .rpc('get_all_bets_today', { today_date: today });
+        .from('bets')
+        .select(`
+          id,
+          user_id,
+          amount,
+          created_at,
+          profiles (
+            email
+          )
+        `)
+        .eq('draw_date', today);
 
       if (betsError) {
         console.error('Error fetching daily bets:', betsError);
@@ -60,6 +83,7 @@ export default function AdminDashboard() {
       }
 
       console.log('Daily bets data:', dailyBets);
+      setDailyBetsList(dailyBets || []);
 
       // Fetch pending recharges
       const { data: pendingRecharges, error: rechargesError } = await supabase
@@ -110,7 +134,10 @@ export default function AdminDashboard() {
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            <Card>
+            <Card 
+              className="cursor-pointer hover:bg-gray-50 transition-colors"
+              onClick={() => setShowBetsDialog(true)}
+            >
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
                   Apostas do Dia
@@ -157,6 +184,12 @@ export default function AdminDashboard() {
           </div>
         </div>
       </div>
+
+      <DailyBetsList
+        open={showBetsDialog}
+        onOpenChange={setShowBetsDialog}
+        bets={dailyBetsList}
+      />
     </div>
   );
 }
