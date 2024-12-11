@@ -1,11 +1,24 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ChartBar, Upload, Users } from "lucide-react";
+
+interface DashboardStats {
+  dailyBets: number;
+  pendingRecharges: number;
+  totalUsers: number;
+}
 
 export default function AdminDashboard() {
   const navigate = useNavigate();
+  const [stats, setStats] = useState<DashboardStats>({
+    dailyBets: 0,
+    pendingRecharges: 0,
+    totalUsers: 0,
+  });
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -29,7 +42,37 @@ export default function AdminDashboard() {
     };
 
     checkAdminAccess();
+    fetchDashboardStats();
   }, [navigate]);
+
+  const fetchDashboardStats = async () => {
+    try {
+      // Fetch daily bets
+      const today = new Date().toISOString().split('T')[0];
+      const { data: dailyBets } = await supabase
+        .rpc('get_all_bets_today', { today_date: today });
+
+      // Fetch pending recharges
+      const { data: pendingRecharges } = await supabase
+        .from('recharges')
+        .select('*')
+        .eq('status', 'pending');
+
+      // Fetch total users
+      const { count: totalUsers } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      setStats({
+        dailyBets: dailyBets?.length || 0,
+        pendingRecharges: pendingRecharges?.length || 0,
+        totalUsers: totalUsers || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      toast.error("Erro ao carregar estatísticas");
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -46,11 +89,52 @@ export default function AdminDashboard() {
               Sair
             </Button>
           </div>
-          <div className="space-y-4">
-            {/* Aqui você pode adicionar o conteúdo do painel administrativo */}
-            <p className="text-gray-600">
-              Bem-vindo ao painel administrativo.
-            </p>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Apostas do Dia
+                </CardTitle>
+                <ChartBar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.dailyBets}</div>
+                <p className="text-xs text-muted-foreground">
+                  apostas realizadas hoje
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Recargas Solicitadas
+                </CardTitle>
+                <Upload className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.pendingRecharges}</div>
+                <p className="text-xs text-muted-foreground">
+                  recargas pendentes
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total de Usuários
+                </CardTitle>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{stats.totalUsers}</div>
+                <p className="text-xs text-muted-foreground">
+                  usuários registrados
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
