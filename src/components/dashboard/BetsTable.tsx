@@ -45,13 +45,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
 
       if (error) throw error;
       
-      // Transform the data to match our Bet type
-      const transformedBets = data?.map(bet => ({
-        ...bet,
-        drawn_numbers: bet.drawn_numbers as number[] | null,
-      })) as Bet[];
-      
-      setBets(transformedBets);
+      setBets(data || []);
       if (count) {
         setTotalItems(count);
         setHasMore(count > (currentPage + 1) * itemsPerPage);
@@ -67,6 +61,20 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
   useEffect(() => {
     fetchBets();
   }, [fetchBets, refreshTrigger]);
+
+  const handleNextPage = () => {
+    if (hasMore) {
+      setCurrentPage(prev => prev + 1);
+    }
+  };
+
+  const handlePreviousPage = () => {
+    if (currentPage > 0) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
+
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   if (loading) return <p className="text-center p-4">Carregando suas apostas...</p>;
   if (!session?.user?.id) return <p className="text-center p-4">Você precisa estar logado para ver suas apostas.</p>;
@@ -89,12 +97,12 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
           
           <div className="flex flex-col items-center gap-2">
             <div className="text-sm text-muted-foreground">
-              Página {currentPage + 1} de {Math.ceil(totalItems / itemsPerPage)}
+              Página {currentPage + 1} de {totalPages}
             </div>
             <div className="flex justify-center gap-4">
               <Button
                 variant="outline"
-                onClick={() => setCurrentPage(prev => prev - 1)}
+                onClick={handlePreviousPage}
                 disabled={currentPage === 0}
                 className="gap-2"
               >
@@ -103,7 +111,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
               </Button>
               <Button
                 variant="outline"
-                onClick={() => setCurrentPage(prev => prev + 1)}
+                onClick={handleNextPage}
                 disabled={!hasMore}
                 className="gap-2"
               >

@@ -10,23 +10,24 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const handleAuthState = async () => {
+    const checkSession = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
         
-        if (error) {
-          console.error("Session error:", error);
+        if (sessionError) {
+          console.error("Session error:", sessionError);
           return;
         }
 
-        if (session?.user) {
-          console.log("Active session found for user:", session.user.id);
+        if (session) {
+          console.log("Session found, checking profile for user:", session.user.id);
           
-          const { data: profile, error: profileError } = await supabase
+          // First check if profile exists
+          const { data: existingProfile, error: profileError } = await supabase
             .from('profiles')
             .select('*')
             .eq('id', session.user.id)
-            .single();
+            .maybeSingle();
 
           if (profileError) {
             console.error("Error checking profile:", profileError);
@@ -34,44 +35,54 @@ export default function Login() {
             return;
           }
 
-          if (!profile) {
-            console.log("Creating profile for user:", session.user.id);
+          // If no profile exists, create one
+          if (!existingProfile) {
+            console.log("No profile found, creating new profile for user:", session.user.id);
             
             const { error: createError } = await supabase
               .from('profiles')
-              .insert([{
-                id: session.user.id,
-                email: session.user.email,
-                balance: 0,
-                is_admin: false
-              }]);
+              .insert([
+                {
+                  id: session.user.id,
+                  email: session.user.email,
+                  balance: 0,
+                  is_admin: false
+                }
+              ]);
 
             if (createError) {
               console.error("Error creating profile:", createError);
               toast.error("Erro ao criar perfil");
               return;
             }
+            
+            console.log("Profile created successfully");
+          } else {
+            console.log("Existing profile found:", existingProfile);
           }
 
+          // Navigate to dashboard after ensuring profile exists
+          console.log("Navigating to dashboard");
           navigate("/dashboard");
         }
       } catch (error) {
-        console.error("Auth state handling error:", error);
-        toast.error("Erro ao processar autenticação");
+        console.error("Unexpected error:", error);
+        toast.error("Erro inesperado ao verificar sessão");
       }
     };
 
-    // Initial check
-    handleAuthState();
-
     // Set up auth state change listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state change detected:", event);
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state changed:", event, session);
       if (event === 'SIGNED_IN' && session) {
-        await handleAuthState();
+        checkSession();
       }
     });
 
+    // Check session on component mount
+    checkSession();
+
+    // Cleanup subscription
     return () => {
       subscription.unsubscribe();
     };
@@ -118,7 +129,7 @@ export default function Login() {
           </div>
         ))}
       </div>
-      
+
       <div className="relative z-10 w-full max-w-md space-y-4">
         <div className="text-center">
           <h1 className="text-4xl font-bold text-white drop-shadow-lg animate-fade-in">

@@ -22,7 +22,7 @@ export const MAX_SELECTIONS: Record<BetType, number> = {
   hundred: 3,
   thousand: 4,
   group_double: 2,
-  group_triple: 3
+  group_triple: 3,
 };
 
 export const PERIOD_LIMITS = {
@@ -38,8 +38,8 @@ export const BASE_MULTIPLIERS: Record<BetType, number> = {
   dozen: 30,
   hundred: 300,
   thousand: 2000,
-  group_double: 60,
-  group_triple: 600,
+  group_double: 150,
+  group_triple: 250,
 };
 
 // Position multiplier factors (percentage of base multiplier)

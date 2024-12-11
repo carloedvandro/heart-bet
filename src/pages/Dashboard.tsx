@@ -28,64 +28,28 @@ export default function Dashboard() {
         return;
       }
 
-      console.log("Fetching profile for user:", session.user.id);
-      
-      // First try to get the existing profile
-      const { data: existingProfile, error: fetchError } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
         .single();
 
-      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
-        console.error("Error fetching profile:", fetchError);
-        toast.error("Erro ao carregar perfil");
-        return;
+      if (error) throw error;
+      
+      if (data && data.balance > previousBalance) {
+        console.log('Balance increased, playing coin sound');
+        await playSounds.coin();
       }
-
-      if (!existingProfile) {
-        // If no profile exists, create one
-        const { data: newProfile, error: insertError } = await supabase
-          .from("profiles")
-          .insert([
-            {
-              id: session.user.id,
-              email: session.user.email,
-              balance: 0
-            }
-          ])
-          .select()
-          .single();
-
-        if (insertError) {
-          console.error("Error creating profile:", insertError);
-          toast.error("Erro ao criar perfil");
-          return;
-        }
-
-        if (newProfile) {
-          console.log("New profile created:", newProfile);
-          setProfile(newProfile);
-        }
-      } else {
-        console.log("Existing profile found:", existingProfile);
-        const currentBalance = parseFloat(existingProfile.balance.toString());
-        
-        if (currentBalance > previousBalance) {
-          console.log('Balance increased from', previousBalance, 'to', currentBalance);
-          await playSounds.coin();
-        }
-        
-        setPreviousBalance(currentBalance);
-        setProfile(existingProfile);
-      }
+      
+      setPreviousBalance(data?.balance || 0);
+      setProfile(data);
     } catch (error) {
-      console.error("Error in fetchProfile:", error);
+      console.error("Error fetching profile:", error);
       toast.error("Erro ao carregar perfil");
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.id, session?.user?.email, navigate, previousBalance]);
+  }, [session?.user?.id, navigate, previousBalance]);
 
   useEffect(() => {
     if (!session) {
@@ -172,10 +136,7 @@ export default function Dashboard() {
         <DashboardContent 
           profile={profile}
           refreshTrigger={refreshTrigger}
-          onBetPlaced={() => {
-            setRefreshTrigger(prev => prev + 1);
-            fetchProfile();
-          }}
+          onBetPlaced={() => setRefreshTrigger(prev => prev + 1)}
         />
       </div>
     </div>
