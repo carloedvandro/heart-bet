@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartBar, Upload, Users } from "lucide-react";
 import { DailyBetsList } from "@/components/admin/DailyBetsList";
+import { format } from "date-fns";
 
 interface DashboardStats {
   dailyBets: number;
@@ -32,6 +33,7 @@ export default function AdminDashboard() {
   });
   const [dailyBetsList, setDailyBetsList] = useState<DailyBet[]>([]);
   const [showBetsDialog, setShowBetsDialog] = useState(false);
+  const [selectedDate, setSelectedDate] = useState<Date>();
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -60,10 +62,37 @@ export default function AdminDashboard() {
 
   const fetchDashboardStats = async () => {
     try {
-      // Fetch daily bets with user email
-      const today = new Date().toISOString().split('T')[0];
-      const startOfDay = `${today}T00:00:00`;
-      const endOfDay = `${today}T23:59:59`;
+      // Fetch pending recharges
+      const { data: pendingRecharges, error: rechargesError } = await supabase
+        .from('recharges')
+        .select('*')
+        .eq('status', 'pending');
+
+      if (rechargesError) throw rechargesError;
+
+      // Fetch total users
+      const { count: totalUsers, error: usersError } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      if (usersError) throw usersError;
+
+      setStats({
+        dailyBets: dailyBetsList.length,
+        pendingRecharges: pendingRecharges?.length || 0,
+        totalUsers: totalUsers || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching dashboard stats:', error);
+      toast.error("Erro ao carregar estatísticas");
+    }
+  };
+
+  const fetchBetsForDate = async (date: Date) => {
+    try {
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      const startOfDay = `${formattedDate}T00:00:00`;
+      const endOfDay = `${formattedDate}T23:59:59`;
       
       console.log('Fetching bets between:', startOfDay, 'and', endOfDay);
       
@@ -81,44 +110,23 @@ export default function AdminDashboard() {
         .gte('created_at', startOfDay)
         .lte('created_at', endOfDay);
 
-      if (betsError) {
-        console.error('Error fetching daily bets:', betsError);
-        throw betsError;
-      }
+      if (betsError) throw betsError;
 
       console.log('Daily bets data:', dailyBets);
       setDailyBetsList(dailyBets || []);
-
-      // Fetch pending recharges
-      const { data: pendingRecharges, error: rechargesError } = await supabase
-        .from('recharges')
-        .select('*')
-        .eq('status', 'pending');
-
-      if (rechargesError) {
-        console.error('Error fetching pending recharges:', rechargesError);
-        throw rechargesError;
-      }
-
-      // Fetch total users
-      const { count: totalUsers, error: usersError } = await supabase
-        .from('profiles')
-        .select('*', { count: 'exact', head: true });
-
-      if (usersError) {
-        console.error('Error fetching total users:', usersError);
-        throw usersError;
-      }
-
-      setStats({
-        dailyBets: dailyBets?.length || 0,
-        pendingRecharges: pendingRecharges?.length || 0,
-        totalUsers: totalUsers || 0,
-      });
+      setStats(prev => ({
+        ...prev,
+        dailyBets: dailyBets?.length || 0
+      }));
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
-      toast.error("Erro ao carregar estatísticas");
+      console.error('Error fetching daily bets:', error);
+      toast.error("Erro ao carregar apostas do dia");
     }
+  };
+
+  const handleDateSelect = (date: Date) => {
+    setSelectedDate(date);
+    fetchBetsForDate(date);
   };
 
   const handleLogout = async () => {
@@ -151,7 +159,9 @@ export default function AdminDashboard() {
               <CardContent>
                 <div className="text-2xl font-bold">{stats.dailyBets}</div>
                 <p className="text-xs text-muted-foreground">
-                  apostas realizadas hoje
+                  {selectedDate 
+                    ? `apostas em ${format(selectedDate, "dd/MM/yyyy")}`
+                    : "selecione uma data"}
                 </p>
               </CardContent>
             </Card>
@@ -193,6 +203,8 @@ export default function AdminDashboard() {
         open={showBetsDialog}
         onOpenChange={setShowBetsDialog}
         bets={dailyBetsList}
+        onDateSelect={handleDateSelect}
+        selectedDate={selectedDate}
       />
     </div>
   );
