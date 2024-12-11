@@ -30,46 +30,46 @@ export default function Dashboard() {
 
       console.log("Fetching profile for user:", session.user.id);
       
-      // Força a criação/atualização do perfil usando upsert
-      const { data: upsertedProfile, error: upsertError } = await supabase
-        .from("profiles")
-        .upsert(
-          {
-            id: session.user.id,
-            email: session.user.email,
-            balance: 0, // Inicializa com saldo zero se não existir
-          },
-          {
-            onConflict: 'id'
-          }
-        )
-        .select('*')
-        .single();
-
-      if (upsertError) {
-        console.error("Error upserting profile:", upsertError);
-        toast.error("Erro ao atualizar perfil");
-        return;
-      }
-
-      // Busca o perfil atualizado
-      const { data: profileData, error: fetchError } = await supabase
+      // First try to get the existing profile
+      const { data: existingProfile, error: fetchError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
         .single();
 
-      if (fetchError) {
+      if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
         console.error("Error fetching profile:", fetchError);
         toast.error("Erro ao carregar perfil");
         return;
       }
 
-      if (profileData) {
-        console.log("Profile data fetched:", profileData);
-        const currentBalance = parseFloat(profileData.balance.toString());
-        console.log("Current balance:", currentBalance);
-        console.log("Previous balance:", previousBalance);
+      if (!existingProfile) {
+        // If no profile exists, create one
+        const { data: newProfile, error: insertError } = await supabase
+          .from("profiles")
+          .insert([
+            {
+              id: session.user.id,
+              email: session.user.email,
+              balance: 0
+            }
+          ])
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error("Error creating profile:", insertError);
+          toast.error("Erro ao criar perfil");
+          return;
+        }
+
+        if (newProfile) {
+          console.log("New profile created:", newProfile);
+          setProfile(newProfile);
+        }
+      } else {
+        console.log("Existing profile found:", existingProfile);
+        const currentBalance = parseFloat(existingProfile.balance.toString());
         
         if (currentBalance > previousBalance) {
           console.log('Balance increased from', previousBalance, 'to', currentBalance);
@@ -77,7 +77,7 @@ export default function Dashboard() {
         }
         
         setPreviousBalance(currentBalance);
-        setProfile(profileData);
+        setProfile(existingProfile);
       }
     } catch (error) {
       console.error("Error in fetchProfile:", error);
