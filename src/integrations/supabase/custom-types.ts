@@ -24,9 +24,7 @@ export interface Bet {
   prize_amount?: number | null;
   position: number;
   bet_number?: string | null;
-  profiles?: {
-    balance: number;
-  };
+  profiles?: Profile;
 }
 
 export interface Recharge {

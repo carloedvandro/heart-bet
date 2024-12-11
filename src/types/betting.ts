@@ -1,4 +1,4 @@
-export type BetType = 'simple_group' | 'dozen' | 'hundred' | 'thousand';
+export type BetType = 'simple_group' | 'dozen' | 'hundred' | 'thousand' | 'group_double' | 'group_triple';
 export type DrawPeriod = 'morning' | 'afternoon' | 'evening' | 'night';
 export type Position = 1 | 2 | 3 | 4 | 5;
 
@@ -21,6 +21,8 @@ export const MAX_SELECTIONS: Record<BetType, number> = {
   dozen: 2,
   hundred: 3,
   thousand: 4,
+  group_double: 2,
+  group_triple: 3
 };
 
 export const PERIOD_LIMITS = {
@@ -36,6 +38,8 @@ export const BASE_MULTIPLIERS: Record<BetType, number> = {
   dozen: 30,
   hundred: 300,
   thousand: 2000,
+  group_double: 60,
+  group_triple: 600,
 };
 
 // Position multiplier factors (percentage of base multiplier)

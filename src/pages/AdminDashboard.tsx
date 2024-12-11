@@ -92,8 +92,11 @@ export default function AdminDashboard() {
         .select(`
           *,
           profiles (
+            id,
             email,
-            balance
+            balance,
+            created_at,
+            is_admin
           )
         `)
         .gte('created_at', startOfDay)
