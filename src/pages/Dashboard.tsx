@@ -28,21 +28,26 @@ export default function Dashboard() {
         return;
       }
 
-      const { data, error } = await supabase
+      const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
         .single();
 
-      if (error) throw error;
-      
-      if (data && data.balance > previousBalance) {
-        console.log('Balance increased, playing coin sound');
-        await playSounds.coin();
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+        throw profileError;
       }
-      
-      setPreviousBalance(data?.balance || 0);
-      setProfile(data);
+
+      if (profileData) {
+        console.log("Profile data fetched:", profileData);
+        if (profileData.balance > previousBalance) {
+          console.log('Balance increased from', previousBalance, 'to', profileData.balance);
+          await playSounds.coin();
+        }
+        setPreviousBalance(profileData.balance || 0);
+        setProfile(profileData);
+      }
     } catch (error) {
       console.error("Error fetching profile:", error);
       toast.error("Erro ao carregar perfil");
@@ -136,7 +141,10 @@ export default function Dashboard() {
         <DashboardContent 
           profile={profile}
           refreshTrigger={refreshTrigger}
-          onBetPlaced={() => setRefreshTrigger(prev => prev + 1)}
+          onBetPlaced={() => {
+            setRefreshTrigger(prev => prev + 1);
+            fetchProfile(); // Refresh profile after bet is placed
+          }}
         />
       </div>
     </div>
