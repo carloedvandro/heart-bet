@@ -62,7 +62,10 @@ export default function AdminDashboard() {
     try {
       // Fetch daily bets with user email
       const today = new Date().toISOString().split('T')[0];
-      console.log('Fetching bets for date:', today);
+      const startOfDay = `${today}T00:00:00`;
+      const endOfDay = `${today}T23:59:59`;
+      
+      console.log('Fetching bets between:', startOfDay, 'and', endOfDay);
       
       const { data: dailyBets, error: betsError } = await supabase
         .from('bets')
@@ -75,7 +78,8 @@ export default function AdminDashboard() {
             email
           )
         `)
-        .eq('draw_date', today);
+        .gte('created_at', startOfDay)
+        .lte('created_at', endOfDay);
 
       if (betsError) {
         console.error('Error fetching daily bets:', betsError);
