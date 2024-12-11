@@ -14,25 +14,15 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
   while (attempt < MAX_RETRIES) {
     try {
-      const headers = new Headers({
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Prefer': 'return=minimal'
-      });
-
-      if (init?.headers) {
-        const customHeaders = new Headers(init.headers);
-        customHeaders.forEach((value, key) => headers.set(key, value));
-      }
-
       const response = await fetch(url, {
         ...init,
-        headers
+        headers: {
+          ...init?.headers,
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+        },
       });
 
-      // Don't retry on rate limit errors
       if (response.status === 429) {
         const error = new Error('Rate limit exceeded');
         (error as any).status = 429;
@@ -40,23 +30,20 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       }
 
       if (!response.ok) {
-        const errorText = await response.text();
         console.error('Response not OK:', {
           status: response.status,
           statusText: response.statusText,
           url: response.url,
-          headers: Object.fromEntries(response.headers.entries()),
-          body: errorText
         });
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      return response;
+      const clonedResponse = response.clone();
+      return clonedResponse;
     } catch (error) {
       attempt++;
       console.error(`Fetch attempt ${attempt} failed:`, error);
       
-      // Don't retry rate limit errors
       if ((error as any).status === 429) {
         throw error;
       }
@@ -78,15 +65,17 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    detectSessionInUrl: true,
     flowType: 'pkce',
+    storage: window.localStorage,
+    storageKey: 'supabase.auth.token',
   },
   global: {
     fetch: customFetch
   }
 });
 
-// Only log auth state changes
-supabase.auth.onAuthStateChange((event) => {
-  console.log('Auth state changed:', event);
+// Log auth state changes for debugging
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth state changed:', { event, session });
 });
