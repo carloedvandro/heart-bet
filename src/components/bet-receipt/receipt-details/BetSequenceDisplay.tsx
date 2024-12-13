@@ -17,16 +17,10 @@ export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
     return parsedNum.toString().padStart(2, '0');
   };
 
-  // Para dezena, mostrar números sem zero à esquerda e sem vírgula
-  if (bet.bet_type === 'dozen' && bet.hearts?.length) {
+  // Para dezena e centena, mostrar números sem vírgula e sem espaço
+  if ((bet.bet_type === 'dozen' || bet.bet_type === 'hundred') && bet.hearts?.length) {
     const numbers = bet.hearts.map(heart => getNumberForHeart(heart).toString());
-    return numbers.map(num => formatNumber(num, 'dozen')).join("");
-  }
-
-  // Para centena, mostrar números
-  if (bet.bet_type === 'hundred' && bet.hearts?.length) {
-    const numbers = bet.hearts.map(heart => getNumberForHeart(heart).toString());
-    return numbers.map(num => formatNumber(num, 'hundred')).join(", ");
+    return numbers.map(num => formatNumber(num, bet.bet_type)).join("");
   }
 
   // Para milhar, mostrar números

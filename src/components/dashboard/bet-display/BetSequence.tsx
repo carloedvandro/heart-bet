@@ -17,8 +17,8 @@ export const BetSequence = ({ numbers, betType }: BetSequenceProps) => {
     return parsedNum.toString().padStart(2, '0');
   };
 
-  // Para dezena, juntar números sem espaço e sem vírgula
-  if (betType === 'dozen') {
+  // Para dezena e centena, juntar números sem espaço e sem vírgula
+  if (betType === 'dozen' || betType === 'hundred') {
     return numbers.map(number => formatNumber(number)).join("");
   }
 
