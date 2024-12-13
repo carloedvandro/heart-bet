@@ -21,7 +21,7 @@ export const BetSequence = ({ numbers, betType }: BetSequenceProps) => {
     );
   }
 
-  // Para outros tipos, manter o comportamento original
+  // Para grupo simples, manter o comportamento original
   return (
     <div className="flex gap-1 flex-wrap">
       {numbers.map((number, index) => (
