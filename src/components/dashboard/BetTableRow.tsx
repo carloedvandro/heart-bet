@@ -36,7 +36,6 @@ export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
       </TableCell>
       <TableCell>
         <BetCircles 
-          hearts={bet.hearts}
           betType={bet.bet_type}
           isAdmin={isAdmin}
           numbers={bet.numbers}

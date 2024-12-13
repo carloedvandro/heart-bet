@@ -4,7 +4,6 @@ import autoTable from "jspdf-autotable";
 import { Bet } from "@/integrations/supabase/custom-types";
 import { getBetTypeName, getDrawPeriodName } from "./betFormatters";
 import { calculatePrize, Position } from "@/types/betting";
-import { getNumberForHeart } from "./heartNumberMapping";
 
 export const generateBetsPDF = (bets: Bet[], date?: Date) => {
   try {
@@ -30,28 +29,13 @@ export const generateBetsPDF = (bets: Bet[], date?: Date) => {
 
     // Function to format bet sequence
     const formatBetSequence = (bet: Bet) => {
-      if ((bet.bet_type === 'dozen' || bet.bet_type === 'hundred' || bet.bet_type === 'thousand') && bet.hearts?.length) {
-        const numbers = bet.hearts.map(heart => {
-          const num = getNumberForHeart(heart);
-          // Para dezena, manter o formato com dois dígitos
-          if (bet.bet_type === 'dozen') {
-            return num.toString().padStart(2, '0');
-          }
-          // For hundred and thousand, don't use padStart
-          return num.toString();
-        });
-        return numbers.join("");
+      if (!bet.numbers?.length) return "N/A";
+
+      if (bet.bet_type === 'dozen' || bet.bet_type === 'hundred' || bet.bet_type === 'thousand') {
+        return bet.numbers.join("");
       }
 
-      if (bet.bet_type === 'simple_group' && bet.numbers?.length) {
-        return bet.numbers.map(num => num.toString().padStart(2, '0')).join(", ");
-      }
-
-      if (bet.hearts?.length) {
-        return bet.hearts.join(", ");
-      }
-
-      return "N/A";
+      return bet.numbers.map(num => num.toString().padStart(2, '0')).join(", ");
     };
 
     // Table configuration with automatic pagination
@@ -72,10 +56,8 @@ export const generateBetsPDF = (bets: Bet[], date?: Date) => {
           bet.is_winner === false ? "Não premiado" : "Pendente",
       ]),
       startY: 40,
-      // Settings for better visualization and pagination
       margin: { top: 40, right: 14, bottom: 20, left: 14 },
       didDrawPage: function(data) {
-        // Add header on each page
         doc.setFontSize(10);
         doc.text(
           `Página ${data.pageNumber}`,
@@ -83,26 +65,23 @@ export const generateBetsPDF = (bets: Bet[], date?: Date) => {
           15
         );
       },
-      // Column widths adjusted for landscape mode
       columnStyles: {
-        0: { cellWidth: 30 }, // Receipt
-        1: { cellWidth: 40 }, // Date/Time
-        2: { cellWidth: 25 }, // Period
-        3: { cellWidth: 25 }, // Type
-        4: { cellWidth: 25 }, // Position
-        5: { cellWidth: 30 }, // Sequence
-        6: { cellWidth: 25 }, // Amount
-        7: { cellWidth: 30 }, // Potential Prize
-        8: { cellWidth: 30 }, // Result
-        9: { cellWidth: 25 }, // Prize
+        0: { cellWidth: 30 },
+        1: { cellWidth: 40 },
+        2: { cellWidth: 25 },
+        3: { cellWidth: 25 },
+        4: { cellWidth: 25 },
+        5: { cellWidth: 30 },
+        6: { cellWidth: 25 },
+        7: { cellWidth: 30 },
+        8: { cellWidth: 30 },
+        9: { cellWidth: 25 },
       },
-      // Settings for automatic text wrapping
       styles: {
         overflow: 'linebreak',
         cellPadding: 2,
         fontSize: 8,
       },
-      // Ensure all lines are displayed
       showFoot: 'lastPage',
       showHead: 'everyPage',
     });
