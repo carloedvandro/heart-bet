@@ -22,6 +22,7 @@ export const BetTypeSelect = ({ betType, onBetTypeChange }: BetTypeSelectProps) 
   useEffect(() => {
     const fetchActiveBetTypes = async () => {
       try {
+        console.log('Fetching active bet types...');
         const { data, error } = await supabase
           .from('bet_type_settings')
           .select('bet_type, is_active')
@@ -32,7 +33,9 @@ export const BetTypeSelect = ({ betType, onBetTypeChange }: BetTypeSelectProps) 
           return;
         }
 
+        console.log('Received data:', data);
         const activeTypes = (data as BetTypeSetting[]).map(setting => setting.bet_type);
+        console.log('Active types:', activeTypes);
         setActiveBetTypes(activeTypes);
 
         // Se o tipo atual não estiver ativo, seleciona o primeiro tipo ativo
