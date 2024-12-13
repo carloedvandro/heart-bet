@@ -17,8 +17,13 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
     numbers
   });
 
-  // Mostrar números apenas para grupo simples
+  // Para grupo simples, mostrar os números
   if (betType === 'simple_group' && numbers?.length) {
+    return <BetSequence numbers={numbers} betType={betType} />;
+  }
+
+  // Para dezena, mostrar o número
+  if (betType === 'dozen' && numbers?.length) {
     return <BetSequence numbers={numbers} betType={betType} />;
   }
 
