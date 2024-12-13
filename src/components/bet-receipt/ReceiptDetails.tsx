@@ -40,7 +40,7 @@ const ReceiptDetails = ({ bet }: ReceiptDetailsProps) => {
         </div>
         <div className={`flex justify-between ${textSizeClass} items-center`}>
           <span className="text-gray-600">Posição:</span>
-          <span className="font-medium">{bet.position}º</span>
+          <span className="font-medium">{bet.position === 5 ? "1º ao 5º" : `${bet.position}º`}</span>
         </div>
         <div className={`flex justify-between ${textSizeClass} items-center`}>
           <span className="text-gray-600">Sequência:</span>

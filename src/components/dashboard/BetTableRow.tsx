@@ -32,7 +32,7 @@ export function BetTableRow({ bet, onViewReceipt }: BetTableRowProps) {
         {getBetTypeName(bet.bet_type)}
       </TableCell>
       <TableCell>
-        {bet.position}º
+        {bet.position === 5 ? "1º ao 5º" : `${bet.position}º`}
       </TableCell>
       <TableCell>
         <BetCircles 
