@@ -19,15 +19,7 @@ export const BetSequence = ({ numbers, betType }: BetSequenceProps) => {
 
   // Para dezena, juntar números sem espaço e sem vírgula
   if (betType === 'dozen') {
-    return (
-      <div className="flex gap-1 flex-wrap">
-        {numbers.map((number, index) => (
-          <span key={`${number}-${index}`}>
-            {formatNumber(number)}
-          </span>
-        ))}
-      </div>
-    );
+    return numbers.map(number => formatNumber(number)).join("");
   }
 
   // Para outros tipos, manter o comportamento com vírgula e espaço
