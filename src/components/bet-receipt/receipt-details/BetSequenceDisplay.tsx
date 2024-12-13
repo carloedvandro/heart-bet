@@ -11,6 +11,12 @@ export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
     return parsedNum.toString().padStart(2, '0');
   };
 
+  console.log("BetSequenceDisplay - Bet data:", {
+    type: bet.bet_type,
+    numbers: bet.numbers,
+    hearts: bet.hearts
+  });
+
   // Se tivermos números, mostramos eles diretamente
   if (bet.numbers?.length) {
     return bet.numbers.map(formatNumber).join(", ");
