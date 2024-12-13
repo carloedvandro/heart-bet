@@ -11,6 +11,11 @@ export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
     return parsedNum.toString().padStart(2, '0');
   };
 
+  // Para dezena, mostrar números
+  if (bet.bet_type === 'dozen' && bet.numbers?.length) {
+    return bet.numbers.map(formatNumber).join(", ");
+  }
+
   // Mostrar números apenas para grupo simples
   if (bet.bet_type === 'simple_group' && bet.numbers?.length) {
     return bet.numbers.map(formatNumber).join(", ");
