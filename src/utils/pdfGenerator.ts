@@ -24,13 +24,14 @@ export const generateBetsPDF = (bets: Bet[], date?: Date) => {
 
     // Tabela
     autoTable(doc, {
-      head: [["Data/Hora", "Período", "Tipo", "Posição", "Números", "Valor", "Prêmio Potencial", "Resultado", "Prêmio"]],
+      head: [["Comprovante", "Data/Hora", "Período", "Tipo", "Posição", "Números", "Valor", "Prêmio Potencial", "Resultado", "Prêmio"]],
       body: bets.map((bet) => [
+        bet.bet_number || "N/A",
         format(new Date(bet.created_at), "dd/MM/yyyy HH:mm:ss"),
         getDrawPeriodName(bet.draw_period),
         getBetTypeName(bet.bet_type),
-        bet.position + "º",
-        bet.numbers?.join(", ") || "N/A",
+        bet.position === 5 ? "1º ao 5º" : `${bet.position}º`,
+        bet.numbers?.join("") || "N/A",
         `R$ ${Number(bet.amount).toFixed(2)}`,
         `R$ ${calculatePrize(bet.bet_type, bet.position as Position, Number(bet.amount)).toFixed(2)}`,
         bet.drawn_numbers ? bet.drawn_numbers.join(", ") : "Aguardando",
