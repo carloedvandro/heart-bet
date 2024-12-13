@@ -6,33 +6,38 @@ interface BetSequenceDisplayProps {
 }
 
 export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
-  // Função para formatar números com dois dígitos
-  const formatNumber = (num: number | string) => {
+  // Função para formatar números com dois dígitos (exceto para dezena)
+  const formatNumber = (num: number | string, betType: string) => {
     const parsedNum = typeof num === 'string' ? parseInt(num, 10) : num;
+    // Para dezena, não usar padStart
+    if (betType === 'dozen') {
+      return parsedNum.toString();
+    }
+    // Para outros tipos, manter o formato com dois dígitos
     return parsedNum.toString().padStart(2, '0');
   };
 
-  // Para dezena, mostrar números
+  // Para dezena, mostrar números sem zero à esquerda
   if (bet.bet_type === 'dozen' && bet.hearts?.length) {
     const numbers = bet.hearts.map(heart => getNumberForHeart(heart).toString());
-    return numbers.map(formatNumber).join(", ");
+    return numbers.map(num => formatNumber(num, 'dozen')).join(", ");
   }
 
   // Para centena, mostrar números
   if (bet.bet_type === 'hundred' && bet.hearts?.length) {
     const numbers = bet.hearts.map(heart => getNumberForHeart(heart).toString());
-    return numbers.map(formatNumber).join(", ");
+    return numbers.map(num => formatNumber(num, 'hundred')).join(", ");
   }
 
   // Para milhar, mostrar números
   if (bet.bet_type === 'thousand' && bet.hearts?.length) {
     const numbers = bet.hearts.map(heart => getNumberForHeart(heart).toString());
-    return numbers.map(formatNumber).join(", ");
+    return numbers.map(num => formatNumber(num, 'thousand')).join(", ");
   }
 
   // Para grupo simples, manter o comportamento original
   if (bet.bet_type === 'simple_group' && bet.numbers?.length) {
-    return bet.numbers.map(formatNumber).join(", ");
+    return bet.numbers.map(num => formatNumber(num, 'simple_group')).join(", ");
   }
 
   // Para todos os outros tipos, mostrar corações

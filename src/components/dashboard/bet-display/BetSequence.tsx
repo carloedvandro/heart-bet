@@ -6,9 +6,14 @@ interface BetSequenceProps {
 export const BetSequence = ({ numbers, betType }: BetSequenceProps) => {
   if (!numbers?.length) return null;
 
-  // Função para formatar números com dois dígitos
+  // Função para formatar números (sem zero à esquerda para dezena)
   const formatNumber = (num: string) => {
     const parsedNum = parseInt(num, 10);
+    // Para dezena, não usar padStart
+    if (betType === 'dozen') {
+      return parsedNum.toString();
+    }
+    // Para outros tipos, manter o formato com dois dígitos
     return parsedNum.toString().padStart(2, '0');
   };
 
