@@ -11,14 +11,9 @@ export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
     return parsedNum.toString().padStart(2, '0');
   };
 
-  // Para grupo simples, mostrar os números
-  if (bet.bet_type === 'simple_group' && bet.numbers?.length) {
+  // Para grupo simples e milhar, mostrar os números
+  if ((bet.bet_type === 'simple_group' || bet.bet_type === 'thousand') && bet.numbers?.length) {
     return bet.numbers.map(formatNumber).join(", ");
-  }
-
-  // Para dezena, mostrar o número
-  if (bet.bet_type === 'dozen' && bet.numbers?.length) {
-    return formatNumber(bet.numbers[0]);
   }
 
   // Para todos os outros tipos, mostrar corações

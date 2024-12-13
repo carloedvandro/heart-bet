@@ -12,16 +12,6 @@ export const BetSequence = ({ numbers, betType }: BetSequenceProps) => {
     return parsedNum.toString().padStart(2, '0');
   };
 
-  // Para dezena, mostrar apenas o primeiro número formatado
-  if (betType === 'dozen') {
-    return (
-      <div className="flex gap-1 flex-wrap">
-        <span>{formatNumber(numbers[0])}</span>
-      </div>
-    );
-  }
-
-  // Para grupo simples, manter o comportamento original
   return (
     <div className="flex gap-1 flex-wrap">
       {numbers.map((number, index) => (
