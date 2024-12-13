@@ -1,14 +1,15 @@
 import { Bet } from "@/integrations/supabase/custom-types";
-import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
 interface BetSequenceDisplayProps {
   bet: Bet;
 }
 
 export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
+  if (!bet.numbers?.length) return null;
+
   // Função para formatar números (sem zero à esquerda para dezena, centena e milhar)
-  const formatNumber = (num: number | string, betType: string) => {
-    const parsedNum = typeof num === 'string' ? parseInt(num, 10) : num;
+  const formatNumber = (num: string, betType: string) => {
+    const parsedNum = parseInt(num, 10);
     // Para dezena, centena e milhar, não usar padStart
     if (betType === 'dozen' || betType === 'hundred' || betType === 'thousand') {
       return parsedNum.toString();
@@ -18,31 +19,10 @@ export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
   };
 
   // Para dezena, centena e milhar, mostrar números sem vírgula e sem espaço
-  if ((bet.bet_type === 'dozen' || bet.bet_type === 'hundred' || bet.bet_type === 'thousand') && bet.hearts?.length) {
-    const numbers = bet.hearts.map(heart => getNumberForHeart(heart).toString());
-    return numbers.map(num => formatNumber(num, bet.bet_type)).join("");
+  if (bet.bet_type === 'dozen' || bet.bet_type === 'hundred' || bet.bet_type === 'thousand') {
+    return bet.numbers.map(num => formatNumber(num, bet.bet_type)).join("");
   }
 
-  // Para grupo simples, manter o comportamento original
-  if (bet.bet_type === 'simple_group' && bet.numbers?.length) {
-    return bet.numbers.map(num => formatNumber(num, 'simple_group')).join(", ");
-  }
-
-  // Para todos os outros tipos, mostrar corações
-  if (bet.hearts?.length) {
-    return (
-      <div className="flex gap-1 flex-wrap">
-        {bet.hearts.map((color, index) => (
-          <span
-            key={`${color}-${index}`}
-            className="inline-block w-4 h-4 rounded-full border border-gray-300"
-            style={{ backgroundColor: `var(--heart-${color})` }}
-            title={color}
-          />
-        ))}
-      </div>
-    );
-  }
-
-  return "N/A";
+  // Para grupo simples, manter o comportamento original com vírgulas
+  return bet.numbers.map(num => formatNumber(num, bet.bet_type)).join(", ");
 };

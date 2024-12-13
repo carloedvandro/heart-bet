@@ -87,7 +87,6 @@ export type Database = {
           draw_date: string
           draw_period: Database["public"]["Enums"]["draw_period"]
           drawn_numbers: number[] | null
-          hearts: string[]
           id: string
           is_winner: boolean | null
           numbers: string[]
@@ -104,7 +103,6 @@ export type Database = {
           draw_date?: string
           draw_period: Database["public"]["Enums"]["draw_period"]
           drawn_numbers?: number[] | null
-          hearts: string[]
           id?: string
           is_winner?: boolean | null
           numbers: string[]
@@ -121,7 +119,6 @@ export type Database = {
           draw_date?: string
           draw_period?: Database["public"]["Enums"]["draw_period"]
           drawn_numbers?: number[] | null
-          hearts?: string[]
           id?: string
           is_winner?: boolean | null
           numbers?: string[]
@@ -303,6 +300,12 @@ export type Database = {
           amount: number
           created_at: string
         }[]
+      }
+      heart_to_number: {
+        Args: {
+          heart_color: string
+        }
+        Returns: number
       }
       is_admin: {
         Args: {

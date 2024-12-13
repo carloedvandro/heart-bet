@@ -7,6 +7,7 @@ import { BetType, DrawPeriod, Position } from "@/types/betting";
 import { playSounds } from "@/utils/soundEffects";
 import { Bet } from "@/integrations/supabase/custom-types";
 import { useTemporaryBetState } from "./useTemporaryBetState";
+import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
 export const useBetSubmission = (
   session: Session | null,
@@ -23,21 +24,6 @@ export const useBetSubmission = (
   const navigate = useNavigate();
   const { combinations, clearCombinations } = useTemporaryBetState();
 
-  const checkBalance = async (userId: string) => {
-    const { data: profile, error } = await supabase
-      .from('profiles')
-      .select('balance')
-      .eq('id', userId)
-      .single();
-
-    if (error) {
-      console.error("Error checking balance:", error);
-      return false;
-    }
-
-    return profile?.balance >= betAmount;
-  };
-
   const handleSubmit = async () => {
     if (!session?.user) {
       playSounds.error();
@@ -48,23 +34,20 @@ export const useBetSubmission = (
 
     setIsSubmitting(true);
 
-    const hasBalance = await checkBalance(session.user.id);
-    if (!hasBalance) {
-      playSounds.error();
-      toast.error("Saldo insuficiente para realizar esta aposta. Por favor, faça uma recarga.");
-      setIsSubmitting(false);
-      return;
-    }
-
-    console.log("Submitting bet with combinations:", combinations);
-
     try {
+      // Converter corações em números para tipos específicos de aposta
+      let numbers: string[];
+      if (betType === 'dozen' || betType === 'hundred' || betType === 'thousand') {
+        numbers = selectedHearts.map(heart => getNumberForHeart(heart).toString());
+      } else {
+        numbers = combinations.map(String);
+      }
+
       const { data: bet, error } = await supabase
         .from('bets')
         .insert({
           user_id: session.user.id,
-          hearts: selectedHearts,
-          numbers: combinations.map(String),
+          numbers: numbers,
           bet_type: betType,
           draw_period: drawPeriod,
           amount: betAmount,
@@ -82,7 +65,6 @@ export const useBetSubmission = (
           playSounds.error();
           toast.error("Erro ao registrar aposta. Tente novamente.");
         }
-        setIsSubmitting(false);
         return;
       }
 
@@ -91,11 +73,11 @@ export const useBetSubmission = (
       
       clearCombinations();
       onBetPlaced(bet);
-      setIsSubmitting(false);
     } catch (error) {
       console.error("Erro ao registrar aposta:", error);
       playSounds.error();
       toast.error("Erro ao registrar aposta. Tente novamente.");
+    } finally {
       setIsSubmitting(false);
     }
   };
