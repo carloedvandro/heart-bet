@@ -6,11 +6,11 @@ interface BetSequenceDisplayProps {
 }
 
 export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
-  // Função para formatar números com dois dígitos (exceto para dezena)
+  // Função para formatar números (sem zero à esquerda para dezena e centena)
   const formatNumber = (num: number | string, betType: string) => {
     const parsedNum = typeof num === 'string' ? parseInt(num, 10) : num;
-    // Para dezena, não usar padStart
-    if (betType === 'dozen') {
+    // Para dezena e centena, não usar padStart
+    if (betType === 'dozen' || betType === 'hundred') {
       return parsedNum.toString();
     }
     // Para outros tipos, manter o formato com dois dígitos
