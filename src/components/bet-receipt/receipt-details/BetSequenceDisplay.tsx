@@ -16,16 +16,6 @@ export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
     return bet.numbers.map(formatNumber).join(", ");
   }
 
-  // Mostrar números apenas para grupo simples
-  if (bet.bet_type === 'simple_group' && bet.numbers?.length) {
-    return bet.numbers.map(formatNumber).join(", ");
-  }
-
-  // Para milhar, manter o comportamento original
-  if (bet.bet_type === 'thousand' && bet.numbers?.length) {
-    return bet.numbers.map(formatNumber).join(", ");
-  }
-
   // Para todos os outros tipos, mostrar corações
   if (bet.hearts?.length) {
     return (
