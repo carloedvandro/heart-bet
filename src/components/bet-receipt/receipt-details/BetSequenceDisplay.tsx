@@ -18,6 +18,12 @@ export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
     return numbers.map(formatNumber).join(", ");
   }
 
+  // Para centena, mostrar números
+  if (bet.bet_type === 'hundred' && bet.hearts?.length) {
+    const numbers = bet.hearts.map(heart => getNumberForHeart(heart).toString());
+    return numbers.map(formatNumber).join(", ");
+  }
+
   // Para grupo simples, manter o comportamento original
   if (bet.bet_type === 'simple_group' && bet.numbers?.length) {
     return bet.numbers.map(formatNumber).join(", ");

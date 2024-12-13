@@ -25,6 +25,12 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
     return <BetSequence numbers={mappedNumbers} betType={betType} />;
   }
 
+  // Para centena, mostrar números
+  if (betType === 'hundred' && hearts?.length) {
+    const mappedNumbers = hearts.map(heart => getNumberForHeart(heart).toString());
+    return <BetSequence numbers={mappedNumbers} betType={betType} />;
+  }
+
   // Para grupo simples, manter o comportamento original
   if (betType === 'simple_group' && numbers?.length) {
     return <BetSequence numbers={numbers} betType={betType} />;
