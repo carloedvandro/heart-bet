@@ -6,27 +6,21 @@ interface BetSequenceDisplayProps {
 }
 
 export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
-  // Função para formatar números (sem zero à esquerda para dezena e centena)
+  // Função para formatar números (sem zero à esquerda para dezena, centena e milhar)
   const formatNumber = (num: number | string, betType: string) => {
     const parsedNum = typeof num === 'string' ? parseInt(num, 10) : num;
-    // Para dezena e centena, não usar padStart
-    if (betType === 'dozen' || betType === 'hundred') {
+    // Para dezena, centena e milhar, não usar padStart
+    if (betType === 'dozen' || betType === 'hundred' || betType === 'thousand') {
       return parsedNum.toString();
     }
     // Para outros tipos, manter o formato com dois dígitos
     return parsedNum.toString().padStart(2, '0');
   };
 
-  // Para dezena e centena, mostrar números sem vírgula e sem espaço
-  if ((bet.bet_type === 'dozen' || bet.bet_type === 'hundred') && bet.hearts?.length) {
+  // Para dezena, centena e milhar, mostrar números sem vírgula e sem espaço
+  if ((bet.bet_type === 'dozen' || bet.bet_type === 'hundred' || bet.bet_type === 'thousand') && bet.hearts?.length) {
     const numbers = bet.hearts.map(heart => getNumberForHeart(heart).toString());
     return numbers.map(num => formatNumber(num, bet.bet_type)).join("");
-  }
-
-  // Para milhar, mostrar números
-  if (bet.bet_type === 'thousand' && bet.hearts?.length) {
-    const numbers = bet.hearts.map(heart => getNumberForHeart(heart).toString());
-    return numbers.map(num => formatNumber(num, 'thousand')).join(", ");
   }
 
   // Para grupo simples, manter o comportamento original
