@@ -57,6 +57,27 @@ export type Database = {
           },
         ]
       }
+      bet_type_settings: {
+        Row: {
+          bet_type: Database["public"]["Enums"]["bet_type"]
+          id: string
+          is_active: boolean
+          updated_at: string | null
+        }
+        Insert: {
+          bet_type: Database["public"]["Enums"]["bet_type"]
+          id?: string
+          is_active?: boolean
+          updated_at?: string | null
+        }
+        Update: {
+          bet_type?: Database["public"]["Enums"]["bet_type"]
+          id?: string
+          is_active?: boolean
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       bets: {
         Row: {
           amount: number
