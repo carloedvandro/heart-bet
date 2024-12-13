@@ -21,7 +21,7 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
 
   // Para dezena, mostrar números
   if (betType === 'dozen' && hearts?.length) {
-    const mappedNumbers = hearts.map(heart => getNumberForHeart(heart));
+    const mappedNumbers = hearts.map(heart => getNumberForHeart(heart).toString());
     return <BetSequence numbers={mappedNumbers} betType={betType} />;
   }
 

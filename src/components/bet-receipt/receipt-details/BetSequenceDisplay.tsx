@@ -7,14 +7,14 @@ interface BetSequenceDisplayProps {
 
 export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
   // Função para formatar números com dois dígitos
-  const formatNumber = (num: string) => {
-    const parsedNum = parseInt(num, 10);
+  const formatNumber = (num: number | string) => {
+    const parsedNum = typeof num === 'string' ? parseInt(num, 10) : num;
     return parsedNum.toString().padStart(2, '0');
   };
 
   // Para dezena, mostrar números
   if (bet.bet_type === 'dozen' && bet.hearts?.length) {
-    const numbers = bet.hearts.map(heart => getNumberForHeart(heart));
+    const numbers = bet.hearts.map(heart => getNumberForHeart(heart).toString());
     return numbers.map(formatNumber).join(", ");
   }
 
