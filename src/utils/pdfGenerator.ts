@@ -49,7 +49,7 @@ export const generateBetsPDF = (bets: Bet[], date?: Date) => {
       return "N/A";
     };
 
-    // Tabela
+    // Configuração da tabela com opções de paginação automática
     autoTable(doc, {
       head: [["Comprovante", "Data/Hora", "Período", "Tipo", "Posição", "Sequência", "Valor", "Prêmio Potencial", "Resultado", "Prêmio"]],
       body: bets.map((bet) => [
@@ -67,6 +67,36 @@ export const generateBetsPDF = (bets: Bet[], date?: Date) => {
           bet.is_winner === false ? "Não premiado" : "Pendente",
       ]),
       startY: 40,
+      // Configurações para melhor visualização e paginação
+      margin: { top: 40, right: 14, bottom: 20, left: 14 },
+      didDrawPage: function(data) {
+        // Adiciona cabeçalho em cada página
+        doc.setFontSize(10);
+        doc.text(
+          `Página ${data.pageNumber}`,
+          data.settings.margin.left,
+          15
+        );
+      },
+      // Garantir que todas as colunas caibam na página
+      columnStyles: {
+        0: { cellWidth: 25 }, // Comprovante
+        1: { cellWidth: 35 }, // Data/Hora
+        2: { cellWidth: 20 }, // Período
+        3: { cellWidth: 20 }, // Tipo
+        4: { cellWidth: 20 }, // Posição
+        5: { cellWidth: 25 }, // Sequência
+        6: { cellWidth: 20 }, // Valor
+        7: { cellWidth: 25 }, // Prêmio Potencial
+        8: { cellWidth: 25 }, // Resultado
+        9: { cellWidth: 25 }, // Prêmio
+      },
+      // Configurações para quebra automática de texto
+      styles: {
+        overflow: 'linebreak',
+        cellPadding: 2,
+        fontSize: 8,
+      },
     });
 
     return doc;
