@@ -8,7 +8,12 @@ import { getNumberForHeart } from "./heartNumberMapping";
 
 export const generateBetsPDF = (bets: Bet[], date?: Date) => {
   try {
-    const doc = new jsPDF();
+    // Criar PDF em modo paisagem
+    const doc = new jsPDF({
+      orientation: 'landscape',
+      unit: 'mm',
+      format: 'a4'
+    });
     
     // Título
     doc.setFontSize(20);
@@ -78,17 +83,17 @@ export const generateBetsPDF = (bets: Bet[], date?: Date) => {
           15
         );
       },
-      // Garantir que todas as colunas caibam na página
+      // Ajuste das larguras das colunas para modo paisagem
       columnStyles: {
-        0: { cellWidth: 25 }, // Comprovante
-        1: { cellWidth: 35 }, // Data/Hora
-        2: { cellWidth: 20 }, // Período
-        3: { cellWidth: 20 }, // Tipo
-        4: { cellWidth: 20 }, // Posição
-        5: { cellWidth: 25 }, // Sequência
-        6: { cellWidth: 20 }, // Valor
-        7: { cellWidth: 25 }, // Prêmio Potencial
-        8: { cellWidth: 25 }, // Resultado
+        0: { cellWidth: 30 }, // Comprovante
+        1: { cellWidth: 40 }, // Data/Hora
+        2: { cellWidth: 25 }, // Período
+        3: { cellWidth: 25 }, // Tipo
+        4: { cellWidth: 25 }, // Posição
+        5: { cellWidth: 30 }, // Sequência
+        6: { cellWidth: 25 }, // Valor
+        7: { cellWidth: 30 }, // Prêmio Potencial
+        8: { cellWidth: 30 }, // Resultado
         9: { cellWidth: 25 }, // Prêmio
       },
       // Configurações para quebra automática de texto
@@ -97,6 +102,9 @@ export const generateBetsPDF = (bets: Bet[], date?: Date) => {
         cellPadding: 2,
         fontSize: 8,
       },
+      // Garantir que todas as linhas sejam exibidas
+      showFoot: 'lastPage',
+      showHead: 'everyPage',
     });
 
     return doc;
