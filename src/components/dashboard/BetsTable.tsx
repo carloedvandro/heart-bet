@@ -15,6 +15,7 @@ interface BetsTableProps {
 
 export function BetsTable({ refreshTrigger }: BetsTableProps) {
   const [bets, setBets] = useState<Bet[]>([]);
+  const [allBets, setAllBets] = useState<Bet[]>([]); // New state for storing all bets
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(0);
@@ -34,14 +35,21 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
         .from("bets")
         .select("*", { count: 'exact' })
         .eq("user_id", session.user.id)
-        .order("created_at", { ascending: false })
-        .range(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage - 1);
+        .order("created_at", { ascending: false });
 
       if (date) {
         query = query.eq("draw_date", format(date, "yyyy-MM-dd"));
       }
 
-      const { data, error, count } = await query;
+      // First fetch all bets for PDF generation
+      const { data: allData } = await query;
+      if (allData) {
+        setAllBets(allData);
+      }
+
+      // Then fetch paginated data for display
+      const { data, error, count } = await query
+        .range(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage - 1);
 
       if (error) throw error;
       
@@ -84,7 +92,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       <BetsTableActions 
         date={date}
         setDate={setDate}
-        bets={bets}
+        bets={allBets} // Pass all bets instead of paginated bets
       />
 
       {bets.length === 0 ? (

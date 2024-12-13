@@ -8,18 +8,18 @@ import { getNumberForHeart } from "./heartNumberMapping";
 
 export const generateBetsPDF = (bets: Bet[], date?: Date) => {
   try {
-    // Criar PDF em modo paisagem
+    // Create PDF in landscape mode
     const doc = new jsPDF({
       orientation: 'landscape',
       unit: 'mm',
       format: 'a4'
     });
     
-    // Título
+    // Title
     doc.setFontSize(20);
     doc.text("Extrato de Apostas", 14, 22);
     
-    // Subtítulo com data
+    // Subtitle with date
     doc.setFontSize(12);
     doc.text(
       date ? 
@@ -28,7 +28,7 @@ export const generateBetsPDF = (bets: Bet[], date?: Date) => {
       14, 32
     );
 
-    // Função para formatar a sequência de apostas
+    // Function to format bet sequence
     const formatBetSequence = (bet: Bet) => {
       if ((bet.bet_type === 'dozen' || bet.bet_type === 'hundred' || bet.bet_type === 'thousand') && bet.hearts?.length) {
         const numbers = bet.hearts.map(heart => {
@@ -37,7 +37,7 @@ export const generateBetsPDF = (bets: Bet[], date?: Date) => {
           if (bet.bet_type === 'dozen') {
             return num.toString().padStart(2, '0');
           }
-          // Para centena e milhar, não usar padStart
+          // For hundred and thousand, don't use padStart
           return num.toString();
         });
         return numbers.join("");
@@ -54,7 +54,7 @@ export const generateBetsPDF = (bets: Bet[], date?: Date) => {
       return "N/A";
     };
 
-    // Configuração da tabela com opções de paginação automática
+    // Table configuration with automatic pagination
     autoTable(doc, {
       head: [["Comprovante", "Data/Hora", "Período", "Tipo", "Posição", "Sequência", "Valor", "Prêmio Potencial", "Resultado", "Prêmio"]],
       body: bets.map((bet) => [
@@ -72,10 +72,10 @@ export const generateBetsPDF = (bets: Bet[], date?: Date) => {
           bet.is_winner === false ? "Não premiado" : "Pendente",
       ]),
       startY: 40,
-      // Configurações para melhor visualização e paginação
+      // Settings for better visualization and pagination
       margin: { top: 40, right: 14, bottom: 20, left: 14 },
       didDrawPage: function(data) {
-        // Adiciona cabeçalho em cada página
+        // Add header on each page
         doc.setFontSize(10);
         doc.text(
           `Página ${data.pageNumber}`,
@@ -83,26 +83,26 @@ export const generateBetsPDF = (bets: Bet[], date?: Date) => {
           15
         );
       },
-      // Ajuste das larguras das colunas para modo paisagem
+      // Column widths adjusted for landscape mode
       columnStyles: {
-        0: { cellWidth: 30 }, // Comprovante
-        1: { cellWidth: 40 }, // Data/Hora
-        2: { cellWidth: 25 }, // Período
-        3: { cellWidth: 25 }, // Tipo
-        4: { cellWidth: 25 }, // Posição
-        5: { cellWidth: 30 }, // Sequência
-        6: { cellWidth: 25 }, // Valor
-        7: { cellWidth: 30 }, // Prêmio Potencial
-        8: { cellWidth: 30 }, // Resultado
-        9: { cellWidth: 25 }, // Prêmio
+        0: { cellWidth: 30 }, // Receipt
+        1: { cellWidth: 40 }, // Date/Time
+        2: { cellWidth: 25 }, // Period
+        3: { cellWidth: 25 }, // Type
+        4: { cellWidth: 25 }, // Position
+        5: { cellWidth: 30 }, // Sequence
+        6: { cellWidth: 25 }, // Amount
+        7: { cellWidth: 30 }, // Potential Prize
+        8: { cellWidth: 30 }, // Result
+        9: { cellWidth: 25 }, // Prize
       },
-      // Configurações para quebra automática de texto
+      // Settings for automatic text wrapping
       styles: {
         overflow: 'linebreak',
         cellPadding: 2,
         fontSize: 8,
       },
-      // Garantir que todas as linhas sejam exibidas
+      // Ensure all lines are displayed
       showFoot: 'lastPage',
       showHead: 'everyPage',
     });
