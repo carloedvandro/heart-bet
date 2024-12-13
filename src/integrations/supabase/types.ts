@@ -9,6 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      balance_history: {
+        Row: {
+          admin_id: string
+          amount: number
+          created_at: string
+          id: string
+          new_balance: number
+          operation_type: string
+          previous_balance: number
+          user_id: string
+        }
+        Insert: {
+          admin_id: string
+          amount: number
+          created_at?: string
+          id?: string
+          new_balance: number
+          operation_type: string
+          previous_balance: number
+          user_id: string
+        }
+        Update: {
+          admin_id?: string
+          amount?: number
+          created_at?: string
+          id?: string
+          new_balance?: number
+          operation_type?: string
+          previous_balance?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "balance_history_admin_id_fkey"
+            columns: ["admin_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "balance_history_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bets: {
         Row: {
           amount: number
@@ -234,6 +282,12 @@ export type Database = {
           amount: number
           created_at: string
         }[]
+      }
+      is_admin: {
+        Args: {
+          user_id: string
+        }
+        Returns: boolean
       }
     }
     Enums: {

@@ -1,4 +1,5 @@
 import { Bet } from "@/integrations/supabase/custom-types";
+import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
 interface BetSequenceDisplayProps {
   bet: Bet;
@@ -11,7 +12,13 @@ export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
     return parsedNum.toString().padStart(2, '0');
   };
 
-  // Mostrar números apenas para grupo simples
+  // Para dezena, mostrar números
+  if (bet.bet_type === 'dozen' && bet.hearts?.length) {
+    const numbers = bet.hearts.map(heart => getNumberForHeart(heart));
+    return numbers.map(formatNumber).join(", ");
+  }
+
+  // Para grupo simples, manter o comportamento original
   if (bet.bet_type === 'simple_group' && bet.numbers?.length) {
     return bet.numbers.map(formatNumber).join(", ");
   }

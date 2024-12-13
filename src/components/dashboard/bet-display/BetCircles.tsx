@@ -1,5 +1,6 @@
 import { BetSequence } from "./BetSequence";
 import { HeartCircles } from "./HeartCircles";
+import { getNumberForHeart } from "@/utils/heartNumberMapping";
 
 interface BetCirclesProps {
   hearts: string[] | null;
@@ -14,10 +15,17 @@ export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProp
     hearts,
     betType,
     isAdmin,
-    numbers
+    numbers,
+    mappedNumbers: hearts?.map(heart => getNumberForHeart(heart))
   });
 
-  // Mostrar números apenas para grupo simples
+  // Para dezena, mostrar números
+  if (betType === 'dozen' && hearts?.length) {
+    const mappedNumbers = hearts.map(heart => getNumberForHeart(heart));
+    return <BetSequence numbers={mappedNumbers} betType={betType} />;
+  }
+
+  // Para grupo simples, manter o comportamento original
   if (betType === 'simple_group' && numbers?.length) {
     return <BetSequence numbers={numbers} betType={betType} />;
   }
