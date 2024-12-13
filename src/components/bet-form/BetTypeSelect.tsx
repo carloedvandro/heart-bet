@@ -20,8 +20,8 @@ export const BetTypeSelect = ({ betType, onBetTypeChange }: BetTypeSelectProps) 
           <SelectItem value="dozen">Dezena</SelectItem>
           <SelectItem value="hundred">Centena</SelectItem>
           <SelectItem value="thousand">Milhar</SelectItem>
-          <SelectItem value="group_double">Duque</SelectItem>
-          <SelectItem value="group_triple">Terno</SelectItem>
+          <SelectItem value="group_double">Duque de Grupo</SelectItem>
+          <SelectItem value="group_triple">Terno de Grupo</SelectItem>
         </SelectContent>
       </Select>
     </div>
