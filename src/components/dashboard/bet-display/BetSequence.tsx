@@ -12,13 +12,10 @@ export const BetSequence = ({ numbers, betType }: BetSequenceProps) => {
     return parsedNum.toString().padStart(2, '0');
   };
 
-  console.log("BetSequence - Formatting numbers:", numbers);
-  console.log("BetSequence - Bet type:", betType);
-
   return (
     <div className="flex gap-1 flex-wrap">
       {numbers.map((number, index) => (
-        <span key={`${number}-${index}`} className="font-mono">
+        <span key={`${number}-${index}`}>
           {formatNumber(number)}
           {index < numbers.length - 1 ? ", " : ""}
         </span>

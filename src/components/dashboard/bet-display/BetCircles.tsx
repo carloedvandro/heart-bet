@@ -1,19 +1,32 @@
 import { BetSequence } from "./BetSequence";
+import { HeartCircles } from "./HeartCircles";
 
 interface BetCirclesProps {
   hearts: string[] | null;
   betType: string;
   isAdmin: boolean;
-  numbers: string[] | null;
+  numbers?: string[] | null;
 }
 
-export const BetCircles = ({ numbers, betType }: BetCirclesProps) => {
-  console.log("BetCircles - Received numbers:", numbers);
-  console.log("BetCircles - Bet type:", betType);
-  
-  if (!numbers?.length) {
-    return <span className="text-gray-500">Aguardando processamento</span>;
+export const BetCircles = ({ hearts, betType, isAdmin, numbers }: BetCirclesProps) => {
+  console.log("=== BetCircles Component Debug ===");
+  console.log("Input props:", {
+    hearts,
+    betType,
+    isAdmin,
+    numbers
+  });
+
+  // Mostrar números apenas para grupo simples
+  if (betType === 'simple_group' && numbers?.length) {
+    return <BetSequence numbers={numbers} betType={betType} />;
   }
 
-  return <BetSequence numbers={numbers} betType={betType} />;
+  // Para milhar, manter o comportamento original
+  if (betType === 'thousand' && numbers?.length) {
+    return <BetSequence numbers={numbers} betType={betType} />;
+  }
+
+  // Para todos os outros tipos, mostrar corações
+  return <HeartCircles hearts={hearts} />;
 };

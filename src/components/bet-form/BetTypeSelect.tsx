@@ -16,7 +16,7 @@ export const BetTypeSelect = ({ betType, onBetTypeChange }: BetTypeSelectProps) 
           <SelectValue />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="simple_group">Grupo Simples</SelectItem>
+          <SelectItem value="simple_group">Dezena Simples</SelectItem>
           <SelectItem value="dozen">Dezena</SelectItem>
           <SelectItem value="hundred">Centena</SelectItem>
           <SelectItem value="thousand">Milhar</SelectItem>

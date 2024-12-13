@@ -1,7 +1,6 @@
 import { toast } from "sonner";
 import { playSounds } from "@/utils/soundEffects";
 import { getNumberForHeart } from "@/utils/heartNumberMapping";
-import { getGroupNumbers } from "@/utils/bichoUtils";
 import { useTemporaryBetState } from "../useTemporaryBetState";
 
 export const useSimpleGroupSelection = (
@@ -18,7 +17,7 @@ export const useSimpleGroupSelection = (
       setMainHeart(color);
       setSelectedHearts([color]);
       playSounds.click();
-      toast.info("Agora escolha outro coração para formar o grupo. Você pode escolher o mesmo coração novamente!");
+      toast.info("Agora escolha outro coração para formar a dezena. Você pode escolher o mesmo coração novamente!");
       return true;
     }
 
@@ -33,25 +32,20 @@ export const useSimpleGroupSelection = (
         twoDigitNumber = firstNumber * 10 + secondNumber;
       }
       
-      const groupNumbers = getGroupNumbers(twoDigitNumber);
-      
       setSelectedHearts([mainHeart, color]);
-      setCombinations(groupNumbers);
+      setCombinations([twoDigitNumber]);
       playSounds.click();
 
       const formattedNumber = firstNumber === 0 && secondNumber === 0 
         ? "00"
         : twoDigitNumber.toString().padStart(2, '0');
 
-      toast.success(`Grupo formado: ${groupNumbers.map(n => {
-        if (n === 0) return "00";
-        return n.toString().padStart(2, '0');
-      }).join(", ")}`);
+      toast.success(`Dezena formada: ${formattedNumber}`);
       return true;
     }
 
     if (selectedHearts.length >= 2) {
-      toast.error("Máximo de 2 corações para grupo simples");
+      toast.error("Máximo de 2 corações para dezena simples");
       return false;
     }
 

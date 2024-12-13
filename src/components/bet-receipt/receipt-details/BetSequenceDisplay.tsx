@@ -11,15 +11,25 @@ export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
     return parsedNum.toString().padStart(2, '0');
   };
 
-  console.log("BetSequenceDisplay - Bet data:", {
-    type: bet.bet_type,
-    numbers: bet.numbers,
-    hearts: bet.hearts
-  });
-
-  // Se tivermos números, mostramos eles diretamente
-  if (bet.numbers?.length) {
+  // Para grupo simples e milhar, mostrar os números
+  if ((bet.bet_type === 'simple_group' || bet.bet_type === 'thousand') && bet.numbers?.length) {
     return bet.numbers.map(formatNumber).join(", ");
+  }
+
+  // Para todos os outros tipos, mostrar corações
+  if (bet.hearts?.length) {
+    return (
+      <div className="flex gap-1 flex-wrap">
+        {bet.hearts.map((color, index) => (
+          <span
+            key={`${color}-${index}`}
+            className="inline-block w-4 h-4 rounded-full border border-gray-300"
+            style={{ backgroundColor: `var(--heart-${color})` }}
+            title={color}
+          />
+        ))}
+      </div>
+    );
   }
 
   return "N/A";
