@@ -24,13 +24,14 @@ export const BetSequenceDisplay = ({ bet }: BetSequenceDisplayProps) => {
     return numbers.map(formatNumber).join(", ");
   }
 
-  // Para grupo simples, manter o comportamento original
-  if (bet.bet_type === 'simple_group' && bet.numbers?.length) {
-    return bet.numbers.map(formatNumber).join(", ");
+  // Para milhar, mostrar números
+  if (bet.bet_type === 'thousand' && bet.hearts?.length) {
+    const numbers = bet.hearts.map(heart => getNumberForHeart(heart).toString());
+    return numbers.map(formatNumber).join(", ");
   }
 
-  // Para milhar, manter o comportamento original
-  if (bet.bet_type === 'thousand' && bet.numbers?.length) {
+  // Para grupo simples, manter o comportamento original
+  if (bet.bet_type === 'simple_group' && bet.numbers?.length) {
     return bet.numbers.map(formatNumber).join(", ");
   }
 
