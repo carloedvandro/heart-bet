@@ -22,7 +22,7 @@ export const BetSequence = ({ numbers, betType }: BetSequenceProps) => {
       {numbers.map((number, index) => (
         <span key={`${number}-${index}`}>
           {formatNumber(number)}
-          {index < numbers.length - 1 ? ", " : ""}
+          {betType !== 'dozen' && index < numbers.length - 1 ? ", " : ""}
         </span>
       ))}
     </div>
