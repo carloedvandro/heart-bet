@@ -19,36 +19,34 @@ export function useInvestments() {
 
   const handleCancelInvestment = async (investmentId: string) => {
     try {
-      const { data: investment } = await supabase
+      // Primeiro, verificar se o investimento ainda está ativo
+      const { data: currentInvestment, error: checkError } = await supabase
         .from('trade_investments')
         .select('amount, status')
         .eq('id', investmentId)
         .single();
 
-      if (!investment) {
-        throw new Error('Investimento não encontrado');
+      if (checkError) throw checkError;
+
+      if (!currentInvestment) {
+        playSounds.error();
+        toast.error("Investimento não encontrado");
+        return;
       }
 
-      if (investment.status !== 'active') {
+      if (currentInvestment.status !== 'active') {
         playSounds.error();
         toast.error("Este investimento já foi cancelado");
         return;
       }
 
-      const { error: updateError } = await supabase
-        .from('trade_investments')
-        .update({ 
-          status: 'cancelled',
-          current_balance: investment.amount
-        })
-        .eq('id', investmentId);
+      // Usar uma transação RPC para garantir atomicidade
+      const { error: cancelError } = await supabase
+        .rpc('cancel_investment', { investment_id: investmentId });
 
-      if (updateError) throw updateError;
-
-      const { error: balanceError } = await supabase
-        .rpc('increment_balance', { amount: investment.amount });
-
-      if (balanceError) throw balanceError;
+      if (cancelError) {
+        throw cancelError;
+      }
 
       playSounds.success();
       toast.success("Investimento cancelado com sucesso!");

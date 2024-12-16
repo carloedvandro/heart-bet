@@ -58,7 +58,7 @@ export function InvestmentCard({ investment, onCancelInvestment, isProcessing }:
                 size="sm"
                 className="mt-2"
                 onClick={() => onCancelInvestment(investment.id, investment.created_at)}
-                disabled={investment.status !== 'active' || isProcessing}
+                disabled={isProcessing || investment.status !== 'active'}
               >
                 {isProcessing ? "Cancelando..." : "Cancelar Investimento"}
               </Button>
