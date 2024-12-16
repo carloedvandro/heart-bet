@@ -1,6 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { differenceInMinutes } from "date-fns"; // Add this import
 import { FinancialProfileDialog } from "./FinancialProfileDialog";
 import { InvestmentTermsDialog } from "./InvestmentTermsDialog";
 import { CreateInvestmentDialog } from "./CreateInvestmentDialog";
