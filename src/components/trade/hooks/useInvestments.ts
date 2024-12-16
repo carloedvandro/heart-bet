@@ -19,7 +19,6 @@ export function useInvestments() {
 
   const handleCancelInvestment = async (investmentId: string) => {
     try {
-      // Get investment details first
       const { data: investment } = await supabase
         .from('trade_investments')
         .select('amount, status')
@@ -36,18 +35,16 @@ export function useInvestments() {
         return;
       }
 
-      // Update investment status
       const { error: updateError } = await supabase
         .from('trade_investments')
         .update({ 
           status: 'cancelled',
-          current_balance: investment.amount // Reset balance to original amount
+          current_balance: investment.amount
         })
         .eq('id', investmentId);
 
       if (updateError) throw updateError;
 
-      // Return amount to user's balance
       const { error: balanceError } = await supabase
         .rpc('increment_balance', { amount: investment.amount });
 
@@ -72,6 +69,7 @@ export function useInvestments() {
     isLoading,
     totalInvested,
     totalEarnings,
-    handleCancelInvestment
+    handleCancelInvestment,
+    refetchInvestments: refetch
   };
 }

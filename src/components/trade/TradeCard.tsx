@@ -41,7 +41,8 @@ export function TradeCard() {
     isLoading: isLoadingInvestments, 
     totalInvested,
     totalEarnings,
-    handleCancelInvestment 
+    handleCancelInvestment,
+    refetchInvestments 
   } = useInvestments();
 
   const handleStartInvestment = () => {
@@ -137,7 +138,8 @@ export function TradeCard() {
       />
       <CreateInvestmentDialog 
         open={showInvestDialog} 
-        onOpenChange={setShowInvestDialog} 
+        onOpenChange={setShowInvestDialog}
+        onInvestmentCreated={refetchInvestments}
       />
       <WithdrawDialog 
         open={showWithdrawDialog} 

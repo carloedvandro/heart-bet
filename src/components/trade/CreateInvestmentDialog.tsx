@@ -11,9 +11,14 @@ import { useSession } from "@supabase/auth-helpers-react";
 interface CreateInvestmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onInvestmentCreated?: () => void;
 }
 
-export function CreateInvestmentDialog({ open, onOpenChange }: CreateInvestmentDialogProps) {
+export function CreateInvestmentDialog({ 
+  open, 
+  onOpenChange,
+  onInvestmentCreated 
+}: CreateInvestmentDialogProps) {
   const session = useSession();
   const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState('');
@@ -32,7 +37,6 @@ export function CreateInvestmentDialog({ open, onOpenChange }: CreateInvestmentD
       const lockedUntil = new Date();
       lockedUntil.setDate(lockedUntil.getDate() + lockPeriodDays);
 
-      // Primeiro, verificar se o usuário tem saldo suficiente
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('balance')
@@ -45,7 +49,6 @@ export function CreateInvestmentDialog({ open, onOpenChange }: CreateInvestmentD
         return;
       }
 
-      // Iniciar uma transação para garantir a consistência dos dados
       const { data: investment, error: investmentError } = await supabase
         .from('trade_investments')
         .insert({
@@ -61,7 +64,6 @@ export function CreateInvestmentDialog({ open, onOpenChange }: CreateInvestmentD
 
       if (investmentError) throw investmentError;
 
-      // Atualizar o saldo do usuário
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ balance: profile.balance - numericAmount })
@@ -69,7 +71,6 @@ export function CreateInvestmentDialog({ open, onOpenChange }: CreateInvestmentD
 
       if (updateError) throw updateError;
 
-      // Registrar no histórico de saldo
       const { error: historyError } = await supabase
         .from('balance_history')
         .insert({
@@ -85,6 +86,8 @@ export function CreateInvestmentDialog({ open, onOpenChange }: CreateInvestmentD
 
       toast.success("Investimento criado com sucesso!");
       onOpenChange(false);
+      onInvestmentCreated?.();
+      setAmount('');
       
     } catch (error) {
       console.error('Error:', error);
