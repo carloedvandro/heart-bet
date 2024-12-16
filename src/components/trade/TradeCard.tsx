@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { differenceInHours } from "date-fns";
 import { FinancialProfileDialog } from "./FinancialProfileDialog";
 import { InvestmentTermsDialog } from "./InvestmentTermsDialog";
 import { CreateInvestmentDialog } from "./CreateInvestmentDialog";
@@ -44,7 +43,7 @@ export function TradeCard() {
       const { data, error } = await supabase
         .from('trade_investments')
         .select('*, trade_earnings(sum:amount)')
-        .eq('status', 'active');
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       return data;
@@ -53,49 +52,59 @@ export function TradeCard() {
 
   const handleCancelInvestment = async (investmentId: string, createdAt: string) => {
     try {
-      if (processingCancellation === investmentId) {
-        return; // Prevent multiple cancellations
-      }
-
+      // Prevent multiple cancellations
+      if (processingCancellation) return;
+      
       setProcessingCancellation(investmentId);
       
       const hoursSinceCreation = differenceInHours(new Date(), new Date(createdAt));
       
       if (hoursSinceCreation > 2) {
         playSounds.error();
-        toast.error("Não é possível cancelar após 2 horas. Contate um administrador.");
+        toast.error("Não é possível cancelar após 2 horas");
+        setProcessingCancellation(null);
         return;
       }
 
       // Get investment details first
       const { data: investment } = await supabase
         .from('trade_investments')
-        .select('amount, user_id')
+        .select('amount, status')
         .eq('id', investmentId)
         .single();
 
-      if (investment) {
-        // Update investment status
-        const { error: updateError } = await supabase
-          .from('trade_investments')
-          .update({ status: 'cancelled' })
-          .eq('id', investmentId);
-
-        if (updateError) throw updateError;
-
-        // Return amount to user's balance
-        const { error: balanceError } = await supabase
-          .rpc('increment_balance', { amount: investment.amount });
-
-        if (balanceError) throw balanceError;
-
-        playSounds.success();
-        toast.success("Investimento cancelado com sucesso!");
-        
-        // Remove the cancelled investment from the list immediately
-        setProcessingCancellation(null);
-        await refetch();
+      if (!investment) {
+        throw new Error('Investimento não encontrado');
       }
+
+      if (investment.status !== 'active') {
+        playSounds.error();
+        toast.error("Este investimento já foi cancelado");
+        setProcessingCancellation(null);
+        return;
+      }
+
+      // Update investment status
+      const { error: updateError } = await supabase
+        .from('trade_investments')
+        .update({ 
+          status: 'cancelled',
+          current_balance: investment.amount // Reset balance to original amount
+        })
+        .eq('id', investmentId);
+
+      if (updateError) throw updateError;
+
+      // Return amount to user's balance
+      const { error: balanceError } = await supabase
+        .rpc('increment_balance', { amount: investment.amount });
+
+      if (balanceError) throw balanceError;
+
+      playSounds.success();
+      toast.success("Investimento cancelado com sucesso!");
+      
+      await refetch();
     } catch (error) {
       console.error('Erro ao cancelar investimento:', error);
       playSounds.error();
