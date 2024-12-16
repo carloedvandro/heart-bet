@@ -2,6 +2,7 @@ import { Profile } from "@/integrations/supabase/custom-types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import HeartGrid from "@/components/HeartGrid";
 import { BetsTable } from "./BetsTable";
+import { TradeCard } from "../trade/TradeCard";
 
 interface DashboardContentProps {
   profile: Profile | null;
@@ -24,6 +25,8 @@ export const DashboardContent = ({
           <HeartGrid onBetPlaced={onBetPlaced} />
         </CardContent>
       </Card>
+
+      <TradeCard />
 
       <Card className="bg-white/90 backdrop-blur">
         <CardHeader>

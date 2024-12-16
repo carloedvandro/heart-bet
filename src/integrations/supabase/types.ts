@@ -161,6 +161,63 @@ export type Database = {
         }
         Relationships: []
       }
+      financial_profiles: {
+        Row: {
+          birth_date: string
+          city: string
+          cpf: string
+          created_at: string
+          full_name: string
+          id: string
+          neighborhood: string
+          number: string
+          phone: string
+          pix_key: string
+          pix_type: string
+          state: string
+          street: string
+          terms_accepted: boolean | null
+          terms_accepted_at: string | null
+          zip_code: string
+        }
+        Insert: {
+          birth_date: string
+          city: string
+          cpf: string
+          created_at?: string
+          full_name: string
+          id: string
+          neighborhood: string
+          number: string
+          phone: string
+          pix_key: string
+          pix_type: string
+          state: string
+          street: string
+          terms_accepted?: boolean | null
+          terms_accepted_at?: string | null
+          zip_code: string
+        }
+        Update: {
+          birth_date?: string
+          city?: string
+          cpf?: string
+          created_at?: string
+          full_name?: string
+          id?: string
+          neighborhood?: string
+          number?: string
+          phone?: string
+          pix_key?: string
+          pix_type?: string
+          state?: string
+          street?: string
+          terms_accepted?: boolean | null
+          terms_accepted_at?: string | null
+          zip_code?: string
+        }
+        Relationships: []
+      }
       payment_proofs: {
         Row: {
           created_at: string
@@ -293,11 +350,124 @@ export type Database = {
           },
         ]
       }
+      trade_earnings: {
+        Row: {
+          amount: number
+          created_at: string
+          earned_at: string
+          id: string
+          investment_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          earned_at?: string
+          id?: string
+          investment_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          earned_at?: string
+          id?: string
+          investment_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_earnings_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "trade_investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trade_investments: {
+        Row: {
+          amount: number
+          created_at: string
+          current_balance: number
+          daily_rate: number
+          id: string
+          lock_period: number
+          locked_until: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          current_balance: number
+          daily_rate: number
+          id?: string
+          lock_period: number
+          locked_until: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          current_balance?: number
+          daily_rate?: number
+          id?: string
+          lock_period?: number
+          locked_until?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      trade_withdrawals: {
+        Row: {
+          amount: number
+          fee_amount: number
+          id: string
+          investment_id: string
+          net_amount: number
+          processed_at: string | null
+          requested_at: string
+          status: string
+        }
+        Insert: {
+          amount: number
+          fee_amount: number
+          id?: string
+          investment_id: string
+          net_amount: number
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+        }
+        Update: {
+          amount?: number
+          fee_amount?: number
+          id?: string
+          investment_id?: string
+          net_amount?: number
+          processed_at?: string | null
+          requested_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_withdrawals_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "trade_investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      calculate_daily_earnings: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_all_bets_today: {
         Args: {
           today_date: string
