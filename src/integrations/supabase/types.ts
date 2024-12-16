@@ -474,6 +474,12 @@ export type Database = {
         }
         Returns: undefined
       }
+      clean_user_investments: {
+        Args: {
+          user_email: string
+        }
+        Returns: undefined
+      }
       get_all_bets_today: {
         Args: {
           today_date: string

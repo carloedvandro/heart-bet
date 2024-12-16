@@ -59,8 +59,12 @@ export function useInvestments() {
     }
   };
 
-  const totalInvested = investments?.reduce((sum, inv) => sum + Number(inv.amount), 0) || 0;
-  const totalEarnings = investments?.reduce((sum, inv) => sum + Number(inv.trade_earnings?.[0]?.sum || 0), 0) || 0;
+  // Modificado para considerar apenas investimentos ativos
+  const totalInvested = investments?.reduce((sum, inv) => 
+    inv.status === 'active' ? sum + Number(inv.amount) : sum, 0) || 0;
+    
+  const totalEarnings = investments?.reduce((sum, inv) => 
+    sum + Number(inv.trade_earnings?.[0]?.sum || 0), 0) || 0;
 
   return {
     investments,
