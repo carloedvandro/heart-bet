@@ -32,7 +32,21 @@ export function CreateInvestmentDialog({ open, onOpenChange }: CreateInvestmentD
       const lockedUntil = new Date();
       lockedUntil.setDate(lockedUntil.getDate() + lockPeriodDays);
 
-      const { error } = await supabase
+      // Primeiro, verificar se o usuário tem saldo suficiente
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('balance')
+        .eq('id', session.user.id)
+        .single();
+
+      if (profileError) throw profileError;
+      if (!profile || profile.balance < numericAmount) {
+        toast.error("Saldo insuficiente para realizar este investimento");
+        return;
+      }
+
+      // Iniciar uma transação para garantir a consistência dos dados
+      const { data: investment, error: investmentError } = await supabase
         .from('trade_investments')
         .insert({
           user_id: session.user.id,
@@ -41,12 +55,37 @@ export function CreateInvestmentDialog({ open, onOpenChange }: CreateInvestmentD
           daily_rate: dailyRate,
           locked_until: lockedUntil.toISOString(),
           current_balance: numericAmount
+        })
+        .select()
+        .single();
+
+      if (investmentError) throw investmentError;
+
+      // Atualizar o saldo do usuário
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ balance: profile.balance - numericAmount })
+        .eq('id', session.user.id);
+
+      if (updateError) throw updateError;
+
+      // Registrar no histórico de saldo
+      const { error: historyError } = await supabase
+        .from('balance_history')
+        .insert({
+          user_id: session.user.id,
+          operation_type: 'trade_investment',
+          amount: numericAmount,
+          previous_balance: profile.balance,
+          new_balance: profile.balance - numericAmount,
+          admin_id: session.user.id
         });
 
-      if (error) throw error;
+      if (historyError) throw historyError;
 
       toast.success("Investimento criado com sucesso!");
       onOpenChange(false);
+      
     } catch (error) {
       console.error('Error:', error);
       toast.error("Erro ao criar investimento");
