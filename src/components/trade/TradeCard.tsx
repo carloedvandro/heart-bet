@@ -18,6 +18,7 @@ export function TradeCard() {
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showInvestDialog, setShowInvestDialog] = useState(false);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
+  const [processingCancellation, setProcessingCancellation] = useState<string | null>(null);
 
   const { data: financialProfile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['financial-profile'],
@@ -52,6 +53,12 @@ export function TradeCard() {
 
   const handleCancelInvestment = async (investmentId: string, createdAt: string) => {
     try {
+      if (processingCancellation === investmentId) {
+        return; // Prevent multiple cancellations
+      }
+
+      setProcessingCancellation(investmentId);
+      
       const hoursSinceCreation = differenceInHours(new Date(), new Date(createdAt));
       
       if (hoursSinceCreation > 2) {
@@ -83,11 +90,13 @@ export function TradeCard() {
 
       playSounds.success();
       toast.success("Investimento cancelado com sucesso!");
-      refetch();
+      await refetch();
     } catch (error) {
       console.error('Erro ao cancelar investimento:', error);
       playSounds.error();
       toast.error("Erro ao cancelar investimento");
+    } finally {
+      setProcessingCancellation(null);
     }
   };
 
@@ -163,6 +172,7 @@ export function TradeCard() {
           <ActiveInvestments 
             investments={investments}
             onCancelInvestment={handleCancelInvestment}
+            processingCancellation={processingCancellation}
           />
         )}
       </CardContent>

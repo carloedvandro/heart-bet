@@ -14,9 +14,14 @@ interface Investment {
 interface ActiveInvestmentsProps {
   investments: Investment[];
   onCancelInvestment: (id: string, createdAt: string) => void;
+  processingCancellation: string | null;
 }
 
-export function ActiveInvestments({ investments, onCancelInvestment }: ActiveInvestmentsProps) {
+export function ActiveInvestments({ 
+  investments, 
+  onCancelInvestment,
+  processingCancellation 
+}: ActiveInvestmentsProps) {
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Investimentos Ativos</h3>
@@ -27,6 +32,7 @@ export function ActiveInvestments({ investments, onCancelInvestment }: ActiveInv
             new Date(investment.created_at)
           );
           const canCancel = hoursSinceCreation <= 2;
+          const isProcessing = processingCancellation === investment.id;
 
           return (
             <Card key={investment.id}>
@@ -56,8 +62,9 @@ export function ActiveInvestments({ investments, onCancelInvestment }: ActiveInv
                         size="sm"
                         className="mt-2"
                         onClick={() => onCancelInvestment(investment.id, investment.created_at)}
+                        disabled={isProcessing}
                       >
-                        Cancelar Investimento
+                        {isProcessing ? "Cancelando..." : "Cancelar Investimento"}
                       </Button>
                     )}
                   </div>
