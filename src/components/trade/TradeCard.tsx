@@ -53,11 +53,13 @@ export function TradeCard() {
 
   const handleStartInvestment = () => {
     if (!financialProfile) {
+      toast.info("Complete seu cadastro financeiro primeiro");
       setShowProfileDialog(true);
       return;
     }
 
     if (!financialProfile.terms_accepted) {
+      toast.info("Aceite os termos do investimento primeiro");
       setShowTermsDialog(true);
       return;
     }
@@ -81,16 +83,27 @@ export function TradeCard() {
     setShowWithdrawDialog(true);
   };
 
+  const isInvestmentEnabled = financialProfile && financialProfile.terms_accepted;
+
   return (
     <Card className="bg-white/90 backdrop-blur">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Investimento Trade</span>
           <div className="space-x-2">
-            <Button onClick={handleStartInvestment}>
+            <Button 
+              onClick={handleStartInvestment}
+              disabled={!isInvestmentEnabled}
+              title={!isInvestmentEnabled ? "Complete seu cadastro e aceite os termos primeiro" : ""}
+            >
               Novo Investimento
             </Button>
-            <Button variant="outline" onClick={handleWithdraw}>
+            <Button 
+              variant="outline" 
+              onClick={handleWithdraw}
+              disabled={!isInvestmentEnabled}
+              title={!isInvestmentEnabled ? "Complete seu cadastro e aceite os termos primeiro" : ""}
+            >
               Solicitar Saque
             </Button>
           </div>
