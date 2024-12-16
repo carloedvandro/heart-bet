@@ -8,6 +8,7 @@ import { WithdrawDialog } from "./WithdrawDialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 export function TradeCard() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
@@ -15,7 +16,8 @@ export function TradeCard() {
   const [showInvestDialog, setShowInvestDialog] = useState(false);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
 
-  const { data: profile, isLoading: isLoadingProfile } = useQuery({
+  // Buscar perfil financeiro
+  const { data: financialProfile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['financial-profile'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -32,6 +34,7 @@ export function TradeCard() {
     }
   });
 
+  // Buscar investimentos ativos
   const { data: investments, isLoading: isLoadingInvestments } = useQuery({
     queryKey: ['trade-investments'],
     queryFn: async () => {
@@ -49,13 +52,33 @@ export function TradeCard() {
   const totalEarnings = investments?.reduce((sum, inv) => sum + Number(inv.trade_earnings?.[0]?.sum || 0), 0) || 0;
 
   const handleStartInvestment = () => {
-    if (!profile) {
+    if (!financialProfile) {
       setShowProfileDialog(true);
-    } else if (!profile.terms_accepted) {
-      setShowTermsDialog(true);
-    } else {
-      setShowInvestDialog(true);
+      return;
     }
+
+    if (!financialProfile.terms_accepted) {
+      setShowTermsDialog(true);
+      return;
+    }
+
+    setShowInvestDialog(true);
+  };
+
+  const handleWithdraw = () => {
+    if (!financialProfile) {
+      toast.error("Complete seu cadastro financeiro primeiro");
+      setShowProfileDialog(true);
+      return;
+    }
+
+    const today = new Date();
+    if (today.getDay() !== 5) { // 5 = Sexta-feira
+      toast.error("Saques só podem ser solicitados às sextas-feiras");
+      return;
+    }
+
+    setShowWithdrawDialog(true);
   };
 
   return (
@@ -63,9 +86,14 @@ export function TradeCard() {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Investimento Trade</span>
-          <Button onClick={handleStartInvestment}>
-            Novo Investimento
-          </Button>
+          <div className="space-x-2">
+            <Button onClick={handleStartInvestment}>
+              Novo Investimento
+            </Button>
+            <Button variant="outline" onClick={handleWithdraw}>
+              Solicitar Saque
+            </Button>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -120,13 +148,14 @@ export function TradeCard() {
                           Rendimento: {investment.daily_rate}% ao dia
                         </p>
                       </div>
-                      <Button
-                        variant="outline"
-                        onClick={() => setShowWithdrawDialog(true)}
-                        disabled={new Date() < new Date(investment.locked_until)}
-                      >
-                        Solicitar Saque
-                      </Button>
+                      <div className="text-right">
+                        <p className="text-sm text-gray-500">
+                          Bloqueado até: {new Date(investment.locked_until).toLocaleDateString()}
+                        </p>
+                        <p className="font-semibold">
+                          Saldo atual: R$ {Number(investment.current_balance).toFixed(2)}
+                        </p>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
