@@ -9,15 +9,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { InvestmentStats } from "./InvestmentStats";
-import { ActiveInvestments } from "./ActiveInvestments";
-import { playSounds } from "@/utils/soundEffects";
+import { InvestmentCard } from "./InvestmentCard";
+import { useInvestments } from "./hooks/useInvestments";
 
 export function TradeCard() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showInvestDialog, setShowInvestDialog] = useState(false);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
-  const [processingCancellation, setProcessingCancellation] = useState<string | null>(null);
 
   const { data: financialProfile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['financial-profile'],
@@ -36,86 +35,13 @@ export function TradeCard() {
     }
   });
 
-  // Fetch active investments
-  const { data: investments, isLoading: isLoadingInvestments, refetch } = useQuery({
-    queryKey: ['trade-investments'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('trade_investments')
-        .select('*, trade_earnings(sum:amount)')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data;
-    }
-  });
-
-  const handleCancelInvestment = async (investmentId: string, createdAt: string) => {
-    try {
-      // Prevent multiple cancellations
-      if (processingCancellation) return;
-      
-      setProcessingCancellation(investmentId);
-      
-      const hoursSinceCreation = differenceInHours(new Date(), new Date(createdAt));
-      
-      if (hoursSinceCreation > 2) {
-        playSounds.error();
-        toast.error("Não é possível cancelar após 2 horas");
-        setProcessingCancellation(null);
-        return;
-      }
-
-      // Get investment details first
-      const { data: investment } = await supabase
-        .from('trade_investments')
-        .select('amount, status')
-        .eq('id', investmentId)
-        .single();
-
-      if (!investment) {
-        throw new Error('Investimento não encontrado');
-      }
-
-      if (investment.status !== 'active') {
-        playSounds.error();
-        toast.error("Este investimento já foi cancelado");
-        setProcessingCancellation(null);
-        return;
-      }
-
-      // Update investment status
-      const { error: updateError } = await supabase
-        .from('trade_investments')
-        .update({ 
-          status: 'cancelled',
-          current_balance: investment.amount // Reset balance to original amount
-        })
-        .eq('id', investmentId);
-
-      if (updateError) throw updateError;
-
-      // Return amount to user's balance
-      const { error: balanceError } = await supabase
-        .rpc('increment_balance', { amount: investment.amount });
-
-      if (balanceError) throw balanceError;
-
-      playSounds.success();
-      toast.success("Investimento cancelado com sucesso!");
-      
-      await refetch();
-    } catch (error) {
-      console.error('Erro ao cancelar investimento:', error);
-      playSounds.error();
-      toast.error("Erro ao cancelar investimento");
-    } finally {
-      setProcessingCancellation(null);
-    }
-  };
-
-  const totalInvested = investments?.reduce((sum, inv) => sum + Number(inv.amount), 0) || 0;
-  const totalEarnings = investments?.reduce((sum, inv) => sum + Number(inv.trade_earnings?.[0]?.sum || 0), 0) || 0;
+  const { 
+    investments, 
+    isLoading: isLoadingInvestments, 
+    totalInvested,
+    totalEarnings,
+    handleCancelInvestment 
+  } = useInvestments();
 
   const handleStartInvestment = () => {
     if (!financialProfile) {
@@ -141,7 +67,7 @@ export function TradeCard() {
     }
 
     const today = new Date();
-    if (today.getDay() !== 5) { // 5 = Sexta-feira
+    if (today.getDay() !== 5) {
       toast.error("Saques só podem ser solicitados às sextas-feiras");
       return;
     }
@@ -183,11 +109,18 @@ export function TradeCard() {
         />
 
         {investments && investments.length > 0 && (
-          <ActiveInvestments 
-            investments={investments}
-            onCancelInvestment={handleCancelInvestment}
-            processingCancellation={processingCancellation}
-          />
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Investimentos Ativos</h3>
+            <div className="space-y-4">
+              {investments.map((investment) => (
+                <InvestmentCard
+                  key={investment.id}
+                  investment={investment}
+                  onCancelInvestment={handleCancelInvestment}
+                />
+              ))}
+            </div>
+          </div>
         )}
       </CardContent>
 

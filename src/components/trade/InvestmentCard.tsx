@@ -14,15 +14,10 @@ interface Investment {
 
 interface InvestmentCardProps {
   investment: Investment;
-  onCancelInvestment: (id: string, createdAt: string) => void;
-  isProcessing: boolean;
+  onCancelInvestment: (id: string) => void;
 }
 
-export function InvestmentCard({ 
-  investment, 
-  onCancelInvestment,
-  isProcessing 
-}: InvestmentCardProps) {
+export function InvestmentCard({ investment, onCancelInvestment }: InvestmentCardProps) {
   const hoursSinceCreation = differenceInHours(
     new Date(), 
     new Date(investment.created_at)
@@ -61,10 +56,10 @@ export function InvestmentCard({
                 variant="destructive" 
                 size="sm"
                 className="mt-2"
-                onClick={() => onCancelInvestment(investment.id, investment.created_at)}
-                disabled={isProcessing || investment.status !== 'active'}
+                onClick={() => onCancelInvestment(investment.id)}
+                disabled={investment.status !== 'active'}
               >
-                {isProcessing ? "Cancelando..." : "Cancelar Investimento"}
+                Cancelar Investimento
               </Button>
             ) : investment.status === 'cancelled' && (
               <p className="text-sm text-red-500 mt-2">
