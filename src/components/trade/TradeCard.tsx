@@ -18,10 +18,14 @@ export function TradeCard() {
   const { data: profile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['financial-profile'],
     queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
       const { data, error } = await supabase
         .from('financial_profiles')
         .select('*')
-        .single();
+        .eq('id', user.id)
+        .maybeSingle();
 
       if (error) throw error;
       return data;
