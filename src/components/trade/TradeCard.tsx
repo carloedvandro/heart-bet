@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { differenceInMinutes } from "date-fns";
 
 export function TradeCard() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
@@ -35,7 +36,7 @@ export function TradeCard() {
   });
 
   // Buscar investimentos ativos
-  const { data: investments, isLoading: isLoadingInvestments } = useQuery({
+  const { data: investments, isLoading: isLoadingInvestments, refetch } = useQuery({
     queryKey: ['trade-investments'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -47,6 +48,48 @@ export function TradeCard() {
       return data;
     }
   });
+
+  const handleCancelInvestment = async (investmentId: string, createdAt: string) => {
+    try {
+      const minutesSinceCreation = differenceInMinutes(new Date(), new Date(createdAt));
+      
+      if (minutesSinceCreation > 5) {
+        toast.error("Não é possível cancelar após 5 minutos. Contate um administrador.");
+        return;
+      }
+
+      const { error } = await supabase
+        .from('trade_investments')
+        .update({ status: 'cancelled' })
+        .eq('id', investmentId);
+
+      if (error) throw error;
+
+      // Atualizar o saldo do usuário
+      const { data: investment } = await supabase
+        .from('trade_investments')
+        .select('amount, user_id')
+        .eq('id', investmentId)
+        .single();
+
+      if (investment) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({ 
+            balance: supabase.rpc('increment_balance', { amount: investment.amount })
+          })
+          .eq('id', investment.user_id);
+
+        if (profileError) throw profileError;
+      }
+
+      toast.success("Investimento cancelado com sucesso!");
+      refetch();
+    } catch (error) {
+      console.error('Erro ao cancelar investimento:', error);
+      toast.error("Erro ao cancelar investimento");
+    }
+  };
 
   const totalInvested = investments?.reduce((sum, inv) => sum + Number(inv.amount), 0) || 0;
   const totalEarnings = investments?.reduce((sum, inv) => sum + Number(inv.trade_earnings?.[0]?.sum || 0), 0) || 0;
@@ -146,33 +189,51 @@ export function TradeCard() {
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Investimentos Ativos</h3>
             <div className="space-y-4">
-              {investments.map((investment) => (
-                <Card key={investment.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <p className="text-sm text-gray-500">
-                          Investido em: {new Date(investment.created_at).toLocaleDateString()}
-                        </p>
-                        <p className="font-semibold">
-                          R$ {Number(investment.amount).toFixed(2)}
-                        </p>
-                        <p className="text-sm text-green-600">
-                          Rendimento: {investment.daily_rate}% ao dia
-                        </p>
+              {investments.map((investment) => {
+                const minutesSinceCreation = differenceInMinutes(
+                  new Date(), 
+                  new Date(investment.created_at)
+                );
+                const canCancel = minutesSinceCreation <= 5;
+
+                return (
+                  <Card key={investment.id}>
+                    <CardContent className="pt-6">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <p className="text-sm text-gray-500">
+                            Investido em: {new Date(investment.created_at).toLocaleDateString()}
+                          </p>
+                          <p className="font-semibold">
+                            R$ {Number(investment.amount).toFixed(2)}
+                          </p>
+                          <p className="text-sm text-green-600">
+                            Rendimento: {investment.daily_rate}% ao dia
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-gray-500">
+                            Bloqueado até: {new Date(investment.locked_until).toLocaleDateString()}
+                          </p>
+                          <p className="font-semibold">
+                            Saldo atual: R$ {Number(investment.current_balance).toFixed(2)}
+                          </p>
+                          {canCancel && (
+                            <Button 
+                              variant="destructive" 
+                              size="sm"
+                              className="mt-2"
+                              onClick={() => handleCancelInvestment(investment.id, investment.created_at)}
+                            >
+                              Cancelar Investimento
+                            </Button>
+                          )}
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="text-sm text-gray-500">
-                          Bloqueado até: {new Date(investment.locked_until).toLocaleDateString()}
-                        </p>
-                        <p className="font-semibold">
-                          Saldo atual: R$ {Number(investment.current_balance).toFixed(2)}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           </div>
         )}
