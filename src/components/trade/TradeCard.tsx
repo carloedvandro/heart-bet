@@ -9,7 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { InvestmentStats } from "./InvestmentStats";
-import { InvestmentCard } from "./InvestmentCard";
+import { ActiveInvestments } from "./ActiveInvestments";
 import { useInvestments } from "./hooks/useInvestments";
 
 export function TradeCard() {
@@ -17,6 +17,7 @@ export function TradeCard() {
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showInvestDialog, setShowInvestDialog] = useState(false);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
+  const [processingCancellation, setProcessingCancellation] = useState<string | null>(null);
 
   const { data: financialProfile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['financial-profile'],
@@ -75,6 +76,15 @@ export function TradeCard() {
     setShowWithdrawDialog(true);
   };
 
+  const handleCancelInvestmentWithState = async (id: string, createdAt: string) => {
+    setProcessingCancellation(id);
+    try {
+      await handleCancelInvestment(id);
+    } finally {
+      setProcessingCancellation(null);
+    }
+  };
+
   const isInvestmentEnabled = financialProfile && financialProfile.terms_accepted;
 
   return (
@@ -109,18 +119,11 @@ export function TradeCard() {
         />
 
         {investments && investments.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Investimentos Ativos</h3>
-            <div className="space-y-4">
-              {investments.map((investment) => (
-                <InvestmentCard
-                  key={investment.id}
-                  investment={investment}
-                  onCancelInvestment={handleCancelInvestment}
-                />
-              ))}
-            </div>
-          </div>
+          <ActiveInvestments
+            investments={investments}
+            onCancelInvestment={handleCancelInvestmentWithState}
+            processingCancellation={processingCancellation}
+          />
         )}
       </CardContent>
 
