@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { differenceInMinutes } from "date-fns"; // Add this import
+import { differenceInHours } from "date-fns";
 import { FinancialProfileDialog } from "./FinancialProfileDialog";
 import { InvestmentTermsDialog } from "./InvestmentTermsDialog";
 import { CreateInvestmentDialog } from "./CreateInvestmentDialog";
@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { InvestmentStats } from "./InvestmentStats";
 import { ActiveInvestments } from "./ActiveInvestments";
+import { playSounds } from "@/utils/soundEffects";
 
 export function TradeCard() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
@@ -18,7 +19,6 @@ export function TradeCard() {
   const [showInvestDialog, setShowInvestDialog] = useState(false);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
 
-  // Fetch financial profile
   const { data: financialProfile, isLoading: isLoadingProfile } = useQuery({
     queryKey: ['financial-profile'],
     queryFn: async () => {
@@ -52,10 +52,11 @@ export function TradeCard() {
 
   const handleCancelInvestment = async (investmentId: string, createdAt: string) => {
     try {
-      const minutesSinceCreation = differenceInMinutes(new Date(), new Date(createdAt));
+      const hoursSinceCreation = differenceInHours(new Date(), new Date(createdAt));
       
-      if (minutesSinceCreation > 5) {
-        toast.error("Não é possível cancelar após 5 minutos. Contate um administrador.");
+      if (hoursSinceCreation > 2) {
+        playSounds.error();
+        toast.error("Não é possível cancelar após 2 horas. Contate um administrador.");
         return;
       }
 
@@ -80,10 +81,12 @@ export function TradeCard() {
         if (balanceError) throw balanceError;
       }
 
+      playSounds.success();
       toast.success("Investimento cancelado com sucesso!");
       refetch();
     } catch (error) {
       console.error('Erro ao cancelar investimento:', error);
+      playSounds.error();
       toast.error("Erro ao cancelar investimento");
     }
   };

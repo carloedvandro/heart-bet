@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { differenceInMinutes } from "date-fns";
+import { differenceInHours } from "date-fns";
 
 interface Investment {
   id: string;
@@ -22,11 +22,11 @@ export function ActiveInvestments({ investments, onCancelInvestment }: ActiveInv
       <h3 className="text-lg font-semibold">Investimentos Ativos</h3>
       <div className="space-y-4">
         {investments.map((investment) => {
-          const minutesSinceCreation = differenceInMinutes(
+          const hoursSinceCreation = differenceInHours(
             new Date(), 
             new Date(investment.created_at)
           );
-          const canCancel = minutesSinceCreation <= 5;
+          const canCancel = hoursSinceCreation <= 2;
 
           return (
             <Card key={investment.id}>
