@@ -67,14 +67,7 @@ export function TradeCard() {
         return;
       }
 
-      const { error } = await supabase
-        .from('trade_investments')
-        .update({ status: 'cancelled' })
-        .eq('id', investmentId);
-
-      if (error) throw error;
-
-      // Get investment details
+      // Get investment details first
       const { data: investment } = await supabase
         .from('trade_investments')
         .select('amount, user_id')
@@ -82,15 +75,27 @@ export function TradeCard() {
         .single();
 
       if (investment) {
-        const { data, error: balanceError } = await supabase
+        // Update investment status
+        const { error: updateError } = await supabase
+          .from('trade_investments')
+          .update({ status: 'cancelled' })
+          .eq('id', investmentId);
+
+        if (updateError) throw updateError;
+
+        // Return amount to user's balance
+        const { error: balanceError } = await supabase
           .rpc('increment_balance', { amount: investment.amount });
 
         if (balanceError) throw balanceError;
-      }
 
-      playSounds.success();
-      toast.success("Investimento cancelado com sucesso!");
-      await refetch();
+        playSounds.success();
+        toast.success("Investimento cancelado com sucesso!");
+        
+        // Remove the cancelled investment from the list immediately
+        setProcessingCancellation(null);
+        await refetch();
+      }
     } catch (error) {
       console.error('Erro ao cancelar investimento:', error);
       playSounds.error();

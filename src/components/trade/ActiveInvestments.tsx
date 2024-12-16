@@ -9,6 +9,7 @@ interface Investment {
   daily_rate: number;
   locked_until: string;
   current_balance: number;
+  status: string;
 }
 
 interface ActiveInvestmentsProps {
@@ -31,7 +32,7 @@ export function ActiveInvestments({
             new Date(), 
             new Date(investment.created_at)
           );
-          const canCancel = hoursSinceCreation <= 2;
+          const canCancel = hoursSinceCreation <= 2 && investment.status === 'active';
           const isProcessing = processingCancellation === investment.id;
 
           return (
@@ -62,7 +63,7 @@ export function ActiveInvestments({
                         size="sm"
                         className="mt-2"
                         onClick={() => onCancelInvestment(investment.id, investment.created_at)}
-                        disabled={isProcessing}
+                        disabled={isProcessing || investment.status !== 'active'}
                       >
                         {isProcessing ? "Cancelando..." : "Cancelar Investimento"}
                       </Button>
