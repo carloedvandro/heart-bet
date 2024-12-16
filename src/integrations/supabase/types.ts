@@ -485,6 +485,12 @@ export type Database = {
         }
         Returns: number
       }
+      increment_balance: {
+        Args: {
+          amount: number
+        }
+        Returns: number
+      }
       is_admin: {
         Args: {
           user_id: string
