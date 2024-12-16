@@ -1,6 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { differenceInHours } from "date-fns";
+import { differenceInMinutes } from "date-fns";
+import { CancellationTimer } from "./CancellationTimer";
+import { useState } from "react";
 
 interface Investment {
   id: string;
@@ -19,11 +21,14 @@ interface InvestmentCardProps {
 }
 
 export function InvestmentCard({ investment, onCancelInvestment, isProcessing }: InvestmentCardProps) {
-  const hoursSinceCreation = differenceInHours(
-    new Date(), 
-    new Date(investment.created_at)
+  const [canCancel, setCanCancel] = useState(
+    differenceInMinutes(new Date(), new Date(investment.created_at)) <= 30 && 
+    investment.status === 'active'
   );
-  const canCancel = hoursSinceCreation <= 2 && investment.status === 'active';
+
+  const handleTimeExpired = () => {
+    setCanCancel(false);
+  };
 
   return (
     <Card>
@@ -53,15 +58,21 @@ export function InvestmentCard({ investment, onCancelInvestment, isProcessing }:
               Saldo atual: R$ {Number(investment.current_balance).toFixed(2)}
             </p>
             {canCancel ? (
-              <Button 
-                variant="destructive" 
-                size="sm"
-                className="mt-2"
-                onClick={() => onCancelInvestment(investment.id, investment.created_at)}
-                disabled={isProcessing || investment.status !== 'active'}
-              >
-                {isProcessing ? "Cancelando..." : "Cancelar Investimento"}
-              </Button>
+              <>
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  className="mt-2"
+                  onClick={() => onCancelInvestment(investment.id, investment.created_at)}
+                  disabled={isProcessing || investment.status !== 'active'}
+                >
+                  {isProcessing ? "Cancelando..." : "Cancelar Investimento"}
+                </Button>
+                <CancellationTimer 
+                  createdAt={investment.created_at}
+                  onTimeExpired={handleTimeExpired}
+                />
+              </>
             ) : investment.status === 'cancelled' && (
               <p className="text-sm text-red-500 mt-2">
                 Investimento cancelado em {new Date().toLocaleDateString()}
