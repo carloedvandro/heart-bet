@@ -468,6 +468,12 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      cancel_investment: {
+        Args: {
+          investment_id: string
+        }
+        Returns: undefined
+      }
       get_all_bets_today: {
         Args: {
           today_date: string
