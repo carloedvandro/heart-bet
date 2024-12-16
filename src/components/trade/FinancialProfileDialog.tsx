@@ -33,14 +33,17 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!session?.user.id) return;
+    if (!session?.user.id) {
+      toast.error("Você precisa estar logado para continuar");
+      return;
+    }
 
     try {
       setLoading(true);
       const { error } = await supabase
         .from('financial_profiles')
         .insert({
-          id: session.user.id,
+          id: session.user.id,  // This is the key change - explicitly setting the id
           ...formData
         });
 
