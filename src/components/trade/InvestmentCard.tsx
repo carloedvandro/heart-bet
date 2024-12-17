@@ -69,13 +69,27 @@ const InvestmentCard = memo(({
     setOperationCompleted(true);
     
     try {
-      const { data, error } = await supabase
+      // Calcular o ganho baseado na taxa diária
+      const earningAmount = investment.amount * (investment.daily_rate / 100);
+
+      // Inserir o ganho na tabela trade_earnings
+      const { error: earningsError } = await supabase
+        .from('trade_earnings')
+        .insert({
+          investment_id: investment.id,
+          amount: earningAmount
+        });
+
+      if (earningsError) throw earningsError;
+
+      // Atualizar o saldo atual do investimento
+      const { data, error: balanceError } = await supabase
         .from('trade_investments')
         .select('current_balance')
         .eq('id', investment.id)
         .single();
 
-      if (error) throw error;
+      if (balanceError) throw balanceError;
       
       if (data) {
         setCurrentBalance(data.current_balance);
@@ -87,8 +101,8 @@ const InvestmentCard = memo(({
       }, 60000);
 
     } catch (error) {
-      console.error('Error fetching updated balance:', error);
-      toast.error('Erro ao atualizar saldo');
+      console.error('Error completing operation:', error);
+      toast.error('Erro ao completar operação');
     }
   };
 
