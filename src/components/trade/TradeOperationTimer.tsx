@@ -17,7 +17,7 @@ export function TradeOperationTimer({
   isEnabled,
   operationCompleted
 }: TradeOperationTimerProps) {
-  const [timeLeft, setTimeLeft] = useState<number>(86400); 
+  const [timeLeft, setTimeLeft] = useState<number>(30); // Changed from 86400 to 30
   const [canOperate, setCanOperate] = useState(false);
   const timeZone = 'America/Sao_Paulo';
   const [lastOperationTime, setLastOperationTime] = useState<Date | null>(null);
@@ -90,14 +90,14 @@ export function TradeOperationTimer({
       console.log('Operation completed, setting new last operation time (SP):', 
         formatInTimeZone(zonedNow, timeZone, 'yyyy-MM-dd HH:mm:ss'));
       setLastOperationTime(zonedNow);
-      setTimeLeft(86400);
+      setTimeLeft(30); // Changed from 86400 to 30
       setCanOperate(false);
     }
   }, [operationCompleted, timeZone]);
 
   useEffect(() => {
     if (!isEnabled || !lastOperationTime || isLoading) {
-      setTimeLeft(86400);
+      setTimeLeft(30); // Changed from 86400 to 30
       setCanOperate(false);
       return;
     }
@@ -110,11 +110,11 @@ export function TradeOperationTimer({
       const secondsPassed = differenceInSeconds(now, lastOperationTime);
       console.log('Seconds passed:', secondsPassed);
       
-      const remaining = Math.max(86400 - secondsPassed, 0);
+      const remaining = Math.max(30 - secondsPassed, 0); // Changed from 86400 to 30
       console.log('Remaining seconds:', remaining);
 
       setTimeLeft(remaining);
-      setCanOperate(secondsPassed >= 86400);
+      setCanOperate(secondsPassed >= 30); // Changed from 86400 to 30
     };
 
     calculateTimeLeft();
