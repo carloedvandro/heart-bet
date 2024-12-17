@@ -9,18 +9,25 @@ export const useTradeOperation = (
   dailyRate: number,
   initialBalance: number
 ) => {
-  // Refs for managing component lifecycle and retries
+  // Refs for managing component lifecycle
   const isMountedRef = useRef(true);
   const retryCountRef = useRef(0);
   const timeoutRef = useRef<NodeJS.Timeout>();
   const intervalRef = useRef<NodeJS.Timeout>();
   const MAX_RETRIES = 3;
 
-  // State declarations
+  // State declarations - all at the top level
   const [isOperating, setIsOperating] = useState(false);
   const [operationCompleted, setOperationCompleted] = useState(false);
   const [currentBalance, setCurrentBalance] = useState(initialBalance);
   const [nextOperationTime, setNextOperationTime] = useState<Date | null>(null);
+
+  // Safe state updates
+  const safeSetState = useCallback(<T>(setter: (value: T) => void, value: T) => {
+    if (isMountedRef.current) {
+      setter(value);
+    }
+  }, []);
 
   const fetchNextOperationTime = useCallback(async () => {
     if (!isMountedRef.current || isOperating || operationCompleted) {
@@ -41,7 +48,7 @@ export const useTradeOperation = (
       }
 
       if (data) {
-        setNextOperationTime(new Date(data));
+        safeSetState(setNextOperationTime, new Date(data));
         retryCountRef.current = 0;
       }
     } catch (error) {
@@ -51,6 +58,10 @@ export const useTradeOperation = (
         retryCountRef.current += 1;
         const delay = Math.min(1000 * Math.pow(2, retryCountRef.current), 5000);
         
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+        
         timeoutRef.current = setTimeout(() => {
           if (isMountedRef.current) {
             fetchNextOperationTime();
@@ -58,18 +69,18 @@ export const useTradeOperation = (
         }, delay);
       } else if (isMountedRef.current) {
         const fallbackTime = addMinutes(new Date(), 1);
-        setNextOperationTime(fallbackTime);
+        safeSetState(setNextOperationTime, fallbackTime);
         toast.error('Erro ao conectar com o servidor. Usando tempo estimado.');
       }
     }
-  }, [investmentId, isOperating, operationCompleted]);
+  }, [investmentId, isOperating, operationCompleted, safeSetState]);
 
   const handleOperationStart = async () => {
     if (!isMountedRef.current || isOperating) {
       return;
     }
 
-    setIsOperating(true);
+    safeSetState(setIsOperating, true);
 
     try {
       const now = new Date();
@@ -102,7 +113,7 @@ export const useTradeOperation = (
 
       if (updatedInvestment && isMountedRef.current) {
         const earned = updatedInvestment.current_balance - currentBalance;
-        setCurrentBalance(updatedInvestment.current_balance);
+        safeSetState(setCurrentBalance, updatedInvestment.current_balance);
         
         if (earned > 0) {
           toast.success(`Operação concluída! Rendimento: R$ ${earned.toFixed(2)}`);
@@ -110,14 +121,14 @@ export const useTradeOperation = (
       }
 
       if (isMountedRef.current) {
-        setNextOperationTime(nextOperation);
+        safeSetState(setNextOperationTime, nextOperation);
       }
     } catch (error) {
       console.error('Operation error:', error);
       toast.error('Erro durante a operação. Tente novamente em alguns minutos.');
       
       if (isMountedRef.current) {
-        setIsOperating(false);
+        safeSetState(setIsOperating, false);
       }
     }
   };
@@ -125,41 +136,49 @@ export const useTradeOperation = (
   const handleOperationComplete = useCallback(() => {
     if (!isMountedRef.current) return;
     
-    setIsOperating(false);
-    setOperationCompleted(true);
+    safeSetState(setIsOperating, false);
+    safeSetState(setOperationCompleted, true);
+    
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
     
     timeoutRef.current = setTimeout(() => {
       if (isMountedRef.current) {
-        setOperationCompleted(false);
+        safeSetState(setOperationCompleted, false);
         fetchNextOperationTime();
       }
     }, 5000);
-  }, [fetchNextOperationTime]);
+  }, [fetchNextOperationTime, safeSetState]);
 
   useEffect(() => {
     isMountedRef.current = true;
 
-    if (!isOperating && !operationCompleted) {
-      fetchNextOperationTime();
-      
-      intervalRef.current = setInterval(() => {
-        if (isMountedRef.current && !isOperating && !operationCompleted) {
-          fetchNextOperationTime();
-        }
-      }, 5000);
-
-      return () => {
+    const setupInterval = () => {
+      if (!isOperating && !operationCompleted) {
+        fetchNextOperationTime();
+        
         if (intervalRef.current) {
           clearInterval(intervalRef.current);
         }
-      };
-    }
+        
+        intervalRef.current = setInterval(() => {
+          if (isMountedRef.current && !isOperating && !operationCompleted) {
+            fetchNextOperationTime();
+          }
+        }, 5000);
+      }
+    };
+
+    setupInterval();
 
     return () => {
       isMountedRef.current = false;
+      
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
+      
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
