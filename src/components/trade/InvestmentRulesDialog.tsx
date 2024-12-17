@@ -18,17 +18,17 @@ export function InvestmentRulesDialog({ open, onOpenChange }: InvestmentRulesDia
           <div className="space-y-8">
             <section>
               <h3 className="text-xl font-semibold text-primary mb-4">1. Introdução</h3>
-              <p className="text-gray-700">
+              <p className="text-gray-700 dark:text-gray-200">
                 O Investimento Trade é uma modalidade de investimento oferecida dentro do sistema, onde os clientes podem transferir valores de seu saldo formal para o saldo de investimento trade. Este investimento oferece rendimentos diários baseados no valor investido e no período escolhido.
               </p>
-              <p className="text-gray-700 mt-2">
+              <p className="text-gray-700 dark:text-gray-200 mt-2">
                 Utilizamos a maior tecnologia do mercado com sistemas de inteligência artificial avançada para garantir segurança, agilidade e precisão nas operações e cálculos.
               </p>
             </section>
 
             <section>
               <h3 className="text-xl font-semibold text-primary mb-4">2. Funcionamento do Investimento Trade</h3>
-              <ul className="list-disc pl-6 space-y-2 text-gray-700">
+              <ul className="list-disc pl-6 space-y-2 text-gray-700 dark:text-gray-200">
                 <li>O cliente pode optar por transferir valores do saldo formal para o saldo de investimento trade.</li>
                 <li>A transferência pode ser realizada após o aceite dos termos e condições e o preenchimento obrigatório do cadastro financeiro.</li>
                 <li>O saldo investido terá rendimentos diários, conforme o período de bloqueio escolhido pelo cliente:</li>
@@ -42,7 +42,7 @@ export function InvestmentRulesDialog({ open, onOpenChange }: InvestmentRulesDia
 
             <section>
               <h3 className="text-xl font-semibold text-primary mb-4">3. Operação Diária Obrigatória</h3>
-              <div className="space-y-4 text-gray-700">
+              <div className="space-y-4 text-gray-700 dark:text-gray-200">
                 <ul className="list-disc pl-6 space-y-2">
                   <li>O cliente é obrigado a clicar no botão "Operar Mercado" uma vez por dia para ativar o rendimento diário.</li>
                   <li>Após o cliente clicar no botão, um cronômetro regressivo de 24 horas será iniciado.</li>
@@ -55,7 +55,7 @@ export function InvestmentRulesDialog({ open, onOpenChange }: InvestmentRulesDia
                     <li>Caso esqueça e opere apenas às 12:00, o cronômetro será reiniciado para as 12:00 do próximo dia.</li>
                   </ul>
                 </div>
-                <p className="font-semibold text-red-600">
+                <p className="font-semibold text-red-600 dark:text-red-400">
                   Importante: O cliente não receberá o rendimento do dia caso não realize a operação no botão "Operar Mercado" dentro do prazo de 24 horas.
                 </p>
               </div>
