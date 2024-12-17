@@ -10,6 +10,7 @@ import { Button } from "../ui/button";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useState } from "react";
 import { FinancialProfileDialog } from "../trade/FinancialProfileDialog";
+import { ThemeToggle } from "../theme/ThemeToggle";
 
 interface HeaderProps {
   profile: Profile | null;
@@ -21,7 +22,6 @@ export function Header({ profile, onLogout }: HeaderProps) {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const displayName = session?.user?.email || 'Usuário';
 
-  // Query to check if financial profile exists
   const { data: financialProfile } = useQuery({
     queryKey: ['financial-profile', session?.user?.id],
     queryFn: async () => {
@@ -87,6 +87,7 @@ export function Header({ profile, onLogout }: HeaderProps) {
           <BalanceDisplay profile={profile} />
         </div>
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           <AudioControl />
           <RechargeDialog />
           <LogoutButton onLogout={onLogout} />
