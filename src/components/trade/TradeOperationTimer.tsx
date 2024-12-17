@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { differenceInSeconds } from "date-fns";
 import { fromZonedTime, toZonedTime } from 'date-fns-tz';
+import { supabase } from "@/integrations/supabase/client";
 
 interface TradeOperationTimerProps {
   investmentCreatedAt: string;
@@ -19,13 +20,42 @@ export function TradeOperationTimer({
   const [timeLeft, setTimeLeft] = useState<number>(60);
   const [canOperate, setCanOperate] = useState(false);
   const timeZone = 'America/Sao_Paulo';
-  const [lastOperationTime, setLastOperationTime] = useState(() => {
-    const utcDate = new Date(investmentCreatedAt);
-    return toZonedTime(utcDate, timeZone);
-  });
+  const [lastOperationTime, setLastOperationTime] = useState<Date | null>(null);
+
+  // Fetch the last operation time from the database
+  useEffect(() => {
+    const fetchLastOperationTime = async () => {
+      const { data, error } = await supabase
+        .from('trade_operations')
+        .select('operated_at, next_operation_at')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) {
+        console.error('Error fetching last operation time:', error);
+        return;
+      }
+
+      if (data) {
+        const nextOperationAt = data.next_operation_at 
+          ? toZonedTime(new Date(data.next_operation_at), timeZone)
+          : toZonedTime(new Date(data.operated_at), timeZone);
+        setLastOperationTime(nextOperationAt);
+      } else {
+        // If no operations yet, use investment creation time
+        const creationTime = toZonedTime(new Date(investmentCreatedAt), timeZone);
+        setLastOperationTime(creationTime);
+      }
+    };
+
+    if (isEnabled) {
+      fetchLastOperationTime();
+    }
+  }, [isEnabled, investmentCreatedAt]);
 
   useEffect(() => {
-    if (!isEnabled) {
+    if (!isEnabled || !lastOperationTime) {
       setTimeLeft(60);
       setCanOperate(false);
       return;
