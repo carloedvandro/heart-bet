@@ -86,20 +86,17 @@ export function useInvestments() {
   const totalEarnings = investments?.reduce((sum, inv) => {
     if (inv.status !== 'active') return sum;
 
-    // Calculate earnings based on number of operations and daily rate
-    const operationsCount = inv.trade_operations?.length || 0;
-    const dailyEarning = Number(inv.amount) * (Number(inv.daily_rate) / 100);
-    const calculatedEarnings = operationsCount * dailyEarning;
+    // Sum all earnings from trade_earnings table
+    const investmentEarnings = inv.trade_earnings?.reduce((earningsSum, earning) => 
+      earningsSum + Number(earning.amount), 0) || 0;
 
     console.log(`Investment ${inv.id}:`, {
       amount: inv.amount,
       dailyRate: inv.daily_rate,
-      operationsCount,
-      dailyEarning,
-      calculatedEarnings
+      earnings: investmentEarnings
     });
 
-    return sum + calculatedEarnings;
+    return sum + investmentEarnings;
   }, 0) || 0;
 
   // Log final calculations for debugging
