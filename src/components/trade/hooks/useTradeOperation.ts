@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -10,25 +10,48 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
   const [isCountingDown, setIsCountingDown] = useState(false);
 
   // Fetch next operation time from backend
-  const fetchNextOperationTime = async () => {
+  const fetchNextOperationTime = useCallback(async () => {
     // Se já estiver em contagem regressiva, não buscar novo tempo
     if (isCountingDown) return;
 
-    const { data, error } = await supabase
-      .rpc('get_next_operation_time', { p_investment_id: investmentId });
+    try {
+      const { data, error } = await supabase
+        .rpc('get_next_operation_time', { p_investment_id: investmentId });
 
-    if (!error && data) {
-      setNextOperationTime(new Date(data));
+      if (!error && data) {
+        setNextOperationTime(new Date(data));
+      }
+    } catch (error) {
+      console.error('Error fetching next operation time:', error);
     }
-  };
-
-  useEffect(() => {
-    fetchNextOperationTime();
-    const interval = setInterval(fetchNextOperationTime, 5000);
-    return () => clearInterval(interval);
   }, [investmentId, isCountingDown]);
 
+  useEffect(() => {
+    let isMounted = true;
+    
+    const fetchData = async () => {
+      if (isMounted) {
+        await fetchNextOperationTime();
+      }
+    };
+
+    fetchData();
+    
+    const interval = setInterval(() => {
+      if (isMounted) {
+        fetchData();
+      }
+    }, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [fetchNextOperationTime]);
+
   const handleOperationStart = async () => {
+    if (isOperating) return;
+
     console.log('=== Starting Trade Operation ===');
     setIsOperating(true);
     setIsCountingDown(true);
@@ -89,25 +112,32 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
     } catch (error) {
       console.error('Operation error:', error);
       toast.error('Erro durante a operação');
-      setIsCountingDown(false);
     } finally {
       setIsOperating(false);
       setOperationCompleted(true);
-      setTimeout(() => {
+      
+      // Use a cleanup function to handle state updates after delay
+      const timer = setTimeout(() => {
         setOperationCompleted(false);
         setIsCountingDown(false);
       }, 5000);
+
+      // Cleanup timer if component unmounts
+      return () => clearTimeout(timer);
     }
   };
 
-  const handleOperationComplete = () => {
+  const handleOperationComplete = useCallback(() => {
     setIsOperating(false);
     setOperationCompleted(true);
-    setTimeout(() => {
+    
+    const timer = setTimeout(() => {
       setOperationCompleted(false);
       setIsCountingDown(false);
     }, 5000);
-  };
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return {
     isOperating,
