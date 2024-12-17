@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { differenceInSeconds } from "date-fns";
-import { toZonedTime, fromZonedTime } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import { supabase } from "@/integrations/supabase/client";
 
 interface TradeOperationTimerProps {
-  investmentCreatedAt: string;
+  investmentId: string; // Mudado de investmentCreatedAt para investmentId
   onOperationStart: () => void;
   isEnabled: boolean;
   operationCompleted: boolean;
 }
 
 export function TradeOperationTimer({ 
-  investmentCreatedAt, 
+  investmentId, // Atualizado o nome do prop
   onOperationStart,
   isEnabled,
   operationCompleted
@@ -28,7 +28,7 @@ export function TradeOperationTimer({
       const { data, error } = await supabase
         .from('trade_investments')
         .select('created_at')
-        .eq('id', investmentCreatedAt)
+        .eq('id', investmentId) // Usando o ID correto
         .single();
 
       if (error) {
@@ -45,7 +45,7 @@ export function TradeOperationTimer({
     if (isEnabled) {
       fetchLastOperationTime();
     }
-  }, [isEnabled, investmentCreatedAt]);
+  }, [isEnabled, investmentId]);
 
   useEffect(() => {
     if (!isEnabled || !lastOperationTime) {

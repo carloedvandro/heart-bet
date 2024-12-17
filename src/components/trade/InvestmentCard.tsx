@@ -157,7 +157,7 @@ const InvestmentCard = memo(({
             ) : (
               <div className="flex flex-col items-end gap-2">
                 <TradeOperationTimer
-                  investmentCreatedAt={investment.created_at}
+                  investmentId={investment.id}
                   onOperationStart={handleOperationStart}
                   isEnabled={!canCancel && investment.status === 'active' && !isOperating}
                   operationCompleted={operationCompleted}
