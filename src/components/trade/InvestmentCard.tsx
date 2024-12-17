@@ -5,9 +5,7 @@ import { CancellationTimer } from "./CancellationTimer";
 import { TradeOperationTimer } from "./TradeOperationTimer";
 import { TradeOperationMessages } from "./TradeOperationMessages";
 import { useState, memo } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useTradeOperation } from "./hooks/useTradeOperation";
 
 interface Investment {
   id: string;
@@ -34,80 +32,16 @@ const InvestmentCard = memo(({
     differenceInMinutes(new Date(), new Date(investment.created_at)) <= 30 && 
     investment.status === 'active'
   );
-  const [isOperating, setIsOperating] = useState(false);
-  const [operationCompleted, setOperationCompleted] = useState(false);
-  const [currentBalance, setCurrentBalance] = useState(investment.current_balance);
-  const queryClient = useQueryClient();
+
+  const {
+    isOperating,
+    operationCompleted,
+    handleOperationStart,
+    handleOperationComplete
+  } = useTradeOperation({ investmentId: investment.id });
 
   const handleTimeExpired = () => {
     setCanCancel(false);
-  };
-
-  const handleOperationStart = async () => {
-    setIsOperating(true);
-    try {
-      const now = new Date();
-      const nextOperation = new Date(now.getTime() + 60 * 1000); // 1 minute for testing
-
-      const { error } = await supabase
-        .from('trade_operations')
-        .insert({
-          investment_id: investment.id,
-          operated_at: now.toISOString(),
-          next_operation_at: nextOperation.toISOString()
-        });
-
-      if (error) throw error;
-
-    } catch (error) {
-      console.error('Error starting operation:', error);
-      toast.error('Erro ao iniciar operação');
-      setIsOperating(false);
-    }
-  };
-
-  const handleOperationComplete = async () => {
-    setIsOperating(false);
-    setOperationCompleted(true);
-    
-    try {
-      // Calcular o ganho baseado na taxa diária
-      const earningAmount = investment.amount * (investment.daily_rate / 100);
-
-      // Inserir o ganho na tabela trade_earnings
-      const { error: earningsError } = await supabase
-        .from('trade_earnings')
-        .insert({
-          investment_id: investment.id,
-          amount: earningAmount
-        });
-
-      if (earningsError) throw earningsError;
-
-      // Atualizar o saldo atual do investimento
-      const { data, error: balanceError } = await supabase
-        .from('trade_investments')
-        .select('current_balance')
-        .eq('id', investment.id)
-        .single();
-
-      if (balanceError) throw balanceError;
-      
-      if (data) {
-        setCurrentBalance(data.current_balance);
-        // Forçar atualização dos dados do investimento
-        queryClient.invalidateQueries({ queryKey: ['trade-investments'] });
-      }
-
-      // Resetar operationCompleted após 1 minuto
-      setTimeout(() => {
-        setOperationCompleted(false);
-      }, 60000);
-
-    } catch (error) {
-      console.error('Error completing operation:', error);
-      toast.error('Erro ao completar operação');
-    }
   };
 
   return (
@@ -135,7 +69,7 @@ const InvestmentCard = memo(({
               Bloqueado até: {new Date(investment.locked_until).toLocaleDateString()}
             </p>
             <p className="font-semibold">
-              Saldo atual: R$ {Number(currentBalance).toFixed(2)}
+              Saldo atual: R$ {Number(investment.current_balance).toFixed(2)}
             </p>
             {canCancel ? (
               <div className="flex flex-col items-end gap-1">

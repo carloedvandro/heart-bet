@@ -1,19 +1,6 @@
 import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
-import { OperationProgress } from "./OperationProgress";
-import { toast } from "sonner";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-
-interface TradeOperationMessagesProps {
-  isOperating: boolean;
-  onOperationComplete: () => void;
-}
+import { OperationMessages } from "./operation/OperationMessages";
+import { OperationSuccessDialog } from "./operation/OperationSuccessDialog";
 
 const OPERATION_MESSAGES = [
   "Processo de transação.",
@@ -25,6 +12,11 @@ const OPERATION_MESSAGES = [
   "Comece a distribuir comissões...",
   "A operação está concluída e terminando."
 ];
+
+interface TradeOperationMessagesProps {
+  isOperating: boolean;
+  onOperationComplete: () => void;
+}
 
 export function TradeOperationMessages({ 
   isOperating,
@@ -48,7 +40,6 @@ export function TradeOperationMessages({
         setCurrentMessageIndex(prev => prev + 1);
       } else {
         clearInterval(interval);
-        // Gerar um valor aleatório entre 0.5 e 2.0 para simular o ganho
         const amount = Number((Math.random() * (2.0 - 0.5) + 0.5).toFixed(2));
         setOperationAmount(amount);
         setShowSuccessDialog(true);
@@ -63,34 +54,12 @@ export function TradeOperationMessages({
 
   return (
     <>
-      <div className="space-y-2 p-4 bg-black/5 rounded-lg">
-        {messages.map((message, index) => (
-          <div key={index} className="space-y-2">
-            <p className={cn(
-              "text-sm transition-all duration-500",
-              index === messages.length - 1 ? "text-green-600 font-medium" : "text-muted-foreground"
-            )}>
-              {message}
-            </p>
-            {index === messages.length - 1 && (
-              <OperationProgress className="mt-1" />
-            )}
-          </div>
-        ))}
-      </div>
-
-      <AlertDialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
-        <AlertDialogContent className="max-w-[320px]">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-center text-green-600">
-              Operação Realizada com Sucesso!
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-center">
-              Valor da operação: R$ {operationAmount.toFixed(2)}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-        </AlertDialogContent>
-      </AlertDialog>
+      <OperationMessages messages={messages} />
+      <OperationSuccessDialog 
+        open={showSuccessDialog}
+        onOpenChange={setShowSuccessDialog}
+        amount={operationAmount}
+      />
     </>
   );
 }
