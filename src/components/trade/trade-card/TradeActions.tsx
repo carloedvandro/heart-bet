@@ -16,8 +16,9 @@ export function TradeActions({
 }: TradeActionsProps) {
   // Verificar se o perfil financeiro existe e tem os campos obrigatórios preenchidos
   const hasCompleteProfile = Boolean(
-    financialProfile?.full_name && 
-    financialProfile?.cpf
+    financialProfile &&
+    financialProfile.full_name && 
+    financialProfile.cpf
   );
 
   // Verificar se aceitou os termos
