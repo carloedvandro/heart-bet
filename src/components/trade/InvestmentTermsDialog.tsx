@@ -109,13 +109,14 @@ export function InvestmentTermsDialog({ open, onOpenChange }: InvestmentTermsDia
           </div>
         </ScrollArea>
         
-        <div className="flex items-center space-x-2 mt-4">
+        <div className="flex items-center space-x-2 mt-4 bg-muted p-4 rounded-lg">
           <Checkbox 
             id="terms" 
             checked={accepted}
             onCheckedChange={(checked) => setAccepted(checked as boolean)}
+            className="h-5 w-5 border-2"
           />
-          <Label htmlFor="terms" className="font-semibold text-primary">
+          <Label htmlFor="terms" className="font-semibold text-primary text-base">
             Estou ciente do risco do mercado trade e estou de acordo com todos os termos apresentados
           </Label>
         </div>
