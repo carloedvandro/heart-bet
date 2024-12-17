@@ -4,6 +4,7 @@ import { Label } from "@/components/ui/label";
 import { BetType } from "@/types/betting";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
 
 interface BetTypeSelectProps {
   betType: BetType;
@@ -15,9 +16,12 @@ interface BetTypeSetting {
   is_active: boolean;
 }
 
+const DEFAULT_BET_TYPES: BetType[] = ["simple_group", "dozen", "hundred", "thousand"];
+
 export const BetTypeSelect = ({ betType, onBetTypeChange }: BetTypeSelectProps) => {
   const [activeBetTypes, setActiveBetTypes] = useState<BetType[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     const fetchActiveBetTypes = async () => {
@@ -30,13 +34,19 @@ export const BetTypeSelect = ({ betType, onBetTypeChange }: BetTypeSelectProps) 
 
         if (error) {
           console.error('Erro ao buscar tipos de apostas:', error);
-          return;
+          throw error;
         }
 
         console.log('Received data:', data);
         const activeTypes = (data as BetTypeSetting[]).map(setting => setting.bet_type);
         console.log('Active types:', activeTypes);
-        setActiveBetTypes(activeTypes);
+        
+        // Se não houver tipos ativos, use os tipos padrão
+        if (activeTypes.length === 0) {
+          setActiveBetTypes(DEFAULT_BET_TYPES);
+        } else {
+          setActiveBetTypes(activeTypes);
+        }
 
         // Se o tipo atual não estiver ativo, seleciona o primeiro tipo ativo
         if (activeTypes.length > 0 && !activeTypes.includes(betType)) {
@@ -44,13 +54,27 @@ export const BetTypeSelect = ({ betType, onBetTypeChange }: BetTypeSelectProps) 
         }
       } catch (error) {
         console.error('Erro ao processar tipos de apostas:', error);
+        
+        // Se houver erro na requisição, use os tipos padrão
+        setActiveBetTypes(DEFAULT_BET_TYPES);
+        
+        // Tenta novamente se ainda não atingiu o limite de tentativas
+        if (retryCount < 3) {
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+          }, 1000 * Math.pow(2, retryCount)); // Exponential backoff
+          
+          toast.error("Erro ao carregar tipos de apostas. Tentando novamente...");
+        } else {
+          toast.error("Não foi possível carregar os tipos de apostas. Usando configuração padrão.");
+        }
       } finally {
         setIsLoading(false);
       }
     };
 
     fetchActiveBetTypes();
-  }, [betType, onBetTypeChange]);
+  }, [betType, onBetTypeChange, retryCount]);
 
   if (isLoading) {
     return (
