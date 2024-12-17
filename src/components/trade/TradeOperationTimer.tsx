@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { differenceInSeconds } from "date-fns";
-import { toZonedTime } from 'date-fns-tz';
+import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
 import { supabase } from "@/integrations/supabase/client";
 
 interface TradeOperationTimerProps {
@@ -27,7 +27,6 @@ export function TradeOperationTimer({
     try {
       setIsLoading(true);
       
-      // Only proceed if we have a valid UUID
       if (!investmentId || investmentId === 'active') {
         console.error('Invalid investment ID:', investmentId);
         return;
@@ -45,9 +44,12 @@ export function TradeOperationTimer({
         return;
       }
 
+      const now = new Date();
+      const saoPauloNow = toZonedTime(now, timeZone);
+
       if (operations && operations.length > 0) {
         const lastOpTime = toZonedTime(new Date(operations[0].operated_at), timeZone);
-        console.log('Last operation time:', lastOpTime);
+        console.log('Last operation time:', formatInTimeZone(lastOpTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
         setLastOperationTime(lastOpTime);
       } else {
         const { data: investment, error: investmentError } = await supabase
@@ -63,7 +65,7 @@ export function TradeOperationTimer({
 
         if (investment) {
           const creationTime = toZonedTime(new Date(investment.created_at), timeZone);
-          console.log('Investment creation time:', creationTime);
+          console.log('Investment creation time:', formatInTimeZone(creationTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
           setLastOperationTime(creationTime);
         }
       }
@@ -85,6 +87,8 @@ export function TradeOperationTimer({
   useEffect(() => {
     if (operationCompleted) {
       const now = toZonedTime(new Date(), timeZone);
+      console.log('Operation completed, setting new last operation time:', 
+        formatInTimeZone(now, timeZone, 'yyyy-MM-dd HH:mm:ss'));
       setLastOperationTime(now);
       setTimeLeft(86400);
       setCanOperate(false);
@@ -100,8 +104,14 @@ export function TradeOperationTimer({
 
     const calculateTimeLeft = () => {
       const now = toZonedTime(new Date(), timeZone);
+      console.log('Current time:', formatInTimeZone(now, timeZone, 'yyyy-MM-dd HH:mm:ss'));
+      console.log('Last operation time:', formatInTimeZone(lastOperationTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
+      
       const secondsPassed = differenceInSeconds(now, lastOperationTime);
+      console.log('Seconds passed:', secondsPassed);
+      
       const remaining = Math.max(86400 - secondsPassed, 0);
+      console.log('Remaining seconds:', remaining);
 
       if (secondsPassed >= 86400) {
         setCanOperate(true);
@@ -120,7 +130,6 @@ export function TradeOperationTimer({
 
   if (!isEnabled) return null;
 
-  // Format time to show hours, minutes, and seconds
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
