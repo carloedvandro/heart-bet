@@ -14,25 +14,35 @@ export function TradeActions({
   onWithdraw,
   onShowRules 
 }: TradeActionsProps) {
-  console.log('Financial Profile:', financialProfile);
-  
-  // Verificar se o perfil financeiro existe e tem os campos obrigatórios preenchidos
-  const hasCompleteProfile = Boolean(
-    financialProfile &&
-    financialProfile.id &&
-    financialProfile.full_name && 
-    financialProfile.cpf
-  );
+  // Função para verificar se todos os campos obrigatórios estão preenchidos
+  const isProfileComplete = (profile: FinancialProfile | null): boolean => {
+    if (!profile) return false;
+    
+    const requiredFields = [
+      'id',
+      'full_name',
+      'cpf',
+      'phone',
+      'pix_type',
+      'pix_key',
+      'street',
+      'number',
+      'neighborhood',
+      'city',
+      'state',
+      'zip_code',
+      'birth_date'
+    ];
 
-  console.log('Has Complete Profile:', hasCompleteProfile);
+    return requiredFields.every(field => Boolean(profile[field as keyof FinancialProfile]));
+  };
 
-  // Verificar se aceitou os termos
-  const hasAcceptedTerms = Boolean(financialProfile?.terms_accepted);
+  // Verificações de estado do perfil
+  const profileComplete = isProfileComplete(financialProfile);
+  const termsAccepted = Boolean(financialProfile?.terms_accepted);
 
-  console.log('Has Accepted Terms:', hasAcceptedTerms);
-
-  // Se não houver perfil financeiro ou estiver incompleto, mostra botão de completar cadastro
-  if (!hasCompleteProfile) {
+  // Renderização condicional dos botões baseada no estado do perfil
+  if (!profileComplete) {
     return (
       <div className="flex flex-col gap-2 w-full sm:w-auto">
         <Button 
@@ -53,8 +63,7 @@ export function TradeActions({
     );
   }
 
-  // Se tiver perfil mas não aceitou os termos, mostra apenas botões de aceitar termos e ler regras
-  if (!hasAcceptedTerms) {
+  if (!termsAccepted) {
     return (
       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
         <Button 
@@ -75,7 +84,6 @@ export function TradeActions({
     );
   }
 
-  // Se tiver perfil completo E aceitou os termos, mostra todos os botões
   return (
     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
       <Button 
