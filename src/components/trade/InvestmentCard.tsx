@@ -69,7 +69,6 @@ const InvestmentCard = memo(({
     setOperationCompleted(true);
     
     try {
-      // Fetch updated investment data
       const { data, error } = await supabase
         .from('trade_investments')
         .select('current_balance')
@@ -81,6 +80,12 @@ const InvestmentCard = memo(({
       if (data) {
         setCurrentBalance(data.current_balance);
       }
+
+      // Resetar operationCompleted após 1 minuto
+      setTimeout(() => {
+        setOperationCompleted(false);
+      }, 60000);
+
     } catch (error) {
       console.error('Error fetching updated balance:', error);
       toast.error('Erro ao atualizar saldo');
@@ -140,7 +145,8 @@ const InvestmentCard = memo(({
                 <TradeOperationTimer
                   investmentCreatedAt={investment.created_at}
                   onOperationStart={handleOperationStart}
-                  isEnabled={!canCancel && investment.status === 'active' && !operationCompleted}
+                  isEnabled={!canCancel && investment.status === 'active' && !isOperating}
+                  operationCompleted={operationCompleted}
                 />
                 <TradeOperationMessages
                   isOperating={isOperating}

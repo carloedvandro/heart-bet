@@ -6,12 +6,14 @@ interface TradeOperationTimerProps {
   investmentCreatedAt: string;
   onOperationStart: () => void;
   isEnabled: boolean;
+  operationCompleted: boolean;
 }
 
 export function TradeOperationTimer({ 
   investmentCreatedAt, 
   onOperationStart,
-  isEnabled 
+  isEnabled,
+  operationCompleted
 }: TradeOperationTimerProps) {
   const [timeLeft, setTimeLeft] = useState<{ minutes: number; seconds: number }>({ 
     minutes: 1, 
@@ -24,8 +26,16 @@ export function TradeOperationTimer({
 
     const calculateTimeLeft = () => {
       const now = new Date();
-      const created = new Date(investmentCreatedAt);
-      const targetTime = new Date(created.getTime() + 1 * 60 * 1000); // 1 minute after creation
+      let targetTime: Date;
+
+      if (operationCompleted) {
+        // Se a operação foi completada, define o próximo horário alvo como 1 minuto a partir de agora
+        targetTime = new Date(now.getTime() + 1 * 60 * 1000);
+      } else {
+        // Caso contrário, usa o tempo original de criação do investimento
+        const created = new Date(investmentCreatedAt);
+        targetTime = new Date(created.getTime() + 1 * 60 * 1000);
+      }
 
       if (now >= targetTime) {
         setCanOperate(true);
@@ -45,7 +55,14 @@ export function TradeOperationTimer({
     const interval = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(interval);
-  }, [investmentCreatedAt, isEnabled]);
+  }, [investmentCreatedAt, isEnabled, operationCompleted]);
+
+  // Reset canOperate quando a operação for completada
+  useEffect(() => {
+    if (operationCompleted) {
+      setCanOperate(false);
+    }
+  }, [operationCompleted]);
 
   if (!isEnabled) return null;
 
