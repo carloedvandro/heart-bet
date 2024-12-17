@@ -44,6 +44,9 @@ const InvestmentCard = memo(({
     setCanCancel(false);
   };
 
+  // Calcula o total de rendimentos (diferença entre o saldo atual e o valor inicial)
+  const totalEarnings = investment.current_balance - investment.amount;
+
   return (
     <Card>
       <CardContent className="pt-6">
@@ -53,7 +56,7 @@ const InvestmentCard = memo(({
               Investido em: {new Date(investment.created_at).toLocaleDateString()}
             </p>
             <p className="font-semibold">
-              R$ {Number(investment.amount).toFixed(2)}
+              Valor inicial: R$ {Number(investment.amount).toFixed(2)}
             </p>
             <p className="text-sm text-green-600">
               Rendimento: {investment.daily_rate}% ao dia
@@ -68,9 +71,14 @@ const InvestmentCard = memo(({
             <p className="text-sm text-gray-500">
               Bloqueado até: {new Date(investment.locked_until).toLocaleDateString()}
             </p>
-            <p className="font-semibold">
-              Saldo atual: R$ {Number(investment.current_balance).toFixed(2)}
-            </p>
+            <div className="space-y-1">
+              <p className="font-semibold">
+                Valor atual: R$ {Number(investment.current_balance).toFixed(2)}
+              </p>
+              <p className="text-sm text-green-600">
+                Rendimentos: + R$ {totalEarnings.toFixed(2)}
+              </p>
+            </div>
             {canCancel ? (
               <div className="flex flex-col items-end gap-1">
                 <Button 
