@@ -7,9 +7,10 @@ import BetReceipt from "../BetReceipt";
 
 interface BetsTableContentProps {
   bets: Bet[];
+  onBetDeleted?: () => void;
 }
 
-export function BetsTableContent({ bets }: BetsTableContentProps) {
+export function BetsTableContent({ bets, onBetDeleted }: BetsTableContentProps) {
   const [selectedBet, setSelectedBet] = useState<Bet | null>(null);
 
   if (bets.length === 0) {
@@ -40,6 +41,7 @@ export function BetsTableContent({ bets }: BetsTableContentProps) {
               key={bet.id}
               bet={bet}
               onViewReceipt={(bet) => setSelectedBet(bet)}
+              onBetDeleted={onBetDeleted}
             />
           ))}
         </TableBody>
