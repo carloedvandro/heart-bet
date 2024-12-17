@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { differenceInMinutes } from "date-fns";
-import { useState, memo } from "react";
+import { differenceInMinutes, differenceInSeconds } from "date-fns";
+import { useState, memo, useEffect } from "react";
 import { InvestmentInfo } from "./investment-card/InvestmentInfo";
 import { InvestmentBalance } from "./investment-card/InvestmentBalance";
 import { InvestmentOperations } from "./investment-card/InvestmentOperations";
@@ -26,16 +26,38 @@ const InvestmentCard = memo(({
   onCancelInvestment, 
   isProcessing
 }: InvestmentCardProps) => {
-  const [canCancel, setCanCancel] = useState(
-    differenceInMinutes(new Date(), new Date(investment.created_at)) <= 30 && 
-    investment.status === 'active'
-  );
+  const [canCancel, setCanCancel] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isOperating, setIsOperating] = useState(false);
   const [operationCompleted, setOperationCompleted] = useState(false);
 
-  const handleTimeExpired = () => {
-    setCanCancel(false);
-  };
+  useEffect(() => {
+    const calculateTimeLeft = () => {
+      const now = new Date();
+      const createdAt = new Date(investment.created_at);
+      const minutesPassed = differenceInMinutes(now, createdAt);
+      const secondsPassed = differenceInSeconds(now, createdAt);
+      const remainingSeconds = Math.max(300 - secondsPassed, 0); // 5 minutes in seconds
+      
+      setTimeLeft(remainingSeconds);
+      setCanCancel(minutesPassed < 5 && investment.status === 'active');
+      
+      // Log for debugging
+      console.log('Time calculation:', {
+        now: now.toISOString(),
+        createdAt: createdAt.toISOString(),
+        minutesPassed,
+        secondsPassed,
+        remainingSeconds,
+        canCancel: minutesPassed < 5
+      });
+    };
+
+    calculateTimeLeft();
+    const interval = setInterval(calculateTimeLeft, 1000);
+
+    return () => clearInterval(interval);
+  }, [investment.created_at, investment.status]);
 
   const handleOperationStart = async () => {
     setIsOperating(true);
@@ -47,6 +69,13 @@ const InvestmentCard = memo(({
     setTimeout(() => {
       setOperationCompleted(false);
     }, 60000);
+  };
+
+  // Format remaining time as MM:SS
+  const formatTimeLeft = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
   // Se o status não for 'active', não renderiza o card
@@ -75,6 +104,7 @@ const InvestmentCard = memo(({
 
             <InvestmentOperations 
               canCancel={canCancel}
+              timeLeft={timeLeft > 0 ? formatTimeLeft(timeLeft) : null}
               createdAt={investment.created_at}
               status={investment.status}
               isProcessing={isProcessing}

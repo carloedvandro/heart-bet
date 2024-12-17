@@ -1,10 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { CancellationTimer } from "../CancellationTimer";
 import { TradeOperationTimer } from "../TradeOperationTimer";
-import { TradeOperationMessages } from "../TradeOperationMessages";
 
 interface InvestmentOperationsProps {
   canCancel: boolean;
+  timeLeft: string | null;
   createdAt: string;
   status: string;
   isProcessing: boolean;
@@ -17,6 +16,7 @@ interface InvestmentOperationsProps {
 
 export function InvestmentOperations({
   canCancel,
+  timeLeft,
   createdAt,
   status,
   isProcessing,
@@ -26,46 +26,32 @@ export function InvestmentOperations({
   isOperating,
   operationCompleted
 }: InvestmentOperationsProps) {
-  if (canCancel) {
-    return (
-      <div className="flex flex-col items-end gap-1">
-        <Button 
-          variant="destructive" 
-          size="sm"
-          className="w-full md:w-auto"
-          onClick={onCancelInvestment}
-          disabled={isProcessing || status !== 'active'}
-        >
-          {isProcessing ? "Cancelando..." : "Cancelar Investimento"}
-        </Button>
-        <CancellationTimer 
-          createdAt={createdAt}
-          onTimeExpired={() => {}}
-          isActive={status === 'active'}
-        />
-      </div>
-    );
-  }
-
-  if (status === 'cancelled') {
-    return (
-      <p className="text-sm text-red-500">
-        Investimento cancelado em {new Date().toLocaleDateString()}
-      </p>
-    );
-  }
-
   return (
-    <div className="flex flex-col items-end gap-2">
+    <div className="flex flex-col gap-2">
+      {canCancel && (
+        <div className="flex flex-col gap-1">
+          <Button 
+            variant="destructive" 
+            size="sm"
+            className="w-full md:w-auto"
+            onClick={onCancelInvestment}
+            disabled={isProcessing || status !== 'active'}
+          >
+            {isProcessing ? "Cancelando..." : "Cancelar Investimento"}
+          </Button>
+          {timeLeft && (
+            <span className="text-sm text-muted-foreground text-center md:text-right">
+              Tempo restante para cancelar: {timeLeft}
+            </span>
+          )}
+        </div>
+      )}
+
       <TradeOperationTimer
         investmentId={status}
         onOperationStart={onOperationStart}
-        isEnabled={!canCancel && status === 'active' && !isOperating}
+        isEnabled={!canCancel && status === 'active'}
         operationCompleted={operationCompleted}
-      />
-      <TradeOperationMessages
-        isOperating={isOperating}
-        onOperationComplete={onOperationComplete}
       />
     </div>
   );
