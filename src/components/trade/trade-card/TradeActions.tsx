@@ -11,7 +11,6 @@ interface TradeActionsProps {
 }
 
 export function TradeActions({ 
-  financialProfile, 
   onStartInvestment, 
   onWithdraw,
   onShowRules 
@@ -35,7 +34,10 @@ export function TradeActions({
 
       return data;
     },
-    staleTime: 1000 * 30, // Cache por 30 segundos
+    staleTime: 0, // Desabilita o cache para sempre buscar dados frescos
+    refetchInterval: 5000, // Refetch a cada 5 segundos
+    refetchOnMount: true, // Refetch quando o componente montar
+    refetchOnWindowFocus: true, // Refetch quando a janela ganhar foco
   });
 
   // Função para verificar se o perfil existe e está completo
@@ -86,7 +88,7 @@ export function TradeActions({
   // Se o perfil não estiver completo, mostra botão de completar cadastro
   if (!profileComplete) {
     return (
-      <div className="flex flex-col gap-2 w-full sm:w-auto">
+      <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
         <Button 
           onClick={onStartInvestment} 
           variant="default"
