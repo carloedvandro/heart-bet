@@ -56,10 +56,10 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
       if (error) {
         if (error.code === '23505' && error.message?.includes('financial_profiles_cpf_key')) {
           toast.error("Este CPF já está cadastrado no sistema");
-        } else {
-          console.error('Error inserting profile:', error);
-          toast.error("Erro ao cadastrar perfil financeiro");
+          return;
         }
+        console.error('Error inserting profile:', error);
+        toast.error("Erro ao cadastrar perfil financeiro");
         return;
       }
 
