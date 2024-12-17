@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserRound, Wallet } from "lucide-react";
 import { BalanceDisplay } from "../BalanceDisplay";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProfileLayoutProps {
   profile: Profile | null;
@@ -12,6 +14,24 @@ interface ProfileLayoutProps {
 
 export function ProfileLayout({ profile }: ProfileLayoutProps) {
   const [showFinancialProfile, setShowFinancialProfile] = useState(false);
+
+  // Fetch financial profile data
+  const { data: financialProfile } = useQuery({
+    queryKey: ['financial-profile'],
+    queryFn: async () => {
+      if (!profile?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('financial_profiles')
+        .select('*')
+        .eq('id', profile.id)
+        .maybeSingle();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!profile?.id
+  });
 
   return (
     <div className="space-y-6 p-4">
@@ -45,7 +65,7 @@ export function ProfileLayout({ profile }: ProfileLayoutProps) {
             onClick={() => setShowFinancialProfile(true)}
             className="w-full"
           >
-            Gerenciar Dados Financeiros
+            {financialProfile ? 'Editar Dados Financeiros' : 'Gerenciar Dados Financeiros'}
           </Button>
         </CardContent>
       </Card>
@@ -53,6 +73,7 @@ export function ProfileLayout({ profile }: ProfileLayoutProps) {
       <FinancialProfileDialog
         open={showFinancialProfile}
         onOpenChange={setShowFinancialProfile}
+        existingProfile={financialProfile}
       />
     </div>
   );
