@@ -1,9 +1,9 @@
 import React from 'react';
 import { BetType, DrawPeriod, Position } from "@/types/betting";
-import BetTypeSelect from '../bet-form/BetTypeSelect';
-import DrawPeriodSelect from '../bet-form/DrawPeriodSelect';
-import PositionSelect from '../bet-form/PositionSelect';
-import BetAmountInput from '../bet-form/BetAmountInput';
+import { BetTypeSelect } from '../bet-form/BetTypeSelect';
+import { DrawPeriodSelect } from '../bet-form/DrawPeriodSelect';
+import { PositionSelect } from '../bet-form/PositionSelect';
+import { BetAmountInput } from '../bet-form/BetAmountInput';
 
 interface BetFormProps {
   betType: BetType;
@@ -46,6 +46,8 @@ const BetForm = ({
       <BetAmountInput 
         betAmount={betAmount} 
         onBetAmountChange={setBetAmount} 
+        betType={betType}
+        position={position}
       />
     </div>
   );
