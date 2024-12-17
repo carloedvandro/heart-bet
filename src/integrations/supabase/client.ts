@@ -14,17 +14,22 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
   while (attempt < MAX_RETRIES) {
     try {
-      const headers = new Headers({
-        'apikey': supabaseKey,
-        'Authorization': `Bearer ${supabaseKey}`,
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Prefer': 'return=minimal'
-      });
-
-      if (init?.headers) {
-        const customHeaders = new Headers(init.headers);
-        customHeaders.forEach((value, key) => headers.set(key, value));
+      const headers = new Headers(init?.headers || {});
+      
+      // Only add these headers if they're not already present
+      if (!headers.has('apikey')) {
+        headers.set('apikey', supabaseKey);
+      }
+      if (!headers.has('Authorization')) {
+        headers.set('Authorization', `Bearer ${supabaseKey}`);
+      }
+      
+      // Set default headers if not present
+      if (!headers.has('Content-Type')) {
+        headers.set('Content-Type', 'application/json');
+      }
+      if (!headers.has('Accept')) {
+        headers.set('Accept', 'application/json');
       }
 
       const response = await fetch(url, {
@@ -39,9 +44,11 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         throw error;
       }
 
+      // Clone the response before checking if it's ok
+      const responseClone = response.clone();
+
       if (!response.ok) {
-        const errorClone = response.clone();
-        const errorText = await errorClone.text();
+        const errorText = await responseClone.text();
         console.error('Response not OK:', {
           status: response.status,
           statusText: response.statusText,
@@ -79,8 +86,9 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    detectSessionInUrl: true,
     flowType: 'pkce',
+    storage: localStorage
   },
   global: {
     fetch: customFetch
