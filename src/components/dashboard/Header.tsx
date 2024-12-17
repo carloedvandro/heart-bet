@@ -21,6 +21,7 @@ export function Header({ profile, onLogout }: HeaderProps) {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const displayName = session?.user?.email || 'Usuário';
 
+  // Query to check if financial profile exists
   const { data: financialProfile } = useQuery({
     queryKey: ['financial-profile', session?.user?.id],
     queryFn: async () => {
@@ -46,7 +47,7 @@ export function Header({ profile, onLogout }: HeaderProps) {
   };
 
   return (
-    <div className="relative z-50 bg-white/60 backdrop-blur-sm supports-[backdrop-filter]:bg-white/40 rounded-lg p-4 shadow-lg mb-6">
+    <div className="relative z-50 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg mb-6">
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-3">
