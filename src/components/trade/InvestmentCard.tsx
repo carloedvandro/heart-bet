@@ -2,6 +2,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { differenceInMinutes } from "date-fns";
 import { CancellationTimer } from "./CancellationTimer";
+import { TradeOperationTimer } from "./TradeOperationTimer";
+import { TradeOperationMessages } from "./TradeOperationMessages";
 import { useState, memo } from "react";
 
 interface Investment {
@@ -29,9 +31,20 @@ const InvestmentCard = memo(({
     differenceInMinutes(new Date(), new Date(investment.created_at)) <= 30 && 
     investment.status === 'active'
   );
+  const [isOperating, setIsOperating] = useState(false);
+  const [operationCompleted, setOperationCompleted] = useState(false);
 
   const handleTimeExpired = () => {
     setCanCancel(false);
+  };
+
+  const handleOperationStart = () => {
+    setIsOperating(true);
+  };
+
+  const handleOperationComplete = () => {
+    setIsOperating(false);
+    setOperationCompleted(true);
   };
 
   return (
@@ -75,13 +88,25 @@ const InvestmentCard = memo(({
                 <CancellationTimer 
                   createdAt={investment.created_at}
                   onTimeExpired={handleTimeExpired}
-                  isActive={investment.status === 'active'} // Pass the active status
+                  isActive={investment.status === 'active'}
                 />
               </div>
-            ) : investment.status === 'cancelled' && (
+            ) : investment.status === 'cancelled' ? (
               <p className="text-sm text-red-500">
                 Investimento cancelado em {new Date().toLocaleDateString()}
               </p>
+            ) : (
+              <div className="flex flex-col items-end gap-2">
+                <TradeOperationTimer
+                  investmentCreatedAt={investment.created_at}
+                  onOperationStart={handleOperationStart}
+                  isEnabled={!canCancel && investment.status === 'active' && !operationCompleted}
+                />
+                <TradeOperationMessages
+                  isOperating={isOperating}
+                  onOperationComplete={handleOperationComplete}
+                />
+              </div>
             )}
           </div>
         </div>
