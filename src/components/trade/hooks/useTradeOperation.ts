@@ -20,7 +20,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
     
     try {
       const now = new Date();
-      const nextOperation = new Date(now.getTime() + 10 * 1000); // Changed from 60 to 10 seconds
+      const nextOperation = new Date(now.getTime() + 10 * 1000);
 
       console.log('Registering operation at:', now.toISOString());
       console.log('Next operation scheduled for:', nextOperation.toISOString());
@@ -41,6 +41,9 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
       console.log('Operation registered successfully');
       console.log('Calling calculate_daily_earnings function...');
       
+      // Adicionar um pequeno delay para garantir que a operação seja registrada
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
       const { data: earningsData, error: earningsError } = await supabase
         .rpc('calculate_daily_earnings');
 
@@ -51,7 +54,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
 
       console.log('calculate_daily_earnings response:', earningsData);
 
-      // Add a small delay to ensure the earnings are calculated
+      // Adicionar um pequeno delay para garantir que os rendimentos sejam calculados
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       console.log('Fetching updated investment data...');
@@ -79,16 +82,16 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
         setCurrentBalance(updatedInvestment.current_balance);
         
         if (earned > 0) {
-          toast.success(`Operation completed! Earnings: R$ ${earned.toFixed(2)}`);
+          toast.success(`Operação concluída! Rendimento: R$ ${earned.toFixed(2)}`);
         } else {
           console.warn('No earnings registered for this operation');
-          toast.info('Operation completed, but no earnings were registered for this period.');
+          toast.info('Operação concluída, mas nenhum rendimento foi registrado para este período.');
         }
       }
 
     } catch (error) {
       console.error('Operation error:', error);
-      toast.error('Error during operation');
+      toast.error('Erro durante a operação');
     } finally {
       setIsOperating(false);
     }
@@ -117,19 +120,15 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
         const earned = data.current_balance - currentBalance;
         console.log('Final earnings calculation:', earned);
         setCurrentBalance(data.current_balance);
-        
-        if (earned > 0) {
-          toast.success(`Earnings calculated: R$ ${earned.toFixed(2)}`);
-        }
       }
 
       setTimeout(() => {
         setOperationCompleted(false);
-      }, 10000); // Changed from 60000 to 10000 milliseconds
+      }, 10000);
 
     } catch (error) {
       console.error('Error updating final balance:', error);
-      toast.error('Error updating balance');
+      toast.error('Erro ao atualizar saldo');
     }
   };
 

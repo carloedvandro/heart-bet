@@ -8,14 +8,14 @@ interface TradeOperationMessagesProps {
 }
 
 const OPERATION_MESSAGES = [
-  "Processo de transação.",
-  "Comece a executar negociações...",
-  "Comece a fazer fila...",
-  "Comece a executar a ordem de compra...",
-  "Comece a executar a ordem de venda...",
-  "Comece a capturar preços de mercado de negociação...",
-  "Comece a distribuir comissões...",
-  "A operação está concluída e terminando."
+  "Processo de transação iniciado...",
+  "Executando negociações...",
+  "Processando fila de operações...",
+  "Executando ordem de compra...",
+  "Executando ordem de venda...",
+  "Capturando preços de mercado...",
+  "Distribuindo comissões...",
+  "Operação concluída com sucesso!"
 ];
 
 export function TradeOperationMessages({ 
@@ -26,33 +26,28 @@ export function TradeOperationMessages({
   const [messages, setMessages] = useState<string[]>([]);
 
   useEffect(() => {
-    console.log("TradeOperationMessages - isOperating:", isOperating);
-    
     if (!isOperating) {
       setMessages([]);
       setCurrentMessageIndex(0);
       return;
     }
 
-    const interval = setInterval(() => {
+    const messageInterval = setInterval(() => {
       if (currentMessageIndex < OPERATION_MESSAGES.length) {
         console.log("Adding message:", OPERATION_MESSAGES[currentMessageIndex]);
         setMessages(prev => [...prev, OPERATION_MESSAGES[currentMessageIndex]]);
         setCurrentMessageIndex(prev => prev + 1);
       } else {
         console.log("Operation messages complete, triggering onOperationComplete");
-        clearInterval(interval);
+        clearInterval(messageInterval);
         onOperationComplete();
       }
-    }, 2000);
+    }, 1000); // Mostrar uma nova mensagem a cada segundo
 
-    return () => clearInterval(interval);
+    return () => clearInterval(messageInterval);
   }, [isOperating, currentMessageIndex, onOperationComplete]);
 
-  if (!isOperating) {
-    console.log("TradeOperationMessages - Not operating, returning null");
-    return null;
-  }
+  if (!isOperating) return null;
 
   return (
     <div className="space-y-2 p-4 bg-black/5 rounded-lg">
@@ -65,7 +60,10 @@ export function TradeOperationMessages({
             {message}
           </p>
           {index === messages.length - 1 && (
-            <OperationProgress value={(index + 1) * (100 / OPERATION_MESSAGES.length)} className="mt-1" />
+            <OperationProgress 
+              value={(index + 1) * (100 / OPERATION_MESSAGES.length)} 
+              className="mt-1" 
+            />
           )}
         </div>
       ))}
