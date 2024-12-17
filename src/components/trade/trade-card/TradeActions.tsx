@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { FinancialProfile } from "@/types/financial";
 
 interface TradeActionsProps {
@@ -15,8 +14,7 @@ export function TradeActions({
   onWithdraw,
   onShowRules 
 }: TradeActionsProps) {
-  const isInvestmentEnabled = financialProfile && financialProfile.terms_accepted;
-
+  // Se não houver perfil financeiro, mostra botão de completar cadastro
   if (!financialProfile) {
     return (
       <div className="flex flex-col gap-2 w-full sm:w-auto">
@@ -34,6 +32,7 @@ export function TradeActions({
     );
   }
 
+  // Se tiver perfil mas não aceitou os termos, mostra botões de aceitar termos e ler regras
   if (!financialProfile.terms_accepted) {
     return (
       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -55,6 +54,7 @@ export function TradeActions({
     );
   }
 
+  // Se tiver perfil e aceitou os termos, mostra todos os botões
   return (
     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
       <Button 
