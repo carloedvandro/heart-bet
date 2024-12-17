@@ -8,34 +8,63 @@ interface DashboardContentProps {
   profile: Profile | null;
   refreshTrigger: number;
   onBetPlaced: () => void;
+  initialView?: 'bet' | 'investment' | 'trade' | 'bets' | 'profile';
 }
 
 export const DashboardContent = ({ 
   profile, 
   refreshTrigger, 
-  onBetPlaced 
+  onBetPlaced,
+  initialView = 'bet'
 }: DashboardContentProps) => {
+  // Renderiza apenas o componente correspondente à view atual
+  const renderContent = () => {
+    switch (initialView) {
+      case 'bet':
+        return (
+          <Card className="bg-white/90 backdrop-blur">
+            <CardHeader>
+              <CardTitle>Nova Aposta</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <HeartGrid onBetPlaced={onBetPlaced} />
+            </CardContent>
+          </Card>
+        );
+      
+      case 'trade':
+        return <TradeCard />;
+      
+      case 'bets':
+        return (
+          <Card className="bg-white/90 backdrop-blur">
+            <CardHeader>
+              <CardTitle>Suas Apostas</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <BetsTable refreshTrigger={refreshTrigger} />
+            </CardContent>
+          </Card>
+        );
+      
+      // Outros casos serão implementados posteriormente
+      default:
+        return (
+          <Card className="bg-white/90 backdrop-blur">
+            <CardHeader>
+              <CardTitle>Em construção</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p>Esta seção está sendo implementada.</p>
+            </CardContent>
+          </Card>
+        );
+    }
+  };
+
   return (
     <div className="max-w-7xl mx-auto space-y-6 relative z-10">
-      <Card className="bg-white/90 backdrop-blur">
-        <CardHeader>
-          <CardTitle>Nova Aposta</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <HeartGrid onBetPlaced={onBetPlaced} />
-        </CardContent>
-      </Card>
-
-      <TradeCard />
-
-      <Card className="bg-white/90 backdrop-blur">
-        <CardHeader>
-          <CardTitle>Suas Apostas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <BetsTable refreshTrigger={refreshTrigger} />
-        </CardContent>
-      </Card>
+      {renderContent()}
     </div>
   );
 };
