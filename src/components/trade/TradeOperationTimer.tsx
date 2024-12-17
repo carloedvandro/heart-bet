@@ -8,13 +8,15 @@ interface TradeOperationTimerProps {
   onOperationStart: () => void;
   isEnabled: boolean;
   operationCompleted: boolean;
+  nextOperationTime?: Date | null;
 }
 
 export function TradeOperationTimer({
   investmentCreatedAt,
   onOperationStart,
   isEnabled,
-  operationCompleted
+  operationCompleted,
+  nextOperationTime
 }: TradeOperationTimerProps) {
   const [timeLeft, setTimeLeft] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
@@ -22,14 +24,24 @@ export function TradeOperationTimer({
 
   useEffect(() => {
     if (operationCompleted) {
-      setTimeLeft(10); // Changed from 60 to 10 seconds
+      setTimeLeft(10);
       setProgress(0);
       setCanOperate(false);
     }
   }, [operationCompleted]);
 
   useEffect(() => {
-    if (!isEnabled || timeLeft === null) return;
+    if (!isEnabled || (!timeLeft && !nextOperationTime)) return;
+
+    // Se tiver nextOperationTime, calcular o tempo restante
+    if (nextOperationTime) {
+      const now = new Date();
+      const diff = Math.max(0, Math.floor((nextOperationTime.getTime() - now.getTime()) / 1000));
+      setTimeLeft(diff);
+      if (diff === 0) {
+        setCanOperate(true);
+      }
+    }
 
     const timer = setInterval(() => {
       setTimeLeft((current) => {
@@ -38,20 +50,20 @@ export function TradeOperationTimer({
           setCanOperate(true);
           return 0;
         }
-        setProgress(((10 - current) / 10) * 100); // Changed from 60 to 10 seconds
+        setProgress(((10 - current) / 10) * 100);
         return current - 1;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isEnabled, timeLeft]);
+  }, [isEnabled, timeLeft, nextOperationTime]);
 
   useEffect(() => {
-    if (isEnabled && !operationCompleted) {
-      setTimeLeft(10); // Changed from 60 to 10 seconds
+    if (isEnabled && !operationCompleted && !nextOperationTime) {
+      setTimeLeft(10);
       setCanOperate(false);
     }
-  }, [isEnabled, operationCompleted]);
+  }, [isEnabled, operationCompleted, nextOperationTime]);
 
   if (!isEnabled) return null;
 

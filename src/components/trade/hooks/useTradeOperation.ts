@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -6,6 +6,18 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
   const [isOperating, setIsOperating] = useState(false);
   const [operationCompleted, setOperationCompleted] = useState(false);
   const [currentBalance, setCurrentBalance] = useState(initialBalance);
+  const [nextOperationTime, setNextOperationTime] = useState<Date | null>(() => {
+    const stored = localStorage.getItem(`nextOperation_${investmentId}`);
+    return stored ? new Date(stored) : null;
+  });
+
+  useEffect(() => {
+    // Verificar e limpar timer expirado
+    if (nextOperationTime && new Date() >= nextOperationTime) {
+      localStorage.removeItem(`nextOperation_${investmentId}`);
+      setNextOperationTime(null);
+    }
+  }, [nextOperationTime, investmentId]);
 
   const handleOperationStart = async () => {
     console.log('=== Starting Trade Operation ===');
@@ -20,7 +32,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
     
     try {
       const now = new Date();
-      const nextOperation = new Date(now.getTime() + 10 * 1000); // 10 seconds for next operation
+      const nextOperation = new Date(now.getTime() + 10 * 1000);
 
       console.log('Registering operation at:', now.toISOString());
       console.log('Next operation scheduled for:', nextOperation.toISOString());
@@ -81,6 +93,10 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
         
         setCurrentBalance(updatedInvestment.current_balance);
         
+        // Salvar próximo horário de operação
+        localStorage.setItem(`nextOperation_${investmentId}`, nextOperation.toISOString());
+        setNextOperationTime(nextOperation);
+        
         if (earned > 0) {
           toast.success(`Operação concluída! Rendimento: R$ ${earned.toFixed(2)}`);
         } else {
@@ -124,7 +140,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
 
       setTimeout(() => {
         setOperationCompleted(false);
-      }, 10000); // Reset after 10 seconds
+      }, 10000);
 
     } catch (error) {
       console.error('Error updating final balance:', error);
@@ -136,6 +152,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
     isOperating,
     operationCompleted,
     currentBalance,
+    nextOperationTime,
     handleOperationStart,
     handleOperationComplete
   };

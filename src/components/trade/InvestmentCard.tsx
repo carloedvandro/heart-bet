@@ -38,6 +38,7 @@ const InvestmentCard = memo(({
     isOperating,
     operationCompleted,
     currentBalance,
+    nextOperationTime,
     handleOperationStart,
     handleOperationComplete
   } = useTradeOperation(
@@ -106,6 +107,7 @@ const InvestmentCard = memo(({
                   onOperationStart={handleOperationStart}
                   isEnabled={!canCancel && investment.status === 'active' && !isOperating}
                   operationCompleted={operationCompleted}
+                  nextOperationTime={nextOperationTime}
                 />
                 {isOperating && <OperationProgress />}
                 <TradeOperationMessages
