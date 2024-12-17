@@ -30,13 +30,11 @@ export function Header({ profile, onLogout }: HeaderProps) {
         .select('*')
         .eq('id', session?.user?.id);
 
-      // If there's an error that's not just "no rows returned"
       if (error && !error.message.includes('no rows')) {
         console.error('Error fetching financial profile:', error);
         return null;
       }
       
-      // Return the first profile if exists, otherwise null
       return data?.[0] || null;
     },
     enabled: !!session?.user?.id,
@@ -97,7 +95,8 @@ export function Header({ profile, onLogout }: HeaderProps) {
 
       <FinancialProfileDialog 
         open={showProfileDialog} 
-        onOpenChange={setShowProfileDialog} 
+        onOpenChange={setShowProfileDialog}
+        existingProfile={financialProfile}
       />
     </div>
   );

@@ -24,9 +24,10 @@ export interface FinancialProfileFormProps {
   onChange: (data: FormData) => void;
   onSubmit: () => void;
   loading: boolean;
+  isEditMode?: boolean;
 }
 
-export function FinancialProfileForm({ formData, onChange, onSubmit, loading }: FinancialProfileFormProps) {
+export function FinancialProfileForm({ formData, onChange, onSubmit, loading, isEditMode }: FinancialProfileFormProps) {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     let processedValue = value;
@@ -63,6 +64,8 @@ export function FinancialProfileForm({ formData, onChange, onSubmit, loading }: 
           onChange={handleChange}
           required
           maxLength={11}
+          disabled={isEditMode}
+          className={isEditMode ? "bg-gray-100" : ""}
         />
       </div>
 
@@ -190,7 +193,7 @@ export function FinancialProfileForm({ formData, onChange, onSubmit, loading }: 
       </div>
 
       <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? "Cadastrando..." : "Confirmar Cadastro"}
+        {loading ? "Salvando..." : isEditMode ? "Atualizar Cadastro" : "Confirmar Cadastro"}
       </Button>
     </form>
   );
