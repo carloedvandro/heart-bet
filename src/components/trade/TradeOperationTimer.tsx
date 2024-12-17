@@ -23,7 +23,6 @@ export function TradeOperationTimer({
   const [lastOperationTime, setLastOperationTime] = useState<Date | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch the last operation time from the database
   const fetchLastOperationTime = async () => {
     try {
       setIsLoading(true);
@@ -44,7 +43,6 @@ export function TradeOperationTimer({
         console.log('Last operation time:', lastOpTime);
         setLastOperationTime(lastOpTime);
       } else {
-        // Se não houver operações anteriores, use a data de criação do investimento
         const { data: investment, error: investmentError } = await supabase
           .from('trade_investments')
           .select('created_at')
@@ -79,21 +77,15 @@ export function TradeOperationTimer({
   // Atualizar o tempo quando uma operação for completada
   useEffect(() => {
     if (operationCompleted) {
-      fetchLastOperationTime();
+      const now = toZonedTime(new Date(), timeZone);
+      setLastOperationTime(now);
+      setTimeLeft(120);
+      setCanOperate(false);
     }
-  }, [operationCompleted]);
+  }, [operationCompleted, timeZone]);
 
   useEffect(() => {
     if (!isEnabled || !lastOperationTime || isLoading) {
-      setTimeLeft(120); // Resetar para 120 segundos
-      setCanOperate(false);
-      return;
-    }
-
-    // When operation is completed, update the last operation time
-    if (operationCompleted) {
-      const now = toZonedTime(new Date(), timeZone);
-      setLastOperationTime(now);
       setTimeLeft(120);
       setCanOperate(false);
       return;
@@ -102,7 +94,7 @@ export function TradeOperationTimer({
     const calculateTimeLeft = () => {
       const now = toZonedTime(new Date(), timeZone);
       const secondsPassed = differenceInSeconds(now, lastOperationTime);
-      const remaining = Math.max(120 - secondsPassed, 0); // 120 segundos, não permite valores negativos
+      const remaining = Math.max(120 - secondsPassed, 0);
 
       if (secondsPassed >= 120) {
         setCanOperate(true);
@@ -117,7 +109,7 @@ export function TradeOperationTimer({
     calculateTimeLeft(); // Initial calculation
 
     return () => clearInterval(interval);
-  }, [isEnabled, operationCompleted, lastOperationTime, timeZone, isLoading]);
+  }, [isEnabled, lastOperationTime, timeZone, isLoading]);
 
   if (!isEnabled) return null;
 
