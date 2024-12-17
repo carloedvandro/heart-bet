@@ -8,11 +8,11 @@ interface InvestmentStatsProps {
   isLoading: boolean;
 }
 
-export const InvestmentStats = memo(function InvestmentStats({ 
+const InvestmentStats = memo(({ 
   totalInvested, 
   totalEarnings, 
   isLoading 
-}: InvestmentStatsProps) {
+}: InvestmentStatsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <Card>
@@ -47,3 +47,7 @@ export const InvestmentStats = memo(function InvestmentStats({
     </div>
   );
 });
+
+InvestmentStats.displayName = 'InvestmentStats';
+
+export { InvestmentStats };

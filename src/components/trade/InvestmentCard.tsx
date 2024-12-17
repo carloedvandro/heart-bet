@@ -20,11 +20,11 @@ interface InvestmentCardProps {
   isProcessing: boolean;
 }
 
-export const InvestmentCard = memo(function InvestmentCard({ 
+const InvestmentCard = memo(({ 
   investment, 
   onCancelInvestment, 
   isProcessing 
-}: InvestmentCardProps) {
+}: InvestmentCardProps) => {
   const [canCancel, setCanCancel] = useState(
     differenceInMinutes(new Date(), new Date(investment.created_at)) <= 30 && 
     investment.status === 'active'
@@ -88,3 +88,7 @@ export const InvestmentCard = memo(function InvestmentCard({
     </Card>
   );
 });
+
+InvestmentCard.displayName = 'InvestmentCard';
+
+export { InvestmentCard };

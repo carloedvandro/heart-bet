@@ -17,11 +17,11 @@ interface ActiveInvestmentsProps {
   processingCancellation: string | null;
 }
 
-export const ActiveInvestments = memo(function ActiveInvestments({ 
+const ActiveInvestments = memo(({ 
   investments, 
   onCancelInvestment,
   processingCancellation 
-}: ActiveInvestmentsProps) {
+}: ActiveInvestmentsProps) => {
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Investimentos Ativos</h3>
@@ -38,3 +38,7 @@ export const ActiveInvestments = memo(function ActiveInvestments({
     </div>
   );
 });
+
+ActiveInvestments.displayName = 'ActiveInvestments';
+
+export { ActiveInvestments };
