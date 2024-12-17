@@ -17,12 +17,12 @@ const FloatingHeart = ({ index }: { index: number }) => {
   const randomDuration = `${8 + Math.random() * 4}s`;
   const randomLeft = `${Math.random() * 100}vw`;
   const randomRotate = `${Math.random() * 360}deg`;
-  const randomSize = `${20 + Math.random() * 20}px`;
+  const randomSize = `${30 + Math.random() * 30}px`; // Aumentei o tamanho dos corações
   const heartColor = Math.random() > 0.5 ? 'text-heart-red' : 'text-heart-black';
   
   return (
     <div
-      className={`absolute animate-float animate-pulse ${heartColor} opacity-30`}
+      className={`absolute animate-float animate-pulse ${heartColor} opacity-50`} // Aumentei a opacidade
       style={{
         left: randomLeft,
         animationDelay: randomDelay,
@@ -166,7 +166,7 @@ export default function Dashboard() {
     >
       {/* Floating hearts in dark mode */}
       {theme === 'dark' && (
-        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
           {[...Array(30)].map((_, index) => (
             <FloatingHeart key={index} index={index} />
           ))}
