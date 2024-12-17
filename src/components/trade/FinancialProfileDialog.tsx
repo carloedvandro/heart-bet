@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
 import { FinancialProfileForm, FormData } from "./financial-profile/FinancialProfileForm";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface FinancialProfileDialogProps {
   open: boolean;
@@ -29,6 +30,7 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
   const session = useSession();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>(initialFormData);
+  const queryClient = useQueryClient();
 
   const handleSubmit = async () => {
     if (!session?.user.id) {
@@ -46,7 +48,6 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
         });
 
       if (error) {
-        // Parse the error message from the JSON string in error.message
         if (error.code === '23505' && error.message?.includes('financial_profiles_cpf_key')) {
           toast.error("Este CPF já está cadastrado no sistema");
           return;
@@ -57,6 +58,8 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
       }
 
       toast.success("Perfil financeiro cadastrado com sucesso!");
+      // Invalidate the financial profile query to force a refetch
+      queryClient.invalidateQueries({ queryKey: ['financial-profile'] });
       onOpenChange(false);
       setFormData(initialFormData);
     } catch (error) {
