@@ -1,4 +1,3 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -50,7 +49,7 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
         .insert({
           id: session.user.id,
           ...formData,
-          cpf: formatCPF(formData.cpf) // Ensure CPF is formatted consistently
+          cpf: formatCPF(formData.cpf)
         });
 
       if (insertError) {
@@ -75,18 +74,13 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Cadastro Financeiro</DialogTitle>
-        </DialogHeader>
-        <FinancialProfileForm
-          formData={formData}
-          onChange={setFormData}
-          onSubmit={handleSubmit}
-          loading={loading}
-        />
-      </DialogContent>
-    </Dialog>
+    <FinancialProfileForm
+      formData={formData}
+      onChange={setFormData}
+      onSubmit={handleSubmit}
+      loading={loading}
+      open={open}
+      onOpenChange={onOpenChange}
+    />
   );
 }

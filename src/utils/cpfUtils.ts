@@ -1,5 +1,4 @@
 export const formatCPF = (cpf: string): string => {
-  // Remove any non-numeric characters
   return cpf.replace(/\D/g, '');
 };
 
