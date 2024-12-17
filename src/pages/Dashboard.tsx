@@ -11,6 +11,27 @@ import { DashboardContent } from "@/components/dashboard/DashboardContent";
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type RechargeRow = Database['public']['Tables']['recharges']['Row'];
 
+// Componente de coração flutuante
+const FloatingHeart = ({ index }: { index: number }) => {
+  const randomDelay = `${index * 0.5}s`;
+  const randomDuration = `${6 + Math.random() * 4}s`;
+  const randomLeft = `${Math.random() * 100}vw`;
+  
+  return (
+    <div
+      className="absolute text-red-500 animate-float opacity-30"
+      style={{
+        left: randomLeft,
+        animationDelay: randomDelay,
+        animationDuration: randomDuration,
+        fontSize: `${20 + Math.random() * 20}px`,
+      }}
+    >
+      ❤️
+    </div>
+  );
+};
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -18,6 +39,12 @@ export default function Dashboard() {
   const session = useSession();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [previousBalance, setPreviousBalance] = useState<number>(0);
+  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+
+  useEffect(() => {
+    const savedTheme = document.documentElement.getAttribute('data-theme') as 'light' | 'dark';
+    setTheme(savedTheme || 'light');
+  }, []);
 
   const fetchProfile = useCallback(async () => {
     try {
@@ -125,16 +152,31 @@ export default function Dashboard() {
 
   return (
     <div 
-      className="min-h-screen p-4 md:p-6 bg-cover bg-center relative overflow-x-hidden"
-      style={{
+      className={`min-h-screen p-4 md:p-6 relative overflow-x-hidden ${
+        theme === 'dark' ? 'bg-gray-900' : 'bg-cover bg-center'
+      }`}
+      style={theme === 'light' ? {
         backgroundImage: 'url("/lovable-uploads/5a0e0336-aecf-49bc-961c-013d9aee3443.png")',
-      }}
+      } : undefined}
     >
+      {/* Floating hearts in dark mode */}
+      {theme === 'dark' && (
+        <div className="fixed inset-0 pointer-events-none overflow-hidden">
+          {[...Array(15)].map((_, index) => (
+            <FloatingHeart key={index} index={index} />
+          ))}
+        </div>
+      )}
+      
       {/* Animated gradient overlay */}
       <div 
-        className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 animate-gradient-x"
+        className={`absolute inset-0 ${
+          theme === 'light' 
+            ? 'bg-gradient-to-br from-purple-500/10 to-pink-500/10' 
+            : 'bg-gradient-to-br from-red-900/5 to-red-800/5'
+        } animate-gradient-x`}
         style={{
-          backdropFilter: 'blur(1px)',
+          backdropFilter: theme === 'light' ? 'blur(1px)' : 'none',
         }}
       />
       
