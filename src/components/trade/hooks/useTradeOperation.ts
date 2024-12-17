@@ -20,7 +20,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
     
     try {
       const now = new Date();
-      const nextOperation = new Date(now.getTime() + 60 * 1000);
+      const nextOperation = new Date(now.getTime() + 10 * 1000); // Changed from 60 to 10 seconds
 
       console.log('Registering operation at:', now.toISOString());
       console.log('Next operation scheduled for:', nextOperation.toISOString());
@@ -125,7 +125,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
 
       setTimeout(() => {
         setOperationCompleted(false);
-      }, 60000);
+      }, 10000); // Changed from 60000 to 10000 milliseconds
 
     } catch (error) {
       console.error('Error updating final balance:', error);

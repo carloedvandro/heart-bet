@@ -22,7 +22,7 @@ export function TradeOperationTimer({
 
   useEffect(() => {
     if (operationCompleted) {
-      setTimeLeft(60); // Reset to 60 seconds after operation completes
+      setTimeLeft(10); // Changed from 60 to 10 seconds
       setProgress(0);
       setCanOperate(false);
     }
@@ -38,7 +38,7 @@ export function TradeOperationTimer({
           setCanOperate(true);
           return 0;
         }
-        setProgress(((60 - current) / 60) * 100);
+        setProgress(((10 - current) / 10) * 100); // Changed from 60 to 10 seconds
         return current - 1;
       });
     }, 1000);
@@ -48,7 +48,7 @@ export function TradeOperationTimer({
 
   useEffect(() => {
     if (isEnabled && !operationCompleted) {
-      setTimeLeft(60);
+      setTimeLeft(10); // Changed from 60 to 10 seconds
       setCanOperate(false);
     }
   }, [isEnabled, operationCompleted]);
