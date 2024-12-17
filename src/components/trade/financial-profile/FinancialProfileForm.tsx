@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -20,7 +19,7 @@ export interface FormData {
   birth_date: string;
 }
 
-interface FinancialProfileFormProps {
+export interface FinancialProfileFormProps {
   formData: FormData;
   onChange: (data: FormData) => void;
   onSubmit: () => void;

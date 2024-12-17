@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
 import { FinancialProfileForm, FormData } from "./FinancialProfileForm";
 import { formatCPF, validateCPFFormat } from "@/utils/cpfUtils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface FinancialProfileDialogProps {
   open: boolean;
@@ -74,13 +75,18 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
   };
 
   return (
-    <FinancialProfileForm
-      formData={formData}
-      onChange={setFormData}
-      onSubmit={handleSubmit}
-      loading={loading}
-      open={open}
-      onOpenChange={onOpenChange}
-    />
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Cadastro Financeiro</DialogTitle>
+        </DialogHeader>
+        <FinancialProfileForm
+          formData={formData}
+          onChange={setFormData}
+          onSubmit={handleSubmit}
+          loading={loading}
+        />
+      </DialogContent>
+    </Dialog>
   );
 }
