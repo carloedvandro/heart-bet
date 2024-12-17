@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate, Routes, Route } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
@@ -7,7 +7,6 @@ import { Header } from "@/components/dashboard/Header";
 import { useSession } from "@supabase/auth-helpers-react";
 import { playSounds } from "@/utils/soundEffects";
 import { DashboardContent } from "@/components/dashboard/DashboardContent";
-import { DashboardNavigation } from "@/components/dashboard/DashboardNavigation";
 
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type RechargeRow = Database['public']['Tables']['recharges']['Row'];
@@ -126,7 +125,7 @@ export default function Dashboard() {
 
   return (
     <div 
-      className="min-h-screen bg-gray-50 p-4 md:p-6 bg-cover bg-center relative pb-24"
+      className="min-h-screen bg-gray-50 p-4 md:p-6 bg-cover bg-center relative"
       style={{
         backgroundImage: 'url("/lovable-uploads/5a0e0336-aecf-49bc-961c-013d9aee3443.png")',
       }}
@@ -134,56 +133,11 @@ export default function Dashboard() {
       <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
       <div className="relative z-10">
         <Header profile={profile} onLogout={handleLogout} />
-        <Routes>
-          <Route index element={
-            <DashboardContent 
-              profile={profile}
-              refreshTrigger={refreshTrigger}
-              onBetPlaced={() => setRefreshTrigger(prev => prev + 1)}
-            />
-          } />
-          <Route path="bet" element={
-            <DashboardContent 
-              profile={profile}
-              refreshTrigger={refreshTrigger}
-              onBetPlaced={() => setRefreshTrigger(prev => prev + 1)}
-              initialView="bet"
-            />
-          } />
-          <Route path="investment" element={
-            <DashboardContent 
-              profile={profile}
-              refreshTrigger={refreshTrigger}
-              onBetPlaced={() => setRefreshTrigger(prev => prev + 1)}
-              initialView="investment"
-            />
-          } />
-          <Route path="trade" element={
-            <DashboardContent 
-              profile={profile}
-              refreshTrigger={refreshTrigger}
-              onBetPlaced={() => setRefreshTrigger(prev => prev + 1)}
-              initialView="trade"
-            />
-          } />
-          <Route path="bets" element={
-            <DashboardContent 
-              profile={profile}
-              refreshTrigger={refreshTrigger}
-              onBetPlaced={() => setRefreshTrigger(prev => prev + 1)}
-              initialView="bets"
-            />
-          } />
-          <Route path="profile" element={
-            <DashboardContent 
-              profile={profile}
-              refreshTrigger={refreshTrigger}
-              onBetPlaced={() => setRefreshTrigger(prev => prev + 1)}
-              initialView="profile"
-            />
-          } />
-        </Routes>
-        <DashboardNavigation />
+        <DashboardContent 
+          profile={profile}
+          refreshTrigger={refreshTrigger}
+          onBetPlaced={() => setRefreshTrigger(prev => prev + 1)}
+        />
       </div>
     </div>
   );

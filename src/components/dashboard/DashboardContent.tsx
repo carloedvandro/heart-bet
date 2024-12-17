@@ -1,45 +1,41 @@
 import { Profile } from "@/integrations/supabase/custom-types";
-import { ProfileLayout } from "./profile/ProfileLayout";
-import { useLocation } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import HeartGrid from "@/components/HeartGrid";
+import { BetsTable } from "./BetsTable";
 import { TradeCard } from "../trade/TradeCard";
-import BettingForm from "../betting/BettingForm";
 
 interface DashboardContentProps {
   profile: Profile | null;
   refreshTrigger: number;
   onBetPlaced: () => void;
-  initialView?: string;
 }
 
-export function DashboardContent({ profile, refreshTrigger, onBetPlaced, initialView }: DashboardContentProps) {
-  const location = useLocation();
-  const currentPath = location.pathname.split('/').pop() || 'profile';
-
-  const renderContent = () => {
-    switch (currentPath) {
-      case 'trade':
-        return <TradeCard />;
-      case 'profile':
-        return <ProfileLayout profile={profile} />;
-      case 'bet':
-        return <BettingForm onBetPlaced={onBetPlaced} />;
-      // Temporarily show "Em desenvolvimento" for other views
-      case 'investment':
-      case 'bets':
-        return (
-          <div className="p-4 text-center">
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">Em desenvolvimento</h2>
-            <p className="text-gray-600">Esta funcionalidade estará disponível em breve.</p>
-          </div>
-        );
-      default:
-        return <ProfileLayout profile={profile} />;
-    }
-  };
-
+export const DashboardContent = ({ 
+  profile, 
+  refreshTrigger, 
+  onBetPlaced 
+}: DashboardContentProps) => {
   return (
-    <main className="pb-24">
-      {renderContent()}
-    </main>
+    <div className="max-w-7xl mx-auto space-y-6 relative z-10">
+      <Card className="bg-white/90 backdrop-blur">
+        <CardHeader>
+          <CardTitle>Nova Aposta</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <HeartGrid onBetPlaced={onBetPlaced} />
+        </CardContent>
+      </Card>
+
+      <TradeCard />
+
+      <Card className="bg-white/90 backdrop-blur">
+        <CardHeader>
+          <CardTitle>Suas Apostas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <BetsTable refreshTrigger={refreshTrigger} />
+        </CardContent>
+      </Card>
+    </div>
   );
-}
+};

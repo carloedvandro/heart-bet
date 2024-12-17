@@ -100,14 +100,14 @@ const BettingHeartGrid = memo(({
   );
 
   return (
-    <div className="flex flex-col gap-8 items-center animate-fade-in bg-white/0 p-6 rounded-lg shadow-lg">
+    <div className="flex flex-col gap-8 items-center animate-fade-in">
       <PairsTable 
         mainHeart={mainHeart}
         selectedPairs={selectedHearts}
         betType={betType}
       />
 
-      <div className="grid grid-cols-5 gap-4 bg-white/0 p-4 rounded-lg">
+      <div className="grid grid-cols-5 gap-4">
         {shuffledHearts.map(({ color }) => (
           <HeartButton
             key={color}

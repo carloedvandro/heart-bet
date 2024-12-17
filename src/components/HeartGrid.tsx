@@ -25,19 +25,16 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   const [pendingBet, setPendingBet] = useState<Bet | null>(null);
   const [currentBetType, setCurrentBetType] = useState<BetType>("simple_group");
   const { clearCombinations } = useTemporaryBetState();
-  const [formKey, setFormKey] = useState(0);
 
   const handleReset = () => {
-    console.log("Resetting bet state");
     setLastBet(null);
     setPendingBet(null);
     setShowConfirmDialog(false);
     clearCombinations();
-    setFormKey(prev => prev + 1);
   };
 
   const handleBetPlaced = (bet: Bet) => {
-    console.log("New bet placed, showing confirmation dialog:", bet);
+    console.log("New bet placed:", bet);
     setPendingBet(bet);
     setCurrentBetType(bet.bet_type as BetType);
     setShowConfirmDialog(true);
@@ -47,7 +44,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   };
 
   const handleViewReceipt = () => {
-    console.log("User chose to view receipt for bet:", pendingBet);
+    console.log("Viewing receipt for bet:", pendingBet);
     if (pendingBet) {
       setLastBet(pendingBet);
       setShowConfirmDialog(false);
@@ -55,7 +52,6 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   };
 
   const handleSkipReceipt = () => {
-    console.log("User chose to skip receipt view");
     handleReset();
   };
 
@@ -67,7 +63,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
         <BettingForm 
           onBetPlaced={handleBetPlaced} 
           initialBetType={currentBetType}
-          key={formKey}
+          key={pendingBet ? undefined : 'new-bet'} 
         />
       )}
 
