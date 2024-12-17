@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { differenceInSeconds } from "date-fns";
-import { fromZonedTime, toZonedTime } from 'date-fns-tz';
+import { toZonedTime, fromZonedTime } from 'date-fns-tz';
 import { supabase } from "@/integrations/supabase/client";
 
 interface TradeOperationTimerProps {
@@ -17,7 +17,7 @@ export function TradeOperationTimer({
   isEnabled,
   operationCompleted
 }: TradeOperationTimerProps) {
-  const [timeLeft, setTimeLeft] = useState<number>(60);
+  const [timeLeft, setTimeLeft] = useState<number>(1800); // 30 minutos em segundos
   const [canOperate, setCanOperate] = useState(false);
   const timeZone = 'America/Sao_Paulo';
   const [lastOperationTime, setLastOperationTime] = useState<Date | null>(null);
@@ -26,25 +26,18 @@ export function TradeOperationTimer({
   useEffect(() => {
     const fetchLastOperationTime = async () => {
       const { data, error } = await supabase
-        .from('trade_operations')
-        .select('operated_at, next_operation_at')
-        .order('created_at', { ascending: false })
-        .limit(1)
+        .from('trade_investments')
+        .select('created_at')
+        .eq('id', investmentCreatedAt)
         .single();
 
       if (error) {
-        console.error('Error fetching last operation time:', error);
+        console.error('Error fetching investment creation time:', error);
         return;
       }
 
       if (data) {
-        const nextOperationAt = data.next_operation_at 
-          ? toZonedTime(new Date(data.next_operation_at), timeZone)
-          : toZonedTime(new Date(data.operated_at), timeZone);
-        setLastOperationTime(nextOperationAt);
-      } else {
-        // If no operations yet, use investment creation time
-        const creationTime = toZonedTime(new Date(investmentCreatedAt), timeZone);
+        const creationTime = toZonedTime(new Date(data.created_at), timeZone);
         setLastOperationTime(creationTime);
       }
     };
@@ -56,7 +49,7 @@ export function TradeOperationTimer({
 
   useEffect(() => {
     if (!isEnabled || !lastOperationTime) {
-      setTimeLeft(60);
+      setTimeLeft(1800);
       setCanOperate(false);
       return;
     }
@@ -65,7 +58,7 @@ export function TradeOperationTimer({
     if (operationCompleted) {
       const now = toZonedTime(new Date(), timeZone);
       setLastOperationTime(now);
-      setTimeLeft(60);
+      setTimeLeft(1800);
       setCanOperate(false);
       return;
     }
@@ -73,9 +66,9 @@ export function TradeOperationTimer({
     const calculateTimeLeft = () => {
       const now = toZonedTime(new Date(), timeZone);
       const secondsPassed = differenceInSeconds(now, lastOperationTime);
-      const remaining = 60 - (secondsPassed % 60);
+      const remaining = 1800 - secondsPassed; // 30 minutos = 1800 segundos
 
-      if (secondsPassed >= 60) {
+      if (secondsPassed >= 1800) {
         setCanOperate(true);
         setTimeLeft(0);
       } else {
@@ -96,7 +89,7 @@ export function TradeOperationTimer({
     <div className="space-y-4">
       {!canOperate ? (
         <div className="text-sm text-muted-foreground">
-          Tempo restante para operar: {timeLeft}s
+          Tempo restante para operar: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
         </div>
       ) : (
         <Button 
