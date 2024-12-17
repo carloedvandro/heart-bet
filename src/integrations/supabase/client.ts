@@ -14,20 +14,26 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
   while (attempt < MAX_RETRIES) {
     try {
+      // Get the current session
+      const session = JSON.parse(localStorage.getItem('sb-' + supabaseUrl.split('//')[1] + '-auth-token') || '{}');
+      const accessToken = session?.access_token;
+
       const headers = new Headers(init?.headers || {});
       
-      // Only add these headers if they're not already present
+      // Set the Authorization header with the access token if available
+      if (accessToken) {
+        headers.set('Authorization', `Bearer ${accessToken}`);
+      }
+      
+      // Set required headers if not present
       if (!headers.has('apikey')) {
         headers.set('apikey', supabaseKey);
       }
-      if (!headers.has('Authorization')) {
-        headers.set('Authorization', `Bearer ${supabaseKey}`);
-      }
       
-      // Set default headers if not present
       if (!headers.has('Content-Type')) {
         headers.set('Content-Type', 'application/json');
       }
+      
       if (!headers.has('Accept')) {
         headers.set('Accept', 'application/json');
       }
@@ -54,7 +60,8 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
           statusText: response.statusText,
           url: response.url,
           headers: Object.fromEntries(response.headers.entries()),
-          body: errorText
+          body: errorText,
+          session: session // Log session info for debugging
         });
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -88,14 +95,15 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     persistSession: true,
     detectSessionInUrl: true,
     flowType: 'pkce',
-    storage: localStorage
+    storage: localStorage,
+    storageKey: 'sb-' + supabaseUrl.split('//')[1] + '-auth-token'
   },
   global: {
     fetch: customFetch
   }
 });
 
-// Only log auth state changes
-supabase.auth.onAuthStateChange((event) => {
-  console.log('Auth state changed:', event);
+// Log auth state changes for debugging
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth state changed:', { event, session });
 });
