@@ -46,12 +46,14 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
         });
 
       if (error) {
-        // Check specifically for the unique constraint violation on CPF
+        // Parse the error message from the JSON string in error.message
         if (error.code === '23505' && error.message?.includes('financial_profiles_cpf_key')) {
           toast.error("Este CPF já está cadastrado no sistema");
           return;
         }
-        throw error;
+        console.error('Supabase error:', error);
+        toast.error("Erro ao cadastrar perfil financeiro");
+        return;
       }
 
       toast.success("Perfil financeiro cadastrado com sucesso!");
