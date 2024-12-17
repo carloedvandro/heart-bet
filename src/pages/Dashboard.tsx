@@ -132,10 +132,9 @@ export default function Dashboard() {
     >
       {/* Animated gradient overlay */}
       <div 
-        className="absolute inset-0 opacity-85 animate-gradient-x"
+        className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 animate-gradient-x"
         style={{
           backdropFilter: 'blur(1px)',
-          background: 'linear-gradient(to bottom right, rgb(168, 85, 247), rgb(236, 72, 153))'
         }}
       />
       
