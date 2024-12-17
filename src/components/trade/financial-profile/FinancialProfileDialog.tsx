@@ -37,27 +37,12 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
       return;
     }
 
-    if (!validateCPF(formData.cpf)) {
-      toast.error("CPF inválido");
-      return;
-    }
-
     try {
       setLoading(true);
       
-      // First check if CPF already exists
-      const { data: existingProfiles, error: searchError } = await supabase
-        .from('financial_profiles')
-        .select('id')
-        .eq('cpf', formData.cpf);
-
-      if (searchError) {
-        console.error('Error checking CPF:', searchError);
-        toast.error("Erro ao verificar CPF");
-        return;
-      }
-
-      if (existingProfiles && existingProfiles.length > 0) {
+      // Check if CPF already exists
+      const cpfExists = await validateCPF(supabase, formData.cpf);
+      if (cpfExists) {
         toast.error("Este CPF já está cadastrado no sistema");
         return;
       }
@@ -70,6 +55,7 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
         });
 
       if (insertError) {
+        // Double-check for race condition where CPF was inserted between our check and insert
         if (insertError.code === '23505' && insertError.message?.includes('financial_profiles_cpf_key')) {
           toast.error("Este CPF já está cadastrado no sistema");
         } else {

@@ -3,7 +3,17 @@ export const formatCPF = (cpf: string): string => {
   return cpf.replace(/\D/g, '');
 };
 
-export const validateCPF = (cpf: string): boolean => {
-  const cleanCPF = formatCPF(cpf);
-  return cleanCPF.length === 11;
+export const validateCPF = async (supabase: any, cpf: string): Promise<boolean> => {
+  const formattedCPF = formatCPF(cpf);
+  const { data, error } = await supabase
+    .from('financial_profiles')
+    .select('id')
+    .eq('cpf', formattedCPF);
+    
+  if (error) {
+    console.error('Error checking CPF:', error);
+    throw error;
+  }
+  
+  return data && data.length > 0;
 };
