@@ -47,12 +47,12 @@ export function Header({ profile, onLogout }: HeaderProps) {
   };
 
   return (
-    <div className="relative z-50 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg mb-6">
+    <div className="relative z-50 bg-white/70 backdrop-blur-md rounded-lg p-4 shadow-lg mb-6 border border-white/20">
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-3xl font-bold text-gray-800 leading-tight">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight">
                 Corações Premiados
               </h1>
               <div className="flex items-center gap-2">

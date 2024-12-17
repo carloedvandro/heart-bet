@@ -125,12 +125,20 @@ export default function Dashboard() {
 
   return (
     <div 
-      className="min-h-screen bg-gray-50 p-4 md:p-6 bg-cover bg-center relative"
+      className="min-h-screen p-4 md:p-6 bg-cover bg-center relative overflow-x-hidden"
       style={{
         backgroundImage: 'url("/lovable-uploads/5a0e0336-aecf-49bc-961c-013d9aee3443.png")',
       }}
     >
-      <div className="absolute inset-0 bg-black/20 backdrop-blur-[1px]" />
+      {/* Animated gradient overlay */}
+      <div 
+        className="absolute inset-0 bg-gradient-to-br from-purple-500/10 to-pink-500/10 animate-gradient-x"
+        style={{
+          backdropFilter: 'blur(1px)',
+        }}
+      />
+      
+      {/* Content wrapper with glass effect */}
       <div className="relative z-10">
         <Header profile={profile} onLogout={handleLogout} />
         <DashboardContent 
