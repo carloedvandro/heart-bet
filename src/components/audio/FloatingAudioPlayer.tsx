@@ -5,6 +5,7 @@ import PlayerControls from "./PlayerControls";
 import TimeSlider from "./TimeSlider";
 import VolumeControl from "./VolumeControl";
 import { useAudioPlayer } from "./useAudioPlayer";
+import { useEffect } from "react";
 
 interface FloatingAudioPlayerProps {
   audioUrl: string;
@@ -26,6 +27,14 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
     handleVolumeChange,
     cleanup
   } = useAudioPlayer(audioUrl);
+
+  // Efeito para iniciar a reprodução automaticamente quando o player é aberto
+  useEffect(() => {
+    if (isOpen && !isPlaying && !isLoading) {
+      console.log("Iniciando reprodução automática");
+      togglePlay();
+    }
+  }, [isOpen, isPlaying, isLoading, togglePlay]);
 
   const handleClose = () => {
     cleanup(); // Chama a função cleanup que agora reseta todos os estados
