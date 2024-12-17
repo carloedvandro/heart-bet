@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { differenceInMinutes } from "date-fns";
-import { useState, memo, useEffect } from "react";
+import { useState, memo } from "react";
 import { InvestmentInfo } from "./investment-card/InvestmentInfo";
 import { InvestmentBalance } from "./investment-card/InvestmentBalance";
 import { InvestmentOperations } from "./investment-card/InvestmentOperations";
@@ -19,14 +19,12 @@ interface InvestmentCardProps {
   investment: Investment;
   onCancelInvestment: (id: string, createdAt: string) => void;
   isProcessing: boolean;
-  onDelete?: () => void;
 }
 
 const InvestmentCard = memo(({ 
   investment, 
   onCancelInvestment, 
-  isProcessing,
-  onDelete
+  isProcessing
 }: InvestmentCardProps) => {
   const [canCancel, setCanCancel] = useState(
     differenceInMinutes(new Date(), new Date(investment.created_at)) <= 30 && 
@@ -51,6 +49,11 @@ const InvestmentCard = memo(({
     }, 60000);
   };
 
+  // Se o status não for 'active', não renderiza o card
+  if (investment.status !== 'active') {
+    return null;
+  }
+
   return (
     <Card>
       <CardContent className="pt-6">
@@ -68,7 +71,6 @@ const InvestmentCard = memo(({
               currentBalance={investment.current_balance}
               status={investment.status}
               investmentId={investment.id}
-              onDelete={onDelete}
             />
 
             <InvestmentOperations 

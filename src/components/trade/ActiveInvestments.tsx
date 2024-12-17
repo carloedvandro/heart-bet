@@ -12,11 +12,6 @@ export function ActiveInvestments({
   onCancelInvestment,
   processingCancellation 
 }: ActiveInvestmentsProps) {
-  const handleDelete = () => {
-    // Recarregar a lista de investimentos
-    window.location.reload();
-  };
-
   return (
     <div className="space-y-4">
       {investments.map((investment) => (
@@ -25,7 +20,6 @@ export function ActiveInvestments({
           investment={investment}
           onCancelInvestment={onCancelInvestment}
           isProcessing={processingCancellation === investment.id}
-          onDelete={handleDelete}
         />
       ))}
     </div>
