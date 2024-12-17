@@ -4,6 +4,7 @@ import { useState, memo, useEffect } from "react";
 import { InvestmentInfo } from "./investment-card/InvestmentInfo";
 import { InvestmentBalance } from "./investment-card/InvestmentBalance";
 import { InvestmentOperations } from "./investment-card/InvestmentOperations";
+import { toZonedTime } from 'date-fns-tz';
 
 interface Investment {
   id: string;
@@ -30,11 +31,12 @@ const InvestmentCard = memo(({
   const [timeLeft, setTimeLeft] = useState<number>(0);
   const [isOperating, setIsOperating] = useState(false);
   const [operationCompleted, setOperationCompleted] = useState(false);
+  const timeZone = 'America/Sao_Paulo';
 
   useEffect(() => {
     const calculateTimeLeft = () => {
-      const now = new Date();
-      const createdAt = new Date(investment.created_at);
+      const now = toZonedTime(new Date(), timeZone);
+      const createdAt = toZonedTime(new Date(investment.created_at), timeZone);
       const minutesPassed = differenceInMinutes(now, createdAt);
       const secondsPassed = differenceInSeconds(now, createdAt);
       const remainingSeconds = Math.max(300 - secondsPassed, 0); // 5 minutes in seconds
@@ -49,7 +51,7 @@ const InvestmentCard = memo(({
         minutesPassed,
         secondsPassed,
         remainingSeconds,
-        canCancel: minutesPassed < 5
+        canCancel: minutesPassed < 5 && investment.status === 'active'
       });
     };
 
@@ -57,7 +59,7 @@ const InvestmentCard = memo(({
     const interval = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(interval);
-  }, [investment.created_at, investment.status]);
+  }, [investment.created_at, investment.status, timeZone]);
 
   const handleOperationStart = async () => {
     setIsOperating(true);

@@ -32,7 +32,6 @@ export function TradeOperationTimer({
         return;
       }
 
-      // First, try to find the last operation
       const { data: operations, error: operationError } = await supabase
         .from('trade_operations')
         .select('operated_at')
@@ -40,7 +39,11 @@ export function TradeOperationTimer({
         .order('operated_at', { ascending: false })
         .limit(1);
 
-      // If no operations, fetch investment creation time
+      if (operationError) {
+        console.error('Error fetching operations:', operationError);
+        return;
+      }
+
       if (!operations || operations.length === 0) {
         const { data: investment, error: investmentError } = await supabase
           .from('trade_investments')
@@ -55,12 +58,12 @@ export function TradeOperationTimer({
 
         if (investment) {
           const creationTime = toZonedTime(new Date(investment.created_at), timeZone);
-          console.log('Using investment creation time (SP):', formatInTimeZone(creationTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
+          console.log('Using investment creation time:', formatInTimeZone(creationTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
           setLastOperationTime(creationTime);
         }
       } else {
         const lastOpTime = toZonedTime(new Date(operations[0].operated_at), timeZone);
-        console.log('Found last operation time (SP):', formatInTimeZone(lastOpTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
+        console.log('Found last operation time:', formatInTimeZone(lastOpTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
         setLastOperationTime(lastOpTime);
       }
     } catch (error) {
@@ -79,8 +82,6 @@ export function TradeOperationTimer({
   useEffect(() => {
     if (operationCompleted) {
       const now = toZonedTime(new Date(), timeZone);
-      console.log('Operation completed, setting new last operation time (SP):', 
-        formatInTimeZone(now, timeZone, 'yyyy-MM-dd HH:mm:ss'));
       setLastOperationTime(now);
       setTimeLeft(30);
       setCanOperate(false);
@@ -89,22 +90,20 @@ export function TradeOperationTimer({
 
   useEffect(() => {
     if (!isEnabled || !lastOperationTime || isLoading) {
-      setTimeLeft(30);
-      setCanOperate(false);
       return;
     }
 
     const calculateTimeLeft = () => {
       const now = toZonedTime(new Date(), timeZone);
-      console.log('Calculating time left...');
-      console.log('Current time (SP):', formatInTimeZone(now, timeZone, 'yyyy-MM-dd HH:mm:ss'));
-      console.log('Last operation/creation time (SP):', formatInTimeZone(lastOperationTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
-      
       const secondsPassed = differenceInSeconds(now, lastOperationTime);
-      console.log('Seconds passed since last operation:', secondsPassed);
-      
       const remaining = Math.max(30 - secondsPassed, 0);
-      console.log('Remaining seconds:', remaining);
+      
+      console.log('Operation timer calculation:', {
+        now: formatInTimeZone(now, timeZone, 'yyyy-MM-dd HH:mm:ss'),
+        lastOperation: formatInTimeZone(lastOperationTime, timeZone, 'yyyy-MM-dd HH:mm:ss'),
+        secondsPassed,
+        remaining
+      });
 
       setTimeLeft(remaining);
       setCanOperate(secondsPassed >= 30);
@@ -118,13 +117,6 @@ export function TradeOperationTimer({
 
   if (!isEnabled) return null;
 
-  const formatTime = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = seconds % 60;
-    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-  };
-
   return (
     <div className="space-y-4">
       {isLoading ? (
@@ -133,7 +125,7 @@ export function TradeOperationTimer({
         </div>
       ) : !canOperate ? (
         <div className="text-sm text-muted-foreground">
-          Tempo restante para operar: {formatTime(timeLeft)}
+          Tempo restante para operar: {timeLeft} segundos
         </div>
       ) : (
         <Button 
