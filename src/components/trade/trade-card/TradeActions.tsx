@@ -2,9 +2,9 @@ import { Button } from "@/components/ui/button";
 import { FinancialProfile } from "@/types/financial";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 
 interface TradeActionsProps {
-  financialProfile: FinancialProfile | null;
   onStartInvestment: () => void;
   onWithdraw: () => void;
   onShowRules: () => void;
@@ -15,6 +15,17 @@ export function TradeActions({
   onWithdraw,
   onShowRules 
 }: TradeActionsProps) {
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+
+  // Adiciona um delay inicial de segurança
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsInitialLoading(false);
+    }, 2000); // 2 segundos de delay
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const { data: profile, isLoading } = useQuery({
     queryKey: ['financial-profile'],
     queryFn: async () => {
@@ -74,10 +85,12 @@ export function TradeActions({
     profile,
     profileComplete,
     termsAccepted,
-    isLoading
+    isLoading,
+    isInitialLoading
   });
 
-  if (isLoading) {
+  // Mostra loading state durante o carregamento inicial ou da query
+  if (isInitialLoading || isLoading) {
     return (
       <div className="flex gap-2">
         <Button disabled>Carregando...</Button>
