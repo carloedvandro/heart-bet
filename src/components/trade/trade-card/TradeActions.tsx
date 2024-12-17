@@ -14,15 +14,22 @@ export function TradeActions({
   onWithdraw,
   onShowRules 
 }: TradeActionsProps) {
+  console.log('Financial Profile:', financialProfile);
+  
   // Verificar se o perfil financeiro existe e tem os campos obrigatórios preenchidos
   const hasCompleteProfile = Boolean(
-    financialProfile?.id &&
-    financialProfile?.full_name && 
-    financialProfile?.cpf
+    financialProfile &&
+    financialProfile.id &&
+    financialProfile.full_name && 
+    financialProfile.cpf
   );
+
+  console.log('Has Complete Profile:', hasCompleteProfile);
 
   // Verificar se aceitou os termos
   const hasAcceptedTerms = Boolean(financialProfile?.terms_accepted);
+
+  console.log('Has Accepted Terms:', hasAcceptedTerms);
 
   // Se não houver perfil financeiro ou estiver incompleto, mostra botão de completar cadastro
   if (!hasCompleteProfile) {

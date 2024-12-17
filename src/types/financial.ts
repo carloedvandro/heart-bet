@@ -1,7 +1,18 @@
 export interface FinancialProfile {
   id: string;
+  full_name: string;
+  cpf: string;
+  phone: string;
+  pix_type: string;
+  pix_key: string;
+  street: string;
+  number: string;
+  neighborhood: string;
+  city: string;
+  state: string;
+  zip_code: string;
+  birth_date: string;
   terms_accepted: boolean;
-  full_name?: string;  // Make these optional to handle existing profiles
-  cpf?: string;
-  // ... outros campos do perfil financeiro
+  terms_accepted_at?: string;
+  created_at?: string;
 }
