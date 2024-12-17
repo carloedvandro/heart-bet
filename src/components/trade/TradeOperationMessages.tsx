@@ -1,17 +1,20 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { OperationProgress } from "./OperationProgress";
 
 interface TradeOperationMessagesProps {
   isOperating: boolean;
-  onOperationComplete?: () => void;
+  onOperationComplete: () => void;
 }
 
 const OPERATION_MESSAGES = [
-  "Processo de transação iniciado...",
-  "Executando negociações...",
-  "Processando operação...",
-  "Operação concluída com sucesso!"
+  "Processo de transação.",
+  "Comece a executar negociações...",
+  "Comece a fazer fila...",
+  "Comece a executar a ordem de compra...",
+  "Comece a executar a ordem de venda...",
+  "Comece a capturar preços de mercado de negociação...",
+  "Comece a distribuir comissões...",
+  "A operação está concluída e terminando."
 ];
 
 export function TradeOperationMessages({ 
@@ -28,17 +31,17 @@ export function TradeOperationMessages({
       return;
     }
 
-    const messageInterval = setInterval(() => {
+    const interval = setInterval(() => {
       if (currentMessageIndex < OPERATION_MESSAGES.length) {
         setMessages(prev => [...prev, OPERATION_MESSAGES[currentMessageIndex]]);
         setCurrentMessageIndex(prev => prev + 1);
       } else {
-        clearInterval(messageInterval);
-        onOperationComplete?.();
+        clearInterval(interval);
+        onOperationComplete();
       }
-    }, 1000);
+    }, 2000);
 
-    return () => clearInterval(messageInterval);
+    return () => clearInterval(interval);
   }, [isOperating, currentMessageIndex, onOperationComplete]);
 
   if (!isOperating) return null;
@@ -46,20 +49,15 @@ export function TradeOperationMessages({
   return (
     <div className="space-y-2 p-4 bg-black/5 rounded-lg">
       {messages.map((message, index) => (
-        <div key={index} className="space-y-2">
-          <p className={cn(
+        <p 
+          key={index}
+          className={cn(
             "text-sm transition-all duration-500",
             index === messages.length - 1 ? "text-green-600 font-medium" : "text-muted-foreground"
-          )}>
-            {message}
-          </p>
-          {index === messages.length - 1 && (
-            <OperationProgress 
-              value={(index + 1) * (100 / OPERATION_MESSAGES.length)} 
-              className="mt-1" 
-            />
           )}
-        </div>
+        >
+          {message}
+        </p>
       ))}
     </div>
   );

@@ -5,8 +5,6 @@ import { CancellationTimer } from "./CancellationTimer";
 import { TradeOperationTimer } from "./TradeOperationTimer";
 import { TradeOperationMessages } from "./TradeOperationMessages";
 import { useState, memo } from "react";
-import { OperationProgress } from "./OperationProgress";
-import { useTradeOperation } from "./hooks/useTradeOperation";
 
 interface Investment {
   id: string;
@@ -33,23 +31,20 @@ const InvestmentCard = memo(({
     differenceInMinutes(new Date(), new Date(investment.created_at)) <= 30 && 
     investment.status === 'active'
   );
-
-  const {
-    isOperating,
-    operationCompleted,
-    currentBalance,
-    nextOperationTime,
-    handleOperationStart,
-    handleOperationComplete
-  } = useTradeOperation(
-    investment.id,
-    investment.amount,
-    investment.daily_rate,
-    investment.current_balance
-  );
+  const [isOperating, setIsOperating] = useState(false);
+  const [operationCompleted, setOperationCompleted] = useState(false);
 
   const handleTimeExpired = () => {
     setCanCancel(false);
+  };
+
+  const handleOperationStart = () => {
+    setIsOperating(true);
+  };
+
+  const handleOperationComplete = () => {
+    setIsOperating(false);
+    setOperationCompleted(true);
   };
 
   return (
@@ -58,26 +53,26 @@ const InvestmentCard = memo(({
         <div className="flex flex-col md:flex-row justify-between gap-4">
           <div className="space-y-2">
             <p className="text-sm text-gray-500">
-              Invested on: {new Date(investment.created_at).toLocaleDateString()}
+              Investido em: {new Date(investment.created_at).toLocaleDateString()}
             </p>
             <p className="font-semibold">
               R$ {Number(investment.amount).toFixed(2)}
             </p>
             <p className="text-sm text-green-600">
-              Earnings: {investment.daily_rate}% per day
+              Rendimento: {investment.daily_rate}% ao dia
             </p>
             {investment.status === 'cancelled' && (
               <p className="text-sm text-red-500">
-                Investment Cancelled
+                Investimento Cancelado
               </p>
             )}
           </div>
           <div className="text-right space-y-2">
             <p className="text-sm text-gray-500">
-              Locked until: {new Date(investment.locked_until).toLocaleDateString()}
+              Bloqueado até: {new Date(investment.locked_until).toLocaleDateString()}
             </p>
             <p className="font-semibold">
-              Current balance: R$ {Number(currentBalance).toFixed(2)}
+              Saldo atual: R$ {Number(investment.current_balance).toFixed(2)}
             </p>
             {canCancel ? (
               <div className="flex flex-col items-end gap-1">
@@ -88,7 +83,7 @@ const InvestmentCard = memo(({
                   onClick={() => onCancelInvestment(investment.id, investment.created_at)}
                   disabled={isProcessing || investment.status !== 'active'}
                 >
-                  {isProcessing ? "Cancelling..." : "Cancel Investment"}
+                  {isProcessing ? "Cancelando..." : "Cancelar Investimento"}
                 </Button>
                 <CancellationTimer 
                   createdAt={investment.created_at}
@@ -98,18 +93,15 @@ const InvestmentCard = memo(({
               </div>
             ) : investment.status === 'cancelled' ? (
               <p className="text-sm text-red-500">
-                Investment cancelled on {new Date().toLocaleDateString()}
+                Investimento cancelado em {new Date().toLocaleDateString()}
               </p>
             ) : (
               <div className="flex flex-col items-end gap-2">
                 <TradeOperationTimer
                   investmentCreatedAt={investment.created_at}
                   onOperationStart={handleOperationStart}
-                  isEnabled={!canCancel && investment.status === 'active' && !isOperating}
-                  operationCompleted={operationCompleted}
-                  nextOperationTime={nextOperationTime}
+                  isEnabled={!canCancel && investment.status === 'active' && !operationCompleted}
                 />
-                {isOperating && <OperationProgress />}
                 <TradeOperationMessages
                   isOperating={isOperating}
                   onOperationComplete={handleOperationComplete}
