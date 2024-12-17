@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { InvestmentStats } from "./InvestmentStats";
 import { ActiveInvestments } from "./ActiveInvestments";
 import { useInvestments } from "./hooks/useInvestments";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 export function TradeCard() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
@@ -94,21 +95,57 @@ export function TradeCard() {
         <CardTitle className="flex items-center justify-between">
           <span>Investimento Trade</span>
           <div className="space-x-2">
-            <Button 
-              onClick={handleStartInvestment}
-              disabled={!isInvestmentEnabled}
-              title={!isInvestmentEnabled ? "Complete seu cadastro e aceite os termos primeiro" : ""}
-            >
-              Novo Investimento
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleWithdraw}
-              disabled={!isInvestmentEnabled}
-              title={!isInvestmentEnabled ? "Complete seu cadastro e aceite os termos primeiro" : ""}
-            >
-              Solicitar Saque
-            </Button>
+            {!financialProfile ? (
+              <Button onClick={() => setShowProfileDialog(true)} variant="default">
+                Completar Cadastro
+              </Button>
+            ) : !financialProfile.terms_accepted ? (
+              <Button onClick={() => setShowTermsDialog(true)} variant="default">
+                Aceitar Termos
+              </Button>
+            ) : (
+              <>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <Button 
+                          onClick={handleStartInvestment}
+                          disabled={!isInvestmentEnabled}
+                        >
+                          Novo Investimento
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    {!isInvestmentEnabled && (
+                      <TooltipContent>
+                        <p>Complete seu cadastro e aceite os termos primeiro</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <Button 
+                          variant="outline" 
+                          onClick={handleWithdraw}
+                          disabled={!isInvestmentEnabled}
+                        >
+                          Solicitar Saque
+                        </Button>
+                      </span>
+                    </TooltipTrigger>
+                    {!isInvestmentEnabled && (
+                      <TooltipContent>
+                        <p>Complete seu cadastro e aceite os termos primeiro</p>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                </TooltipProvider>
+              </>
+            )}
           </div>
         </CardTitle>
       </CardHeader>
