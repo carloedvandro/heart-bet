@@ -14,7 +14,6 @@ export function OperationProgress({ value = 0, className }: OperationProgressPro
           className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent animate-shimmer"
           style={{
             backgroundSize: '200% 100%',
-            animation: 'shimmer 2s infinite linear'
           }}
         />
       </Progress>
