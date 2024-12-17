@@ -27,14 +27,16 @@ export function Header({ profile, onLogout }: HeaderProps) {
       const { data, error } = await supabase
         .from('financial_profiles')
         .select('*')
-        .eq('id', session?.user?.id)
-        .single();
+        .eq('id', session?.user?.id);
 
-      if (error) {
+      // If there's an error that's not just "no rows returned"
+      if (error && !error.message.includes('no rows')) {
         console.error('Error fetching financial profile:', error);
         return null;
       }
-      return data;
+      
+      // Return the first profile if exists, otherwise null
+      return data?.[0] || null;
     },
     enabled: !!session?.user?.id,
   });
