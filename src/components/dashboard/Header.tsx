@@ -47,7 +47,7 @@ export function Header({ profile, onLogout }: HeaderProps) {
   };
 
   return (
-    <div className="relative z-50 bg-white/70 backdrop-blur-md rounded-lg p-4 shadow-lg mb-6 border border-white/20">
+    <div className="relative z-50 opacity-85 bg-white/70 backdrop-blur-md rounded-lg p-4 shadow-lg mb-6 border border-white/20">
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-3">

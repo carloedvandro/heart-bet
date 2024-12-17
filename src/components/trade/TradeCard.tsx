@@ -94,7 +94,7 @@ export function TradeCard() {
   };
 
   return (
-    <Card className="bg-white/90 backdrop-blur">
+    <Card className="opacity-85 bg-white/90 backdrop-blur">
       <CardHeader>
         <TradeCardHeader 
           financialProfile={financialProfile}
