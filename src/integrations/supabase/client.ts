@@ -8,6 +8,8 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase URL or Key');
 }
 
+const storageKey = 'sb-' + supabaseUrl.split('//')[1] + '-auth-token';
+
 const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
   const MAX_RETRIES = 3;
   let attempt = 0;
@@ -15,7 +17,8 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
   while (attempt < MAX_RETRIES) {
     try {
       // Get the current session
-      const session = JSON.parse(localStorage.getItem('sb-' + supabaseUrl.split('//')[1] + '-auth-token') || '{}');
+      const sessionStr = localStorage.getItem(storageKey);
+      const session = sessionStr ? JSON.parse(sessionStr) : null;
       const accessToken = session?.access_token;
 
       const headers = new Headers(init?.headers || {});
@@ -26,21 +29,15 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       }
       
       // Set required headers if not present
-      if (!headers.has('apikey')) {
-        headers.set('apikey', supabaseKey);
-      }
-      
-      if (!headers.has('Content-Type')) {
-        headers.set('Content-Type', 'application/json');
-      }
-      
-      if (!headers.has('Accept')) {
-        headers.set('Accept', 'application/json');
-      }
+      headers.set('apikey', supabaseKey);
+      headers.set('Content-Type', 'application/json');
+      headers.set('Accept', 'application/json');
+      headers.set('Prefer', 'return=minimal'); // Add this to handle empty results better
 
       const response = await fetch(url, {
         ...init,
-        headers
+        headers,
+        credentials: 'include' // Add this to handle cookies properly
       });
 
       // Don't retry on rate limit errors
@@ -63,6 +60,12 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
           body: errorText,
           session: session // Log session info for debugging
         });
+
+        // Special handling for 406 errors (no rows found)
+        if (response.status === 406) {
+          return response; // Let the caller handle this case
+        }
+
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -71,7 +74,6 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       attempt++;
       console.error(`Fetch attempt ${attempt} failed:`, error);
       
-      // Don't retry rate limit errors
       if ((error as any).status === 429) {
         throw error;
       }
@@ -80,6 +82,7 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         throw error;
       }
       
+      // Exponential backoff with max of 5 seconds
       await new Promise(resolve => 
         setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt - 1), 5000))
       );
@@ -96,14 +99,48 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     detectSessionInUrl: true,
     flowType: 'pkce',
     storage: localStorage,
-    storageKey: 'sb-' + supabaseUrl.split('//')[1] + '-auth-token'
+    storageKey
   },
   global: {
     fetch: customFetch
   }
 });
 
-// Log auth state changes for debugging
+// Enhanced auth state change logging
 supabase.auth.onAuthStateChange((event, session) => {
-  console.log('Auth state changed:', { event, session });
+  console.log('Auth state changed:', { 
+    event, 
+    session,
+    timestamp: new Date().toISOString(),
+    hasAccessToken: !!session?.access_token
+  });
+
+  // Automatically create profile if it doesn't exist on sign in
+  if (event === 'SIGNED_IN' && session?.user) {
+    supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        if (!data && !error) {
+          // Profile doesn't exist, create it
+          supabase
+            .from('profiles')
+            .insert([
+              {
+                id: session.user.id,
+                email: session.user.email,
+                balance: 0,
+                is_admin: false
+              }
+            ])
+            .then(({ error: insertError }) => {
+              if (insertError) {
+                console.error('Error creating profile:', insertError);
+              }
+            });
+        }
+      });
+  }
 });
