@@ -40,14 +40,34 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
 
     try {
       setLoading(true);
+      
+      // First check if CPF already exists
+      const { data: existingProfile } = await supabase
+        .from('financial_profiles')
+        .select('id')
+        .eq('cpf', formData.cpf)
+        .single();
+
+      if (existingProfile) {
+        toast.error("Este CPF já está cadastrado no sistema");
+        return;
+      }
+
       const { error } = await supabase
         .from('financial_profiles')
         .insert({
-          id: session.user.id,  // This is the key change - explicitly setting the id
+          id: session.user.id,
           ...formData
         });
 
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505' && error.message?.includes('financial_profiles_cpf_key')) {
+          toast.error("Este CPF já está cadastrado no sistema");
+        } else {
+          throw error;
+        }
+        return;
+      }
 
       toast.success("Perfil financeiro cadastrado com sucesso!");
       onOpenChange(false);
