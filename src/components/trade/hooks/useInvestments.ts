@@ -14,12 +14,12 @@ export function useInvestments() {
         return [];
       }
 
-      // Fetch investments with their total earnings
+      // Fetch investments with their total earnings using sum aggregation
       const { data, error } = await supabase
         .from('trade_investments')
         .select(`
           *,
-          trade_earnings(amount)
+          trade_earnings!inner(amount)
         `)
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
@@ -31,9 +31,9 @@ export function useInvestments() {
       
       return data;
     },
-    staleTime: 1000 * 60 * 5, // Cache por 5 minutos
-    refetchInterval: 1000 * 60 * 5, // Atualiza a cada 5 minutos
-    enabled: !!session?.user?.id, // Só executa a query se houver um usuário logado
+    staleTime: 1000 * 60, // Cache por 1 minuto
+    refetchInterval: 1000 * 60, // Atualiza a cada 1 minuto
+    enabled: !!session?.user?.id,
   });
 
   const handleCancelInvestment = async (investmentId: string) => {
@@ -81,14 +81,18 @@ export function useInvestments() {
   const totalInvested = investments?.reduce((sum, inv) => 
     inv.status === 'active' ? sum + Number(inv.amount) : sum, 0) || 0;
     
-  // Calculate total earnings by summing up all earnings from trade_earnings
+  // Calculate total earnings by summing up all earnings
   const totalEarnings = investments?.reduce((sum, inv) => {
     // Log individual investment earnings for debugging
     console.log(`Investment ${inv.id} earnings:`, inv.trade_earnings);
     
-    const investmentEarnings = inv.trade_earnings?.reduce((earningSum: number, earning: any) => 
-      earningSum + Number(earning.amount), 0) || 0;
+    const investmentEarnings = inv.trade_earnings?.reduce((earningSum: number, earning: any) => {
+      const earningAmount = Number(earning.amount) || 0;
+      console.log(`Adding earning amount: ${earningAmount}`);
+      return earningSum + earningAmount;
+    }, 0) || 0;
     
+    console.log(`Total earnings for investment ${inv.id}: ${investmentEarnings}`);
     return sum + investmentEarnings;
   }, 0) || 0;
 
