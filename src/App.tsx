@@ -16,29 +16,36 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
       retry: 1,
+      refetchOnWindowFocus: false,
     },
   },
 });
 
+const AppContent = () => {
+  return (
+    <SessionContextProvider supabaseClient={supabase}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="/login" element={<Login />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </SessionContextProvider>
+  );
+};
+
 const App = () => {
   return (
-    <QueryClientProvider client={queryClient}>
-      <StrictMode>
-        <SessionContextProvider supabaseClient={supabase}>
-          <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <Routes>
-                <Route path="/" element={<Navigate to="/login" replace />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-              </Routes>
-            </BrowserRouter>
-          </TooltipProvider>
-        </SessionContextProvider>
-      </StrictMode>
-    </QueryClientProvider>
+    <StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <AppContent />
+      </QueryClientProvider>
+    </StrictMode>
   );
 };
 
