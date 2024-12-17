@@ -75,6 +75,7 @@ const InvestmentCard = memo(({
                 <CancellationTimer 
                   createdAt={investment.created_at}
                   onTimeExpired={handleTimeExpired}
+                  isActive={investment.status === 'active'} // Pass the active status
                 />
               </div>
             ) : investment.status === 'cancelled' && (

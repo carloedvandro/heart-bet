@@ -4,13 +4,19 @@ import { useEffect, useState } from "react";
 interface CancellationTimerProps {
   createdAt: string;
   onTimeExpired: () => void;
+  isActive: boolean; // New prop to control timer state
 }
 
-export function CancellationTimer({ createdAt, onTimeExpired }: CancellationTimerProps) {
+export function CancellationTimer({ createdAt, onTimeExpired, isActive }: CancellationTimerProps) {
   const [timeLeft, setTimeLeft] = useState<{ minutes: number; seconds: number }>({ minutes: 0, seconds: 0 });
   const CANCELLATION_WINDOW = 30; // 30 minutos
 
   useEffect(() => {
+    // If not active, don't start the timer
+    if (!isActive) {
+      return;
+    }
+
     const calculateTimeLeft = () => {
       const now = new Date();
       const created = new Date(createdAt);
@@ -35,9 +41,9 @@ export function CancellationTimer({ createdAt, onTimeExpired }: CancellationTime
     const interval = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(interval);
-  }, [createdAt, onTimeExpired]);
+  }, [createdAt, onTimeExpired, isActive]);
 
-  if (timeLeft.minutes < 0) return null;
+  if (timeLeft.minutes < 0 || !isActive) return null;
 
   return (
     <div className="text-sm text-muted-foreground mt-2">
