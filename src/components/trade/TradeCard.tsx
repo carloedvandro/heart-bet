@@ -1,5 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { useState } from "react";
 import { FinancialProfileDialog } from "./FinancialProfileDialog";
 import { InvestmentTermsDialog } from "./InvestmentTermsDialog";
@@ -11,8 +10,8 @@ import { toast } from "sonner";
 import { InvestmentStats } from "./InvestmentStats";
 import { ActiveInvestments } from "./ActiveInvestments";
 import { useInvestments } from "./hooks/useInvestments";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { InvestmentRulesDialog } from "./InvestmentRulesDialog";
+import { TradeCardHeader } from "./trade-card/TradeCardHeader";
 
 export function TradeCard() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
@@ -50,7 +49,6 @@ export function TradeCard() {
 
   const handleStartInvestment = () => {
     if (!financialProfile) {
-      toast.info("Complete seu cadastro financeiro primeiro");
       setShowProfileDialog(true);
       return;
     }
@@ -71,6 +69,12 @@ export function TradeCard() {
       return;
     }
 
+    if (!financialProfile.terms_accepted) {
+      toast.error("Aceite os termos do investimento primeiro");
+      setShowTermsDialog(true);
+      return;
+    }
+
     const today = new Date();
     if (today.getDay() !== 5) {
       toast.error("Saques só podem ser solicitados às sextas-feiras");
@@ -80,7 +84,7 @@ export function TradeCard() {
     setShowWithdrawDialog(true);
   };
 
-  const handleCancelInvestmentWithState = async (id: string, createdAt: string) => {
+  const handleCancelInvestmentWithState = async (id: string) => {
     setProcessingCancellation(id);
     try {
       await handleCancelInvestment(id);
@@ -89,98 +93,15 @@ export function TradeCard() {
     }
   };
 
-  const isInvestmentEnabled = financialProfile && financialProfile.terms_accepted;
-
   return (
     <Card className="bg-white/90 backdrop-blur">
       <CardHeader>
-        <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <span>Investimento Trade</span>
-          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-            {!financialProfile ? (
-              <div className="flex flex-col gap-2 w-full sm:w-auto">
-                <Button 
-                  onClick={() => setShowProfileDialog(true)} 
-                  variant="default"
-                  className="w-full sm:w-auto"
-                >
-                  Completar Cadastro
-                </Button>
-                <p className="text-sm text-muted-foreground text-center sm:text-left">
-                  Para investir no mercado trade, complete seu cadastro financeiro
-                </p>
-              </div>
-            ) : !financialProfile.terms_accepted ? (
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <Button 
-                  onClick={() => setShowTermsDialog(true)} 
-                  variant="default"
-                  className="w-full sm:w-auto"
-                >
-                  Aceitar Termos
-                </Button>
-                <Button
-                  onClick={() => setShowRulesDialog(true)}
-                  variant="outline"
-                  className="w-full sm:w-auto"
-                >
-                  Ler Regras
-                </Button>
-              </div>
-            ) : (
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="w-full sm:w-auto">
-                        <Button 
-                          onClick={handleStartInvestment}
-                          disabled={!isInvestmentEnabled}
-                          className="w-full"
-                        >
-                          Novo Investimento
-                        </Button>
-                      </span>
-                    </TooltipTrigger>
-                    {!isInvestmentEnabled && (
-                      <TooltipContent>
-                        <p>Complete seu cadastro e aceite os termos primeiro</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="w-full sm:w-auto">
-                        <Button 
-                          variant="outline" 
-                          onClick={handleWithdraw}
-                          disabled={!isInvestmentEnabled}
-                          className="w-full"
-                        >
-                          Solicitar Saque
-                        </Button>
-                      </span>
-                    </TooltipTrigger>
-                    {!isInvestmentEnabled && (
-                      <TooltipContent>
-                        <p>Complete seu cadastro e aceite os termos primeiro</p>
-                      </TooltipContent>
-                    )}
-                  </Tooltip>
-                </TooltipProvider>
-                <Button
-                  onClick={() => setShowRulesDialog(true)}
-                  variant="outline"
-                  className="w-full sm:w-auto"
-                >
-                  Ler Regras
-                </Button>
-              </div>
-            )}
-          </div>
-        </CardTitle>
+        <TradeCardHeader 
+          financialProfile={financialProfile}
+          onStartInvestment={handleStartInvestment}
+          onWithdraw={handleWithdraw}
+          onShowRules={() => setShowRulesDialog(true)}
+        />
       </CardHeader>
       <CardContent className="space-y-6">
         <InvestmentStats 
