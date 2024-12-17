@@ -44,9 +44,13 @@ export function TradeOperationTimer({
         return;
       }
 
+      const now = new Date();
+      const zonedNow = toZonedTime(now, timeZone);
+      console.log('Current time (SP):', formatInTimeZone(zonedNow, timeZone, 'yyyy-MM-dd HH:mm:ss'));
+
       if (operations && operations.length > 0) {
-        const lastOpTime = new Date(operations[0].operated_at);
-        console.log('Raw last operation time:', lastOpTime.toISOString());
+        const lastOpTime = toZonedTime(new Date(operations[0].operated_at), timeZone);
+        console.log('Last operation time (SP):', formatInTimeZone(lastOpTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
         setLastOperationTime(lastOpTime);
       } else {
         const { data: investment, error: investmentError } = await supabase
@@ -61,8 +65,8 @@ export function TradeOperationTimer({
         }
 
         if (investment) {
-          const creationTime = new Date(investment.created_at);
-          console.log('Raw investment creation time:', creationTime.toISOString());
+          const creationTime = toZonedTime(new Date(investment.created_at), timeZone);
+          console.log('Investment creation time (SP):', formatInTimeZone(creationTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
           setLastOperationTime(creationTime);
         }
       }
@@ -82,12 +86,14 @@ export function TradeOperationTimer({
   useEffect(() => {
     if (operationCompleted) {
       const now = new Date();
-      console.log('Operation completed, setting new last operation time:', now.toISOString());
-      setLastOperationTime(now);
+      const zonedNow = toZonedTime(now, timeZone);
+      console.log('Operation completed, setting new last operation time (SP):', 
+        formatInTimeZone(zonedNow, timeZone, 'yyyy-MM-dd HH:mm:ss'));
+      setLastOperationTime(zonedNow);
       setTimeLeft(86400);
       setCanOperate(false);
     }
-  }, [operationCompleted]);
+  }, [operationCompleted, timeZone]);
 
   useEffect(() => {
     if (!isEnabled || !lastOperationTime || isLoading) {
@@ -97,10 +103,11 @@ export function TradeOperationTimer({
     }
 
     const calculateTimeLeft = () => {
-      const now = new Date();
+      const now = toZonedTime(new Date(), timeZone);
+      console.log('Current time (SP):', formatInTimeZone(now, timeZone, 'yyyy-MM-dd HH:mm:ss'));
+      console.log('Last operation time (SP):', formatInTimeZone(lastOperationTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
+      
       const secondsPassed = differenceInSeconds(now, lastOperationTime);
-      console.log('Current time:', now.toISOString());
-      console.log('Last operation time:', lastOperationTime.toISOString());
       console.log('Seconds passed:', secondsPassed);
       
       const remaining = Math.max(86400 - secondsPassed, 0);
@@ -114,7 +121,7 @@ export function TradeOperationTimer({
     const interval = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(interval);
-  }, [isEnabled, lastOperationTime, isLoading]);
+  }, [isEnabled, lastOperationTime, timeZone, isLoading]);
 
   if (!isEnabled) return null;
 
