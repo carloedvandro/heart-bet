@@ -61,8 +61,8 @@ export const DashboardContent = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 relative z-10">
+    <div className="max-w-7xl mx-auto space-y-6 relative z-10 pb-24">
       {renderContent()}
     </div>
   );
-}
+};
