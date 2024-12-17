@@ -20,7 +20,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
     
     try {
       const now = new Date();
-      const nextOperation = new Date(now.getTime() + 10 * 1000);
+      const nextOperation = new Date(now.getTime() + 10 * 1000); // 10 seconds for next operation
 
       console.log('Registering operation at:', now.toISOString());
       console.log('Next operation scheduled for:', nextOperation.toISOString());
@@ -41,7 +41,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
       console.log('Operation registered successfully');
       console.log('Calling calculate_daily_earnings function...');
       
-      // Adicionar um pequeno delay para garantir que a operação seja registrada
+      // Add a small delay to ensure the operation is registered
       await new Promise(resolve => setTimeout(resolve, 2000));
       
       const { data: earningsData, error: earningsError } = await supabase
@@ -54,7 +54,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
 
       console.log('calculate_daily_earnings response:', earningsData);
 
-      // Adicionar um pequeno delay para garantir que os rendimentos sejam calculados
+      // Add a small delay to ensure the earnings are calculated
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       console.log('Fetching updated investment data...');
@@ -124,7 +124,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
 
       setTimeout(() => {
         setOperationCompleted(false);
-      }, 10000);
+      }, 10000); // Reset after 10 seconds
 
     } catch (error) {
       console.error('Error updating final balance:', error);

@@ -26,12 +26,16 @@ export function TradeOperationMessages({
   const [messages, setMessages] = useState<string[]>([]);
 
   useEffect(() => {
+    console.log('TradeOperationMessages - isOperating:', isOperating);
+    
     if (!isOperating) {
+      console.log('TradeOperationMessages - Not operating, resetting state');
       setMessages([]);
       setCurrentMessageIndex(0);
       return;
     }
 
+    console.log('TradeOperationMessages - Starting message interval');
     const messageInterval = setInterval(() => {
       if (currentMessageIndex < OPERATION_MESSAGES.length) {
         console.log("Adding message:", OPERATION_MESSAGES[currentMessageIndex]);
@@ -42,12 +46,18 @@ export function TradeOperationMessages({
         clearInterval(messageInterval);
         onOperationComplete();
       }
-    }, 1000); // Mostrar uma nova mensagem a cada segundo
+    }, 1000); // Show a new message every second
 
-    return () => clearInterval(messageInterval);
+    return () => {
+      console.log('TradeOperationMessages - Cleaning up interval');
+      clearInterval(messageInterval);
+    };
   }, [isOperating, currentMessageIndex, onOperationComplete]);
 
-  if (!isOperating) return null;
+  if (!isOperating) {
+    console.log('TradeOperationMessages - Not operating, returning null');
+    return null;
+  }
 
   return (
     <div className="space-y-2 p-4 bg-black/5 rounded-lg">
