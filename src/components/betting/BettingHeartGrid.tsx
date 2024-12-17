@@ -107,7 +107,7 @@ const BettingHeartGrid = memo(({
         betType={betType}
       />
 
-      <div className="grid grid-cols-5 gap-4 bg-white/90 p-4 rounded-lg">
+      <div className="grid grid-cols-5 gap-4 bg-white/0 p-4 rounded-lg">
         {shuffledHearts.map(({ color }) => (
           <HeartButton
             key={color}
