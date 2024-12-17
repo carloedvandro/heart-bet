@@ -13,7 +13,7 @@ interface HeaderProps {
 export function Header({ profile, onLogout }: HeaderProps) {
   const session = useSession();
 
-  const displayName = profile?.full_name || session?.user?.email || 'Usuário';
+  const displayName = session?.user?.email || 'Usuário';
 
   return (
     <div className="relative z-50 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg mb-6">
