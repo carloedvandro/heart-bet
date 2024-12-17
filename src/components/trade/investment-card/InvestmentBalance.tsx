@@ -24,7 +24,8 @@ export function InvestmentBalance({
       const { error } = await supabase
         .from('trade_investments')
         .delete()
-        .eq('id', investmentId);
+        .eq('id', investmentId)
+        .eq('status', 'cancelled'); // Only allow deletion of cancelled investments
 
       if (error) throw error;
       
