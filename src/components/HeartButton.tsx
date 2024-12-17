@@ -53,7 +53,7 @@ const HeartButton = ({ color, selected, isMain, onClick, disabled }: HeartButton
           "relative z-10",
           "transition-all duration-300",
           "fill-current",
-          "stroke-black stroke-1 group-hover:scale-105",
+          "dark:stroke-white/70 stroke-black stroke-1 group-hover:scale-105",
           selected ? "scale-110" : "",
           isMain && "animate-pulse",
           isMobile ? "w-10 h-10" : "w-16 h-16"
