@@ -14,12 +14,13 @@ export function useInvestments() {
         return [];
       }
 
-      // Fetch investments with their total earnings using sum aggregation
+      // Fetch investments with their operations and earnings
       const { data, error } = await supabase
         .from('trade_investments')
         .select(`
           *,
-          trade_earnings!inner(amount)
+          trade_operations(*),
+          trade_earnings(*)
         `)
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
@@ -31,8 +32,8 @@ export function useInvestments() {
       
       return data;
     },
-    staleTime: 1000 * 60, // Cache por 1 minuto
-    refetchInterval: 1000 * 60, // Atualiza a cada 1 minuto
+    staleTime: 1000 * 30, // Cache por 30 segundos
+    refetchInterval: 1000 * 30, // Atualiza a cada 30 segundos
     enabled: !!session?.user?.id,
   });
 
@@ -81,19 +82,24 @@ export function useInvestments() {
   const totalInvested = investments?.reduce((sum, inv) => 
     inv.status === 'active' ? sum + Number(inv.amount) : sum, 0) || 0;
     
-  // Calculate total earnings by summing up all earnings
+  // Calculate total earnings based on operations and daily rate
   const totalEarnings = investments?.reduce((sum, inv) => {
-    // Log individual investment earnings for debugging
-    console.log(`Investment ${inv.id} earnings:`, inv.trade_earnings);
-    
-    const investmentEarnings = inv.trade_earnings?.reduce((earningSum: number, earning: any) => {
-      const earningAmount = Number(earning.amount) || 0;
-      console.log(`Adding earning amount: ${earningAmount}`);
-      return earningSum + earningAmount;
-    }, 0) || 0;
-    
-    console.log(`Total earnings for investment ${inv.id}: ${investmentEarnings}`);
-    return sum + investmentEarnings;
+    if (inv.status !== 'active') return sum;
+
+    // Calculate earnings based on number of operations and daily rate
+    const operationsCount = inv.trade_operations?.length || 0;
+    const dailyEarning = Number(inv.amount) * (Number(inv.daily_rate) / 100);
+    const calculatedEarnings = operationsCount * dailyEarning;
+
+    console.log(`Investment ${inv.id}:`, {
+      amount: inv.amount,
+      dailyRate: inv.daily_rate,
+      operationsCount,
+      dailyEarning,
+      calculatedEarnings
+    });
+
+    return sum + calculatedEarnings;
   }, 0) || 0;
 
   // Log final calculations for debugging
