@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
 import { FinancialProfileForm, FormData } from "./FinancialProfileForm";
-import { validateCPF } from "@/utils/cpfUtils";
+import { formatCPF, validateCPFFormat } from "@/utils/cpfUtils";
 
 interface FinancialProfileDialogProps {
   open: boolean;
@@ -37,25 +37,23 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
       return;
     }
 
+    if (!validateCPFFormat(formData.cpf)) {
+      toast.error("CPF inválido - deve conter 11 dígitos");
+      return;
+    }
+
     try {
       setLoading(true);
       
-      // Check if CPF already exists
-      const cpfExists = await validateCPF(supabase, formData.cpf);
-      if (cpfExists) {
-        toast.error("Este CPF já está cadastrado no sistema");
-        return;
-      }
-
       const { error: insertError } = await supabase
         .from('financial_profiles')
         .insert({
           id: session.user.id,
-          ...formData
+          ...formData,
+          cpf: formatCPF(formData.cpf) // Ensure CPF is formatted consistently
         });
 
       if (insertError) {
-        // Double-check for race condition where CPF was inserted between our check and insert
         if (insertError.code === '23505' && insertError.message?.includes('financial_profiles_cpf_key')) {
           toast.error("Este CPF já está cadastrado no sistema");
         } else {
