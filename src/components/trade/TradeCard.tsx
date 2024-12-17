@@ -12,14 +12,14 @@ import { InvestmentStats } from "./InvestmentStats";
 import { ActiveInvestments } from "./ActiveInvestments";
 import { useInvestments } from "./hooks/useInvestments";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import ListenRulesButton from "../audio/ListenRulesButton";
+import { InvestmentRulesDialog } from "./InvestmentRulesDialog";
 
 export function TradeCard() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showInvestDialog, setShowInvestDialog] = useState(false);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
-  const [showRules, setShowRules] = useState(false);
+  const [showRulesDialog, setShowRulesDialog] = useState(false);
   const [processingCancellation, setProcessingCancellation] = useState<string | null>(null);
 
   const { data: financialProfile, isLoading: isLoadingProfile } = useQuery({
@@ -119,11 +119,13 @@ export function TradeCard() {
                 >
                   Aceitar Termos
                 </Button>
-                <ListenRulesButton
-                  audioUrl="/lovable-uploads/cc8ca6b5-f893-4c37-ba56-0296ff945bf5.png"
-                  isOpen={showRules}
-                  onOpenChange={setShowRules}
-                />
+                <Button
+                  onClick={() => setShowRulesDialog(true)}
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                >
+                  Ler Regras
+                </Button>
               </div>
             ) : (
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -168,11 +170,13 @@ export function TradeCard() {
                     )}
                   </Tooltip>
                 </TooltipProvider>
-                <ListenRulesButton
-                  audioUrl="/lovable-uploads/cc8ca6b5-f893-4c37-ba56-0296ff945bf5.png"
-                  isOpen={showRules}
-                  onOpenChange={setShowRules}
-                />
+                <Button
+                  onClick={() => setShowRulesDialog(true)}
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                >
+                  Ler Regras
+                </Button>
               </div>
             )}
           </div>
@@ -210,6 +214,10 @@ export function TradeCard() {
       <WithdrawDialog 
         open={showWithdrawDialog} 
         onOpenChange={setShowWithdrawDialog} 
+      />
+      <InvestmentRulesDialog
+        open={showRulesDialog}
+        onOpenChange={setShowRulesDialog}
       />
     </Card>
   );
