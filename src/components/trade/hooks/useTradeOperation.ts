@@ -145,8 +145,6 @@ export const useTradeOperation = (
 
   // Setup and cleanup effect
   useEffect(() => {
-    isMountedRef.current = true;
-
     // Initial setup
     if (!isOperating && !operationCompleted) {
       fetchNextOperationTime();
