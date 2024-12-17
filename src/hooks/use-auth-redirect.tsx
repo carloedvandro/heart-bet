@@ -17,6 +17,36 @@ export function useAuthRedirect() {
         }
         
         if (session) {
+          // Check if profile exists
+          const { data: profile, error: profileError } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .maybeSingle();
+
+          if (profileError) {
+            console.error("Profile error:", profileError);
+            // If profile doesn't exist, create it
+            if (profileError.message?.includes('JSON object requested, multiple (or no) rows returned')) {
+              const { error: insertError } = await supabase
+                .from('profiles')
+                .insert([
+                  {
+                    id: session.user.id,
+                    email: session.user.email,
+                    balance: 0,
+                    is_admin: false
+                  }
+                ]);
+
+              if (insertError) {
+                console.error("Error creating profile:", insertError);
+                toast.error("Erro ao criar perfil");
+                return;
+              }
+            }
+          }
+
           console.log("User already logged in, redirecting to dashboard");
           navigate("/dashboard");
         }
@@ -30,7 +60,7 @@ export function useAuthRedirect() {
       
       if (event === 'SIGNED_IN') {
         console.log("User signed in successfully");
-        navigate("/dashboard");
+        checkUser();
       } else if (event === 'SIGNED_OUT') {
         console.log("User signed out");
         toast.info("Você foi desconectado");
