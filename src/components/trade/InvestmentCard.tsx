@@ -20,12 +20,14 @@ interface InvestmentCardProps {
   investment: Investment;
   onCancelInvestment: (id: string, createdAt: string) => void;
   isProcessing: boolean;
+  onDelete?: () => void;
 }
 
 const InvestmentCard = memo(({ 
   investment, 
   onCancelInvestment, 
-  isProcessing
+  isProcessing,
+  onDelete
 }: InvestmentCardProps) => {
   const [canCancel, setCanCancel] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number>(0);
@@ -109,6 +111,7 @@ const InvestmentCard = memo(({
               currentBalance={investment.current_balance}
               status={investment.status}
               investmentId={investment.id}
+              onDelete={onDelete}
             />
 
             <InvestmentOperations 
