@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { differenceInHours, differenceInMinutes, differenceInSeconds } from "date-fns";
+import { differenceInMinutes, differenceInSeconds } from "date-fns";
 
 interface TradeOperationTimerProps {
   investmentCreatedAt: string;
@@ -13,9 +13,8 @@ export function TradeOperationTimer({
   onOperationStart,
   isEnabled 
 }: TradeOperationTimerProps) {
-  const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>({ 
-    hours: 24, 
-    minutes: 0, 
+  const [timeLeft, setTimeLeft] = useState<{ minutes: number; seconds: number }>({ 
+    minutes: 1, 
     seconds: 0 
   });
   const [canOperate, setCanOperate] = useState(false);
@@ -26,19 +25,17 @@ export function TradeOperationTimer({
     const calculateTimeLeft = () => {
       const now = new Date();
       const created = new Date(investmentCreatedAt);
-      const targetTime = new Date(created.getTime() + 24 * 60 * 60 * 1000); // 24 hours after creation
+      const targetTime = new Date(created.getTime() + 1 * 60 * 1000); // 1 minute after creation
 
       if (now >= targetTime) {
         setCanOperate(true);
         return;
       }
 
-      const hoursLeft = differenceInHours(targetTime, now);
-      const minutesLeft = differenceInMinutes(targetTime, now) % 60;
+      const minutesLeft = differenceInMinutes(targetTime, now);
       const secondsLeft = differenceInSeconds(targetTime, now) % 60;
 
       setTimeLeft({
-        hours: hoursLeft,
         minutes: minutesLeft,
         seconds: secondsLeft
       });
@@ -56,7 +53,7 @@ export function TradeOperationTimer({
     <div className="space-y-4">
       {!canOperate ? (
         <div className="text-sm text-muted-foreground">
-          Tempo restante para operar: {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s
+          Tempo restante para operar: {timeLeft.minutes}m {timeLeft.seconds}s
         </div>
       ) : (
         <Button 
