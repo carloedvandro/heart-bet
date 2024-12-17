@@ -17,7 +17,8 @@ export function TradeOperationTimer({
   isEnabled,
   operationCompleted
 }: TradeOperationTimerProps) {
-  const [timeLeft, setTimeLeft] = useState<number>(120); // 120 segundos
+  // Change timer to 24 hours (86400 seconds)
+  const [timeLeft, setTimeLeft] = useState<number>(86400); 
   const [canOperate, setCanOperate] = useState(false);
   const timeZone = 'America/Sao_Paulo';
   const [lastOperationTime, setLastOperationTime] = useState<Date | null>(null);
@@ -79,14 +80,14 @@ export function TradeOperationTimer({
     if (operationCompleted) {
       const now = toZonedTime(new Date(), timeZone);
       setLastOperationTime(now);
-      setTimeLeft(120);
+      setTimeLeft(86400);
       setCanOperate(false);
     }
   }, [operationCompleted, timeZone]);
 
   useEffect(() => {
     if (!isEnabled || !lastOperationTime || isLoading) {
-      setTimeLeft(120);
+      setTimeLeft(86400);
       setCanOperate(false);
       return;
     }
@@ -94,9 +95,9 @@ export function TradeOperationTimer({
     const calculateTimeLeft = () => {
       const now = toZonedTime(new Date(), timeZone);
       const secondsPassed = differenceInSeconds(now, lastOperationTime);
-      const remaining = Math.max(120 - secondsPassed, 0);
+      const remaining = Math.max(86400 - secondsPassed, 0);
 
-      if (secondsPassed >= 120) {
+      if (secondsPassed >= 86400) {
         setCanOperate(true);
         setTimeLeft(0);
       } else {
@@ -113,6 +114,14 @@ export function TradeOperationTimer({
 
   if (!isEnabled) return null;
 
+  // Format time to show hours, minutes, and seconds
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+    return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="space-y-4">
       {isLoading ? (
@@ -121,7 +130,7 @@ export function TradeOperationTimer({
         </div>
       ) : !canOperate ? (
         <div className="text-sm text-muted-foreground">
-          Tempo restante para operar: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
+          Tempo restante para operar: {formatTime(timeLeft)}
         </div>
       ) : (
         <Button 
