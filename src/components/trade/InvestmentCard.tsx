@@ -59,13 +59,28 @@ const InvestmentCard = memo(({
       if (operationError) throw operationError;
 
       // Chamar a função de cálculo de rendimentos
-      const { error: earningsError } = await supabase
+      const { data, error: earningsError } = await supabase
         .rpc('calculate_daily_earnings');
 
       if (earningsError) {
         console.error('Error calculating earnings:', earningsError);
         toast.error('Erro ao calcular rendimentos');
         throw earningsError;
+      }
+
+      // Buscar o investimento atualizado
+      const { data: updatedInvestment, error: fetchError } = await supabase
+        .from('trade_investments')
+        .select('current_balance')
+        .eq('id', investment.id)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      if (updatedInvestment) {
+        setCurrentBalance(updatedInvestment.current_balance);
+        const earned = updatedInvestment.current_balance - investment.amount;
+        toast.success(`Operação concluída! Rendimento: R$ ${earned.toFixed(2)}`);
       }
 
     } catch (error) {
@@ -90,7 +105,8 @@ const InvestmentCard = memo(({
       
       if (data) {
         setCurrentBalance(data.current_balance);
-        toast.success('Operação concluída com sucesso! Rendimentos calculados.');
+        const earned = data.current_balance - investment.amount;
+        toast.success(`Rendimentos calculados: R$ ${earned.toFixed(2)}`);
       }
 
       // Resetar operationCompleted após 1 minuto
