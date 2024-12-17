@@ -9,10 +9,14 @@ export const useTradeOperation = (
   dailyRate: number,
   initialBalance: number
 ) => {
+  // Refs for managing component lifecycle and retries
   const isMountedRef = useRef(true);
   const retryCountRef = useRef(0);
+  const timeoutRef = useRef<NodeJS.Timeout>();
+  const intervalRef = useRef<NodeJS.Timeout>();
   const MAX_RETRIES = 3;
 
+  // State declarations
   const [isOperating, setIsOperating] = useState(false);
   const [operationCompleted, setOperationCompleted] = useState(false);
   const [currentBalance, setCurrentBalance] = useState(initialBalance);
@@ -43,21 +47,19 @@ export const useTradeOperation = (
     } catch (error) {
       console.error('Error in fetchNextOperationTime:', error);
       
-      if (retryCountRef.current < MAX_RETRIES) {
+      if (retryCountRef.current < MAX_RETRIES && isMountedRef.current) {
         retryCountRef.current += 1;
         const delay = Math.min(1000 * Math.pow(2, retryCountRef.current), 5000);
         
-        setTimeout(() => {
+        timeoutRef.current = setTimeout(() => {
           if (isMountedRef.current) {
             fetchNextOperationTime();
           }
         }, delay);
-      } else {
+      } else if (isMountedRef.current) {
         const fallbackTime = addMinutes(new Date(), 1);
-        if (isMountedRef.current) {
-          setNextOperationTime(fallbackTime);
-          toast.error('Erro ao conectar com o servidor. Usando tempo estimado.');
-        }
+        setNextOperationTime(fallbackTime);
+        toast.error('Erro ao conectar com o servidor. Usando tempo estimado.');
       }
     }
   }, [investmentId, isOperating, operationCompleted]);
@@ -126,7 +128,7 @@ export const useTradeOperation = (
     setIsOperating(false);
     setOperationCompleted(true);
     
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       if (isMountedRef.current) {
         setOperationCompleted(false);
         fetchNextOperationTime();
@@ -140,19 +142,27 @@ export const useTradeOperation = (
     if (!isOperating && !operationCompleted) {
       fetchNextOperationTime();
       
-      const interval = setInterval(() => {
+      intervalRef.current = setInterval(() => {
         if (isMountedRef.current && !isOperating && !operationCompleted) {
           fetchNextOperationTime();
         }
       }, 5000);
 
       return () => {
-        clearInterval(interval);
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current);
+        }
       };
     }
 
     return () => {
       isMountedRef.current = false;
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, [fetchNextOperationTime, isOperating, operationCompleted]);
 
