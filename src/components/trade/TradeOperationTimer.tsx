@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { differenceInSeconds } from "date-fns";
+import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
 
 interface TradeOperationTimerProps {
   investmentCreatedAt: string;
@@ -17,7 +18,11 @@ export function TradeOperationTimer({
 }: TradeOperationTimerProps) {
   const [timeLeft, setTimeLeft] = useState<number>(60);
   const [canOperate, setCanOperate] = useState(false);
-  const [lastOperationTime, setLastOperationTime] = useState<Date>(new Date(investmentCreatedAt));
+  const timeZone = 'America/Sao_Paulo';
+  const [lastOperationTime, setLastOperationTime] = useState(() => {
+    const utcDate = new Date(investmentCreatedAt);
+    return utcToZonedTime(utcDate, timeZone);
+  });
 
   useEffect(() => {
     if (!isEnabled) {
@@ -28,14 +33,15 @@ export function TradeOperationTimer({
 
     // When operation is completed, update the last operation time
     if (operationCompleted) {
-      setLastOperationTime(new Date());
+      const now = utcToZonedTime(new Date(), timeZone);
+      setLastOperationTime(now);
       setTimeLeft(60);
       setCanOperate(false);
       return;
     }
 
     const calculateTimeLeft = () => {
-      const now = new Date();
+      const now = utcToZonedTime(new Date(), timeZone);
       const secondsPassed = differenceInSeconds(now, lastOperationTime);
       const remaining = 60 - (secondsPassed % 60);
 
@@ -52,7 +58,7 @@ export function TradeOperationTimer({
     calculateTimeLeft(); // Initial calculation
 
     return () => clearInterval(interval);
-  }, [isEnabled, operationCompleted, lastOperationTime]);
+  }, [isEnabled, operationCompleted, lastOperationTime, timeZone]);
 
   if (!isEnabled) return null;
 
