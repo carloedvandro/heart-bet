@@ -17,12 +17,11 @@ export const DashboardContent = ({
   onBetPlaced,
   initialView = 'bet'
 }: DashboardContentProps) => {
-  // Renderiza apenas o componente correspondente à view atual
   const renderContent = () => {
     switch (initialView) {
       case 'bet':
         return (
-          <Card className="bg-white/90 backdrop-blur">
+          <Card className="bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60">
             <CardHeader>
               <CardTitle>Nova Aposta</CardTitle>
             </CardHeader>
@@ -37,7 +36,7 @@ export const DashboardContent = ({
       
       case 'bets':
         return (
-          <Card className="bg-white/90 backdrop-blur">
+          <Card className="bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60">
             <CardHeader>
               <CardTitle>Suas Apostas</CardTitle>
             </CardHeader>
@@ -47,10 +46,9 @@ export const DashboardContent = ({
           </Card>
         );
       
-      // Outros casos serão implementados posteriormente
       default:
         return (
-          <Card className="bg-white/90 backdrop-blur">
+          <Card className="bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60">
             <CardHeader>
               <CardTitle>Em construção</CardTitle>
             </CardHeader>
@@ -67,4 +65,4 @@ export const DashboardContent = ({
       {renderContent()}
     </div>
   );
-};
+}
