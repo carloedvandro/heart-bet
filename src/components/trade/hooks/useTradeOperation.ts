@@ -11,8 +11,10 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
 
   // Fetch next operation time from backend
   const fetchNextOperationTime = useCallback(async () => {
-    // Se já estiver em contagem regressiva, não buscar novo tempo
-    if (isCountingDown) return;
+    // Se já estiver em contagem regressiva ou operando, não buscar novo tempo
+    if (isCountingDown || isOperating) {
+      return;
+    }
 
     try {
       const { data, error } = await supabase
@@ -24,30 +26,33 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
     } catch (error) {
       console.error('Error fetching next operation time:', error);
     }
-  }, [investmentId, isCountingDown]);
+  }, [investmentId, isCountingDown, isOperating]);
 
   useEffect(() => {
     let isMounted = true;
     
-    const fetchData = async () => {
-      if (isMounted) {
-        await fetchNextOperationTime();
-      }
-    };
+    // Só configurar o intervalo se não estivermos em contagem regressiva ou operando
+    if (!isCountingDown && !isOperating) {
+      const fetchData = async () => {
+        if (isMounted) {
+          await fetchNextOperationTime();
+        }
+      };
 
-    fetchData();
-    
-    const interval = setInterval(() => {
-      if (isMounted) {
-        fetchData();
-      }
-    }, 5000);
+      fetchData();
+      
+      const interval = setInterval(() => {
+        if (isMounted && !isCountingDown && !isOperating) {
+          fetchData();
+        }
+      }, 5000);
 
-    return () => {
-      isMounted = false;
-      clearInterval(interval);
-    };
-  }, [fetchNextOperationTime]);
+      return () => {
+        isMounted = false;
+        clearInterval(interval);
+      };
+    }
+  }, [fetchNextOperationTime, isCountingDown, isOperating]);
 
   const handleOperationStart = async () => {
     if (isOperating) return;
@@ -116,13 +121,13 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
       setIsOperating(false);
       setOperationCompleted(true);
       
-      // Use a cleanup function to handle state updates after delay
       const timer = setTimeout(() => {
-        setOperationCompleted(false);
-        setIsCountingDown(false);
+        if (!isOperating) {
+          setOperationCompleted(false);
+          setIsCountingDown(false);
+        }
       }, 5000);
 
-      // Cleanup timer if component unmounts
       return () => clearTimeout(timer);
     }
   };
