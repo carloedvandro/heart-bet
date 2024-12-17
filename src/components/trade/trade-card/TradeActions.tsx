@@ -1,5 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { FinancialProfile } from "@/types/financial";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface TradeActionsProps {
   financialProfile: FinancialProfile | null;
@@ -14,15 +16,33 @@ export function TradeActions({
   onWithdraw,
   onShowRules 
 }: TradeActionsProps) {
+  const { data: profile, isLoading } = useQuery({
+    queryKey: ['financial-profile'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from('financial_profiles')
+        .select('*')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching profile:', error);
+        return null;
+      }
+
+      return data;
+    },
+    staleTime: 1000 * 30, // Cache por 30 segundos
+  });
+
   // Função para verificar se o perfil existe e está completo
   const isProfileComplete = (profile: FinancialProfile | null): boolean => {
-    // Se não houver perfil, retorna falso
     if (!profile) return false;
-    
-    // Se o perfil existe mas não tem CPF, considera incompleto
     if (!profile.cpf) return false;
 
-    // Lista de campos obrigatórios
     const requiredFields = [
       'full_name',
       'phone',
@@ -37,7 +57,6 @@ export function TradeActions({
       'birth_date'
     ];
 
-    // Verifica se todos os campos obrigatórios estão preenchidos
     return requiredFields.every(field => {
       const value = profile[field as keyof FinancialProfile];
       return value !== null && value !== undefined && value !== '';
@@ -45,15 +64,24 @@ export function TradeActions({
   };
 
   // Verificações de estado do perfil
-  const profileComplete = isProfileComplete(financialProfile);
-  const termsAccepted = Boolean(financialProfile?.terms_accepted);
+  const profileComplete = isProfileComplete(profile);
+  const termsAccepted = Boolean(profile?.terms_accepted);
 
   // Log para debug
   console.log('Profile status:', {
-    financialProfile,
+    profile,
     profileComplete,
-    termsAccepted
+    termsAccepted,
+    isLoading
   });
+
+  if (isLoading) {
+    return (
+      <div className="flex gap-2">
+        <Button disabled>Carregando...</Button>
+      </div>
+    );
+  }
 
   // Se o perfil não estiver completo, mostra botão de completar cadastro
   if (!profileComplete) {
