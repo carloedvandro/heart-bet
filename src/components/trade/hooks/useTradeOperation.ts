@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { addMinutes } from 'date-fns';
@@ -13,23 +13,23 @@ export const useTradeOperation = (
   const [operationCompleted, setOperationCompleted] = useState(false);
   const [currentBalance, setCurrentBalance] = useState(initialBalance);
   const [nextOperationTime, setNextOperationTime] = useState<Date | null>(null);
-  const [isCountingDown, setIsCountingDown] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
+  const retryCountRef = useRef(0);
+  const isMountedRef = useRef(true);
+  const fetchTimeoutRef = useRef<NodeJS.Timeout>();
   const MAX_RETRIES = 3;
-  const RETRY_DELAY = 2000; // 2 seconds
 
   const fetchNextOperationTime = useCallback(async () => {
-    if (isOperating || isCountingDown || operationCompleted) {
-      console.log('Skipping fetchNextOperationTime - operation in progress or completed');
+    if (!isMountedRef.current || isOperating || operationCompleted) {
       return;
     }
 
     try {
-      console.log('Fetching next operation time...');
       const { data, error } = await supabase
         .rpc('get_next_operation_time', { 
           p_investment_id: investmentId 
         });
+
+      if (!isMountedRef.current) return;
 
       if (error) {
         throw error;
@@ -37,42 +37,41 @@ export const useTradeOperation = (
 
       if (data) {
         const nextTime = new Date(data);
-        console.log('Next operation time received:', nextTime);
         setNextOperationTime(nextTime);
-        setRetryCount(0); // Reset retry count on success
+        retryCountRef.current = 0;
       }
     } catch (error) {
       console.error('Error fetching next operation time:', error);
       
-      if (retryCount < MAX_RETRIES) {
-        // Increment retry count and try again after delay
-        setRetryCount(prev => prev + 1);
-        setTimeout(fetchNextOperationTime, RETRY_DELAY);
+      if (retryCountRef.current < MAX_RETRIES) {
+        retryCountRef.current += 1;
+        const delay = Math.min(1000 * Math.pow(2, retryCountRef.current), 5000);
+        
+        fetchTimeoutRef.current = setTimeout(() => {
+          if (isMountedRef.current) {
+            fetchNextOperationTime();
+          }
+        }, delay);
       } else {
-        // After max retries, set a fallback next operation time
         const fallbackTime = addMinutes(new Date(), 1);
-        console.log('Using fallback operation time:', fallbackTime);
-        setNextOperationTime(fallbackTime);
-        toast.error('Erro ao conectar com o servidor. Usando tempo estimado.');
+        if (isMountedRef.current) {
+          setNextOperationTime(fallbackTime);
+          toast.error('Erro ao conectar com o servidor. Usando tempo estimado.');
+        }
       }
     }
-  }, [investmentId, isOperating, isCountingDown, operationCompleted, retryCount]);
+  }, [investmentId, isOperating, operationCompleted]);
 
   const handleOperationStart = async () => {
-    if (isOperating || isCountingDown) {
-      console.log('Operation already in progress');
+    if (!isMountedRef.current || isOperating) {
       return;
     }
 
-    console.log('Starting operation...');
     setIsOperating(true);
-    setIsCountingDown(true);
 
     try {
       const now = new Date();
       const nextOperation = addMinutes(now, 1);
-
-      console.log('Registering operation at:', now.toISOString());
       
       const { error: operationError } = await supabase
         .from('trade_operations')
@@ -82,31 +81,24 @@ export const useTradeOperation = (
           next_operation_at: nextOperation.toISOString()
         });
 
-      if (operationError) {
-        throw operationError;
-      }
+      if (operationError) throw operationError;
 
-      console.log('Operation registered successfully');
-      console.log('Calling calculate_daily_earnings function...');
-      
       const { error: earningsError } = await supabase
         .rpc('calculate_daily_earnings');
 
-      if (earningsError) {
-        throw earningsError;
-      }
+      if (earningsError) throw earningsError;
+
+      if (!isMountedRef.current) return;
 
       const { data: updatedInvestment, error: fetchError } = await supabase
         .from('trade_investments')
-        .select('current_balance, trade_earnings(amount)')
+        .select('current_balance')
         .eq('id', investmentId)
         .single();
 
-      if (fetchError) {
-        throw fetchError;
-      }
+      if (fetchError) throw fetchError;
 
-      if (updatedInvestment) {
+      if (updatedInvestment && isMountedRef.current) {
         const earned = updatedInvestment.current_balance - currentBalance;
         setCurrentBalance(updatedInvestment.current_balance);
         
@@ -115,64 +107,63 @@ export const useTradeOperation = (
         }
       }
 
-      setNextOperationTime(nextOperation);
+      if (isMountedRef.current) {
+        setNextOperationTime(nextOperation);
+      }
       
     } catch (error) {
       console.error('Operation error:', error);
       toast.error('Erro durante a operação. Tente novamente em alguns minutos.');
-      setIsOperating(false);
-      setIsCountingDown(false);
+      
+      if (isMountedRef.current) {
+        setIsOperating(false);
+      }
     }
   };
 
   const handleOperationComplete = useCallback(() => {
-    console.log('Operation completed');
+    if (!isMountedRef.current) return;
+    
     setIsOperating(false);
     setOperationCompleted(true);
     
     const timer = setTimeout(() => {
-      console.log('Resetting operation states');
-      setOperationCompleted(false);
-      setIsCountingDown(false);
-      fetchNextOperationTime();
+      if (isMountedRef.current) {
+        setOperationCompleted(false);
+        fetchNextOperationTime();
+      }
     }, 5000);
 
-    return () => {
-      console.log('Cleaning up operation complete timer');
-      clearTimeout(timer);
-    };
+    return () => clearTimeout(timer);
   }, [fetchNextOperationTime]);
 
   useEffect(() => {
-    let isMounted = true;
-    let interval: NodeJS.Timeout | null = null;
+    isMountedRef.current = true;
 
-    const startFetching = async () => {
-      if (!isOperating && !isCountingDown && !operationCompleted) {
-        console.log('Initial fetch of operation time');
-        await fetchNextOperationTime();
-
-        if (isMounted) {
-          interval = setInterval(async () => {
-            if (!isOperating && !isCountingDown && !operationCompleted) {
-              console.log('Periodic fetch of operation time');
-              await fetchNextOperationTime();
-            }
-          }, 5000);
+    if (!isOperating && !operationCompleted) {
+      fetchNextOperationTime();
+      
+      const interval = setInterval(() => {
+        if (isMountedRef.current && !isOperating && !operationCompleted) {
+          fetchNextOperationTime();
         }
-      }
-    };
+      }, 5000);
 
-    startFetching();
+      return () => {
+        clearInterval(interval);
+        if (fetchTimeoutRef.current) {
+          clearTimeout(fetchTimeoutRef.current);
+        }
+      };
+    }
 
     return () => {
-      console.log('Cleaning up fetch interval');
-      isMounted = false;
-      if (interval) {
-        clearInterval(interval);
+      isMountedRef.current = false;
+      if (fetchTimeoutRef.current) {
+        clearTimeout(fetchTimeoutRef.current);
       }
     };
-  }, [fetchNextOperationTime, isOperating, isCountingDown, operationCompleted]);
+  }, [fetchNextOperationTime, isOperating, operationCompleted]);
 
   return {
     isOperating,
