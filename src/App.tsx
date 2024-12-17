@@ -10,12 +10,20 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 
-const queryClient = new QueryClient();
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60 * 5, // 5 minutes
+      retry: 1,
+    },
+  },
+});
 
 const App = () => {
   return (
-    <StrictMode>
-      <QueryClientProvider client={queryClient}>
+    <QueryClientProvider client={queryClient}>
+      <StrictMode>
         <SessionContextProvider supabaseClient={supabase}>
           <TooltipProvider>
             <Toaster />
@@ -29,8 +37,8 @@ const App = () => {
             </BrowserRouter>
           </TooltipProvider>
         </SessionContextProvider>
-      </QueryClientProvider>
-    </StrictMode>
+      </StrictMode>
+    </QueryClientProvider>
   );
 };
 
