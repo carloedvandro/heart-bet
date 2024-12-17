@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { differenceInSeconds } from "date-fns";
-import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 
 interface TradeOperationTimerProps {
   investmentCreatedAt: string;
@@ -21,7 +21,7 @@ export function TradeOperationTimer({
   const timeZone = 'America/Sao_Paulo';
   const [lastOperationTime, setLastOperationTime] = useState(() => {
     const utcDate = new Date(investmentCreatedAt);
-    return utcToZonedTime(utcDate, timeZone);
+    return toZonedTime(utcDate, timeZone);
   });
 
   useEffect(() => {
@@ -33,7 +33,7 @@ export function TradeOperationTimer({
 
     // When operation is completed, update the last operation time
     if (operationCompleted) {
-      const now = utcToZonedTime(new Date(), timeZone);
+      const now = toZonedTime(new Date(), timeZone);
       setLastOperationTime(now);
       setTimeLeft(60);
       setCanOperate(false);
@@ -41,7 +41,7 @@ export function TradeOperationTimer({
     }
 
     const calculateTimeLeft = () => {
-      const now = utcToZonedTime(new Date(), timeZone);
+      const now = toZonedTime(new Date(), timeZone);
       const secondsPassed = differenceInSeconds(now, lastOperationTime);
       const remaining = 60 - (secondsPassed % 60);
 

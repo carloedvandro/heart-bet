@@ -7,7 +7,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
-import { zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
+import { fromZonedTime, toZonedTime } from 'date-fns-tz';
 
 interface CreateInvestmentDialogProps {
   open: boolean;
@@ -35,7 +35,7 @@ export function CreateInvestmentDialog({
       const lockPeriodDays = Number(lockPeriod);
       const dailyRate = lockPeriodDays === 7 ? 0.5 : 1;
       
-      const lockedUntil = utcToZonedTime(new Date(), 'America/Sao_Paulo');
+      const lockedUntil = toZonedTime(new Date(), 'America/Sao_Paulo');
       lockedUntil.setDate(lockedUntil.getDate() + lockPeriodDays);
 
       const { data: profile, error: profileError } = await supabase
@@ -57,7 +57,7 @@ export function CreateInvestmentDialog({
           amount: numericAmount,
           lock_period: lockPeriodDays,
           daily_rate: dailyRate,
-          locked_until: zonedTimeToUtc(lockedUntil, 'America/Sao_Paulo').toISOString(),
+          locked_until: fromZonedTime(lockedUntil, 'America/Sao_Paulo').toISOString(),
           current_balance: numericAmount
         })
         .select()
