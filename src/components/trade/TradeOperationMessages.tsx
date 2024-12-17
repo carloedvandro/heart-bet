@@ -4,17 +4,13 @@ import { OperationProgress } from "./OperationProgress";
 
 interface TradeOperationMessagesProps {
   isOperating: boolean;
-  onOperationComplete: () => void;
+  onOperationComplete?: () => void;
 }
 
 const OPERATION_MESSAGES = [
   "Processo de transação iniciado...",
   "Executando negociações...",
-  "Processando fila de operações...",
-  "Executando ordem de compra...",
-  "Executando ordem de venda...",
-  "Capturando preços de mercado...",
-  "Distribuindo comissões...",
+  "Processando operação...",
   "Operação concluída com sucesso!"
 ];
 
@@ -26,38 +22,26 @@ export function TradeOperationMessages({
   const [messages, setMessages] = useState<string[]>([]);
 
   useEffect(() => {
-    console.log('TradeOperationMessages - isOperating:', isOperating);
-    
     if (!isOperating) {
-      console.log('TradeOperationMessages - Not operating, resetting state');
       setMessages([]);
       setCurrentMessageIndex(0);
       return;
     }
 
-    console.log('TradeOperationMessages - Starting message interval');
     const messageInterval = setInterval(() => {
       if (currentMessageIndex < OPERATION_MESSAGES.length) {
-        console.log("Adding message:", OPERATION_MESSAGES[currentMessageIndex]);
         setMessages(prev => [...prev, OPERATION_MESSAGES[currentMessageIndex]]);
         setCurrentMessageIndex(prev => prev + 1);
       } else {
-        console.log("Operation messages complete, triggering onOperationComplete");
         clearInterval(messageInterval);
-        onOperationComplete();
+        onOperationComplete?.();
       }
-    }, 1000); // Show a new message every second
+    }, 1000);
 
-    return () => {
-      console.log('TradeOperationMessages - Cleaning up interval');
-      clearInterval(messageInterval);
-    };
+    return () => clearInterval(messageInterval);
   }, [isOperating, currentMessageIndex, onOperationComplete]);
 
-  if (!isOperating) {
-    console.log('TradeOperationMessages - Not operating, returning null');
-    return null;
-  }
+  if (!isOperating) return null;
 
   return (
     <div className="space-y-2 p-4 bg-black/5 rounded-lg">

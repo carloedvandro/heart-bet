@@ -530,6 +530,12 @@ export type Database = {
           created_at: string
         }[]
       }
+      get_next_operation_time: {
+        Args: {
+          investment_id: string
+        }
+        Returns: string
+      }
       heart_to_number: {
         Args: {
           heart_color: string

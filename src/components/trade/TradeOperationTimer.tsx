@@ -23,41 +23,21 @@ export function TradeOperationTimer({
   const [canOperate, setCanOperate] = useState(false);
 
   useEffect(() => {
-    if (!isEnabled) return;
+    if (!isEnabled || !nextOperationTime) return;
 
-    // Calculate initial time left based on nextOperationTime
-    if (nextOperationTime) {
+    const calculateTimeLeft = () => {
       const now = new Date();
       const diff = Math.max(0, Math.floor((nextOperationTime.getTime() - now.getTime()) / 1000));
       setTimeLeft(diff);
-      setProgress(((30 - diff) / 30) * 100); // Using 30 seconds as total time
+      setProgress(((30 - diff) / 30) * 100);
       setCanOperate(diff === 0);
-    } else if (!operationCompleted) {
-      // If no next operation time and not completed, start new timer
-      setTimeLeft(30); // Set to 30 seconds
-      setProgress(0);
-      setCanOperate(false);
-    }
-  }, [isEnabled, nextOperationTime, operationCompleted]);
+    };
 
-  useEffect(() => {
-    if (!isEnabled || timeLeft === null) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((current) => {
-        if (current === null) return null;
-        if (current <= 0) {
-          setCanOperate(true);
-          return 0;
-        }
-        const newTimeLeft = current - 1;
-        setProgress(((30 - newTimeLeft) / 30) * 100);
-        return newTimeLeft;
-      });
-    }, 1000);
+    calculateTimeLeft();
+    const timer = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(timer);
-  }, [isEnabled, timeLeft]);
+  }, [isEnabled, nextOperationTime]);
 
   if (!isEnabled) return null;
 
