@@ -10,7 +10,6 @@ interface TradeCardHeaderProps {
 }
 
 export function TradeCardHeader({ 
-  financialProfile,
   onStartInvestment,
   onWithdraw,
   onShowRules
@@ -19,7 +18,6 @@ export function TradeCardHeader({
     <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
       <span>Investimento Trade</span>
       <TradeActions 
-        financialProfile={financialProfile}
         onStartInvestment={onStartInvestment}
         onWithdraw={onWithdraw}
         onShowRules={onShowRules}
