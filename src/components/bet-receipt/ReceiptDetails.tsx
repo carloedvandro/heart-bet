@@ -15,11 +15,11 @@ const ReceiptDetails = ({ bet }: ReceiptDetailsProps) => {
   const isMobile = useIsMobile();
   const { isAdmin } = useAdminStatus();
 
-  const textSizeClass = isMobile ? "text-xs" : "text-sm";
+  const textSizeClass = isMobile ? "text-sm" : "text-base";
 
   return (
-    <>
-      <div className="space-y-2 px-4">
+    <div className="space-y-4">
+      <div className="space-y-2">
         <div className={`flex justify-between ${textSizeClass} items-center`}>
           <span className="text-gray-600">Data/Hora:</span>
           <span className="font-medium">
@@ -56,15 +56,15 @@ const ReceiptDetails = ({ bet }: ReceiptDetailsProps) => {
         </div>
       </div>
 
-      <div className="pt-3 border-t border-dashed border-gray-200 px-4 mt-3">
+      <div className="pt-4 border-t border-dashed border-gray-200">
         <div className="flex justify-between items-center">
           <span className={`${textSizeClass} text-gray-600`}>Prêmio Potencial:</span>
-          <span className={`${isMobile ? 'text-base' : 'text-lg'} font-bold text-green-600`}>
+          <span className={`${isMobile ? 'text-lg' : 'text-xl'} font-bold text-green-600`}>
             R$ {potentialPrize.toFixed(2)}
           </span>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

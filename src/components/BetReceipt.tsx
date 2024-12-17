@@ -28,17 +28,22 @@ const BetReceipt = ({ bet, onReset }: BetReceiptProps) => {
   return (
     <div className={`w-full mx-auto ${isMobile ? 'max-w-[320px]' : 'max-w-md'}`}>
       <Card 
-        className="w-full bg-white shadow-lg animate-fade-in font-mono relative overflow-hidden" 
+        className="w-full bg-white shadow-lg animate-fade-in relative overflow-hidden print:shadow-none" 
         ref={receiptRef} 
         data-receipt
+        style={{
+          fontFamily: "'Times New Roman', Times, serif",
+          letterSpacing: '0.025em',
+          lineHeight: '1.5'
+        }}
       >
         <ReceiptHeader betNumber={bet.bet_number || ''} />
         
-        <CardContent className="space-y-3 p-0">
+        <CardContent className="space-y-4 p-6">
           <ReceiptDetails bet={bet} />
           <ReceiptActions bet={bet} receiptRef={receiptRef} onReset={onReset} />
 
-          <div className="text-center text-[10px] text-gray-500 pt-2 border-t border-dashed border-gray-200 px-3 pb-4">
+          <div className="text-center text-sm text-gray-500 pt-4 border-t border-dashed border-gray-200">
             * Guarde este comprovante
           </div>
         </CardContent>
