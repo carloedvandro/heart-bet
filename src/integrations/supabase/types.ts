@@ -532,7 +532,7 @@ export type Database = {
       }
       get_next_operation_time: {
         Args: {
-          investment_id: string
+          p_investment_id: string
         }
         Returns: string
       }

@@ -11,7 +11,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
   // Fetch next operation time from backend
   const fetchNextOperationTime = async () => {
     const { data, error } = await supabase
-      .rpc('get_next_operation_time', { investment_id: investmentId });
+      .rpc('get_next_operation_time', { p_investment_id: investmentId });
 
     if (!error && data) {
       setNextOperationTime(new Date(data));
@@ -91,11 +91,18 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
     }
   };
 
+  const handleOperationComplete = () => {
+    setIsOperating(false);
+    setOperationCompleted(true);
+    setTimeout(() => setOperationCompleted(false), 5000);
+  };
+
   return {
     isOperating,
     operationCompleted,
     currentBalance,
     nextOperationTime,
-    handleOperationStart
+    handleOperationStart,
+    handleOperationComplete
   };
 };
