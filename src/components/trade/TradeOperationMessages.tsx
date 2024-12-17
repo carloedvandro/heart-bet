@@ -16,11 +16,15 @@ const OPERATION_MESSAGES = [
 interface TradeOperationMessagesProps {
   isOperating: boolean;
   onOperationComplete: () => void;
+  investmentAmount: number;
+  dailyRate: number;
 }
 
 export function TradeOperationMessages({ 
   isOperating,
-  onOperationComplete 
+  onOperationComplete,
+  investmentAmount,
+  dailyRate
 }: TradeOperationMessagesProps) {
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
   const [messages, setMessages] = useState<string[]>([]);
@@ -40,7 +44,8 @@ export function TradeOperationMessages({
         setCurrentMessageIndex(prev => prev + 1);
       } else {
         clearInterval(interval);
-        const amount = Number((Math.random() * (2.0 - 0.5) + 0.5).toFixed(2));
+        // Calcular o valor exato baseado no investimento e taxa diária
+        const amount = Number((investmentAmount * (dailyRate / 100)).toFixed(2));
         setOperationAmount(amount);
         setShowSuccessDialog(true);
         onOperationComplete();
@@ -48,7 +53,7 @@ export function TradeOperationMessages({
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [isOperating, currentMessageIndex, onOperationComplete]);
+  }, [isOperating, currentMessageIndex, onOperationComplete, investmentAmount, dailyRate]);
 
   if (!isOperating && !showSuccessDialog) return null;
 

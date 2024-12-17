@@ -103,6 +103,8 @@ const InvestmentCard = memo(({
                 <TradeOperationMessages
                   isOperating={isOperating}
                   onOperationComplete={handleOperationComplete}
+                  investmentAmount={investment.amount}
+                  dailyRate={investment.daily_rate}
                 />
               </div>
             )}
