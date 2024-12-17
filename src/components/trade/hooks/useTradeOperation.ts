@@ -14,9 +14,7 @@ export const useTradeOperation = (
   const [nextOperationTime, setNextOperationTime] = useState<Date | null>(null);
   const [isCountingDown, setIsCountingDown] = useState(false);
 
-  // Fetch next operation time from backend
   const fetchNextOperationTime = useCallback(async () => {
-    // Não buscar novo tempo se estiver em operação ou contagem regressiva
     if (isOperating || isCountingDown || operationCompleted) {
       console.log('Skipping fetchNextOperationTime - operation in progress or completed');
       return;
@@ -25,40 +23,51 @@ export const useTradeOperation = (
     try {
       console.log('Fetching next operation time...');
       const { data, error } = await supabase
-        .rpc('get_next_operation_time', { p_investment_id: investmentId });
+        .rpc('get_next_operation_time', { 
+          p_investment_id: investmentId 
+        });
 
-      if (!error && data) {
+      if (error) {
+        console.error('Error fetching next operation time:', error);
+        toast.error('Erro ao buscar próximo horário de operação');
+        return;
+      }
+
+      if (data) {
         const nextTime = new Date(data);
         console.log('Next operation time received:', nextTime);
         
-        // Só atualizar se o tempo for diferente do atual
         if (!nextOperationTime || nextTime.getTime() !== nextOperationTime.getTime()) {
           setNextOperationTime(nextTime);
         }
       }
     } catch (error) {
-      console.error('Error fetching next operation time:', error);
+      console.error('Unexpected error fetching next operation time:', error);
+      toast.error('Erro inesperado ao buscar próximo horário');
     }
   }, [investmentId, isOperating, isCountingDown, operationCompleted, nextOperationTime]);
 
-  // Efeito para buscar o próximo horário de operação
   useEffect(() => {
     let isMounted = true;
     let interval: NodeJS.Timeout | null = null;
 
-    // Só buscar se não estiver em nenhuma operação ativa
-    if (!isOperating && !isCountingDown && !operationCompleted) {
-      console.log('Initial fetch of operation time');
-      fetchNextOperationTime();
+    const startFetching = async () => {
+      if (!isOperating && !isCountingDown && !operationCompleted) {
+        console.log('Initial fetch of operation time');
+        await fetchNextOperationTime();
 
-      // Configurar intervalo apenas se não houver operação em andamento
-      interval = setInterval(() => {
-        if (isMounted && !isOperating && !isCountingDown && !operationCompleted) {
-          console.log('Periodic fetch of operation time');
-          fetchNextOperationTime();
+        if (isMounted) {
+          interval = setInterval(async () => {
+            if (!isOperating && !isCountingDown && !operationCompleted) {
+              console.log('Periodic fetch of operation time');
+              await fetchNextOperationTime();
+            }
+          }, 5000);
         }
-      }, 5000);
-    }
+      }
+    };
+
+    startFetching();
 
     return () => {
       console.log('Cleaning up fetch interval');
@@ -95,7 +104,10 @@ export const useTradeOperation = (
 
       if (operationError) {
         console.error('Operation registration error:', operationError);
-        throw operationError;
+        toast.error('Erro ao registrar operação');
+        setIsOperating(false);
+        setIsCountingDown(false);
+        return;
       }
 
       console.log('Operation registered successfully');
@@ -106,10 +118,12 @@ export const useTradeOperation = (
 
       if (earningsError) {
         console.error('Earnings calculation error:', earningsError);
-        throw earningsError;
+        toast.error('Erro ao calcular rendimentos');
+        setIsOperating(false);
+        setIsCountingDown(false);
+        return;
       }
 
-      // Fetch updated investment data
       const { data: updatedInvestment, error: fetchError } = await supabase
         .from('trade_investments')
         .select('current_balance, trade_earnings(amount)')
@@ -118,7 +132,10 @@ export const useTradeOperation = (
 
       if (fetchError) {
         console.error('Error fetching updated balance:', fetchError);
-        throw fetchError;
+        toast.error('Erro ao atualizar saldo');
+        setIsOperating(false);
+        setIsCountingDown(false);
+        return;
       }
 
       if (updatedInvestment) {
@@ -135,6 +152,8 @@ export const useTradeOperation = (
     } catch (error) {
       console.error('Operation error:', error);
       toast.error('Erro durante a operação');
+      setIsOperating(false);
+      setIsCountingDown(false);
     }
   };
 
@@ -143,12 +162,10 @@ export const useTradeOperation = (
     setIsOperating(false);
     setOperationCompleted(true);
     
-    // Aguardar 5 segundos antes de resetar os estados
     const timer = setTimeout(() => {
       console.log('Resetting operation states');
       setOperationCompleted(false);
       setIsCountingDown(false);
-      // Buscar próximo tempo de operação após reset
       fetchNextOperationTime();
     }, 5000);
 

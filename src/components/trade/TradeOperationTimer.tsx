@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
 import { OperationProgress } from "./OperationProgress";
 import { PlayCircle } from "lucide-react";
+import { toast } from "sonner";
 
 interface TradeOperationTimerProps {
   investmentCreatedAt: string;
@@ -29,31 +30,31 @@ export function TradeOperationTimer({
     }
 
     const calculateTimeLeft = () => {
-      const now = new Date();
-      const nextTime = new Date(nextOperationTime);
-      const diffMs = nextTime.getTime() - now.getTime();
-      const diffSeconds = Math.max(0, Math.floor(diffMs / 1000));
-      
-      console.log('Timer update:', {
-        now: now.toISOString(),
-        nextTime: nextTime.toISOString(),
-        diffSeconds,
-        isEnabled,
-        operationCompleted
-      });
-      
-      setTimeLeft(diffSeconds);
-      setProgress(Math.min(100, ((30 - diffSeconds) / 30) * 100));
-      setCanOperate(diffSeconds === 0);
+      try {
+        const now = new Date();
+        const nextTime = new Date(nextOperationTime);
+        const diffMs = nextTime.getTime() - now.getTime();
+        const diffSeconds = Math.max(0, Math.floor(diffMs / 1000));
+        
+        console.log('Timer update:', {
+          now: now.toISOString(),
+          nextTime: nextTime.toISOString(),
+          diffSeconds,
+          isEnabled,
+          operationCompleted
+        });
+        
+        setTimeLeft(diffSeconds);
+        setProgress(Math.min(100, ((30 - diffSeconds) / 30) * 100));
+        setCanOperate(diffSeconds === 0);
+      } catch (error) {
+        console.error('Error calculating time left:', error);
+        toast.error('Erro ao calcular tempo restante');
+      }
     };
 
-    // Calcular imediatamente
     calculateTimeLeft();
-
-    // Atualizar a cada segundo
-    const timer = setInterval(() => {
-      calculateTimeLeft();
-    }, 1000);
+    const timer = setInterval(calculateTimeLeft, 1000);
 
     console.log('Timer started');
 
@@ -73,6 +74,15 @@ export function TradeOperationTimer({
     });
   }, [timeLeft, progress, canOperate, isEnabled, operationCompleted]);
 
+  const handleOperationClick = () => {
+    try {
+      onOperationStart();
+    } catch (error) {
+      console.error('Error starting operation:', error);
+      toast.error('Erro ao iniciar operação');
+    }
+  };
+
   if (!isEnabled) {
     console.log('Timer component disabled');
     return null;
@@ -90,7 +100,7 @@ export function TradeOperationTimer({
       )}
       {canOperate && !operationCompleted && (
         <Button
-          onClick={onOperationStart}
+          onClick={handleOperationClick}
           className="w-full sm:w-auto flex items-center gap-2"
         >
           <PlayCircle className="w-4 h-4" />
