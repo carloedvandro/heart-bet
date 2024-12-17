@@ -32,6 +32,7 @@ export function TradeOperationTimer({
         return;
       }
 
+      // Buscar a última operação primeiro
       const { data: operations, error } = await supabase
         .from('trade_operations')
         .select('operated_at')
@@ -39,21 +40,17 @@ export function TradeOperationTimer({
         .order('operated_at', { ascending: false })
         .limit(1);
 
-      if (error) {
-        console.error('Error fetching last operation time:', error);
-        return;
-      }
-
       const now = new Date();
       const zonedNow = toZonedTime(now, timeZone);
       console.log('Current time (SP):', formatInTimeZone(zonedNow, timeZone, 'yyyy-MM-dd HH:mm:ss'));
 
       if (operations && operations.length > 0) {
         const lastOpTime = toZonedTime(new Date(operations[0].operated_at), timeZone);
-        console.log('Last operation time (SP):', formatInTimeZone(lastOpTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
+        console.log('Found last operation time (SP):', formatInTimeZone(lastOpTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
         setLastOperationTime(lastOpTime);
       } else {
         // Se não houver operações, buscar a data de criação do investimento
+        console.log('No operations found, fetching investment creation time...');
         const { data: investment, error: investmentError } = await supabase
           .from('trade_investments')
           .select('created_at')
@@ -67,7 +64,7 @@ export function TradeOperationTimer({
 
         if (investment) {
           const creationTime = toZonedTime(new Date(investment.created_at), timeZone);
-          console.log('Investment creation time (SP):', formatInTimeZone(creationTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
+          console.log('Using investment creation time (SP):', formatInTimeZone(creationTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
           setLastOperationTime(creationTime);
         }
       }
@@ -80,6 +77,7 @@ export function TradeOperationTimer({
 
   useEffect(() => {
     if (isEnabled && investmentId) {
+      console.log('Fetching last operation time for investment:', investmentId);
       fetchLastOperationTime();
     }
   }, [isEnabled, investmentId]);
@@ -105,11 +103,12 @@ export function TradeOperationTimer({
 
     const calculateTimeLeft = () => {
       const now = toZonedTime(new Date(), timeZone);
+      console.log('Calculating time left...');
       console.log('Current time (SP):', formatInTimeZone(now, timeZone, 'yyyy-MM-dd HH:mm:ss'));
-      console.log('Last operation time (SP):', formatInTimeZone(lastOperationTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
+      console.log('Last operation/creation time (SP):', formatInTimeZone(lastOperationTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
       
       const secondsPassed = differenceInSeconds(now, lastOperationTime);
-      console.log('Seconds passed:', secondsPassed);
+      console.log('Seconds passed since last operation:', secondsPassed);
       
       const remaining = Math.max(30 - secondsPassed, 0);
       console.log('Remaining seconds:', remaining);
