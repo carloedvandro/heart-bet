@@ -15,11 +15,12 @@ export function useInvestments() {
       }
 
       // Fetch investments with their operations and earnings
+      // Specify the relationship using !fk_investment
       const { data, error } = await supabase
         .from('trade_investments')
         .select(`
           *,
-          trade_operations(*),
+          trade_operations!fk_investment(*),
           trade_earnings(*)
         `)
         .eq('user_id', session.user.id)
