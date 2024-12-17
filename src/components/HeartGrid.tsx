@@ -27,6 +27,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   const { clearCombinations } = useTemporaryBetState();
 
   const handleReset = () => {
+    console.log("Resetting bet state");
     setLastBet(null);
     setPendingBet(null);
     setShowConfirmDialog(false);
@@ -34,7 +35,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   };
 
   const handleBetPlaced = (bet: Bet) => {
-    console.log("New bet placed:", bet);
+    console.log("New bet placed, showing confirmation dialog:", bet);
     setPendingBet(bet);
     setCurrentBetType(bet.bet_type as BetType);
     setShowConfirmDialog(true);
@@ -44,7 +45,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   };
 
   const handleViewReceipt = () => {
-    console.log("Viewing receipt for bet:", pendingBet);
+    console.log("User chose to view receipt for bet:", pendingBet);
     if (pendingBet) {
       setLastBet(pendingBet);
       setShowConfirmDialog(false);
@@ -52,6 +53,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   };
 
   const handleSkipReceipt = () => {
+    console.log("User chose to skip receipt view");
     handleReset();
   };
 
