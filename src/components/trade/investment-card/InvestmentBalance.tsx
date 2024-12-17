@@ -21,18 +21,41 @@ export function InvestmentBalance({
 }: InvestmentBalanceProps) {
   const handleDelete = async () => {
     try {
-      const { error } = await supabase
+      // Primeiro, verificar se o investimento ainda existe e está cancelado
+      const { data: investment, error: checkError } = await supabase
+        .from('trade_investments')
+        .select('status')
+        .eq('id', investmentId)
+        .single();
+
+      if (checkError) {
+        console.error('Error checking investment:', checkError);
+        toast.error('Erro ao verificar investimento');
+        return;
+      }
+
+      if (!investment || investment.status !== 'cancelled') {
+        toast.error('Este investimento não pode ser deletado');
+        return;
+      }
+
+      // Proceder com a deleção
+      const { error: deleteError } = await supabase
         .from('trade_investments')
         .delete()
         .eq('id', investmentId)
-        .eq('status', 'cancelled'); // Only allow deletion of cancelled investments
+        .eq('status', 'cancelled');
 
-      if (error) throw error;
+      if (deleteError) {
+        console.error('Error deleting investment:', deleteError);
+        toast.error('Erro ao deletar investimento');
+        return;
+      }
       
       toast.success('Investimento deletado com sucesso');
       onDelete?.();
     } catch (error) {
-      console.error('Error deleting investment:', error);
+      console.error('Error in handleDelete:', error);
       toast.error('Erro ao deletar investimento');
     }
   };
