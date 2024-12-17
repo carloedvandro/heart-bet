@@ -32,9 +32,13 @@ export function TradeActions({
         >
           Completar Cadastro
         </Button>
-        <p className="text-sm text-muted-foreground text-center sm:text-left">
-          Para investir no mercado trade, complete seu cadastro financeiro
-        </p>
+        <Button
+          onClick={onShowRules}
+          variant="outline"
+          className="w-full sm:w-auto"
+        >
+          Ler Regras
+        </Button>
       </div>
     );
   }
