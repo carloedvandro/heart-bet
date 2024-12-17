@@ -23,33 +23,60 @@ export function TradeOperationTimer({
   const [canOperate, setCanOperate] = useState(false);
 
   useEffect(() => {
-    if (!isEnabled || !nextOperationTime) return;
+    if (!isEnabled || !nextOperationTime) {
+      console.log('Timer disabled or no next operation time');
+      return;
+    }
 
     const calculateTimeLeft = () => {
       const now = new Date();
-      const diff = Math.max(0, Math.floor((nextOperationTime.getTime() - now.getTime()) / 1000));
+      const nextTime = new Date(nextOperationTime);
+      const diffMs = nextTime.getTime() - now.getTime();
+      const diffSeconds = Math.max(0, Math.floor(diffMs / 1000));
       
-      console.log('Current time:', now.toISOString());
-      console.log('Next operation time:', nextOperationTime.toISOString());
-      console.log('Time difference (seconds):', diff);
+      console.log('Timer update:', {
+        now: now.toISOString(),
+        nextTime: nextTime.toISOString(),
+        diffSeconds,
+        isEnabled,
+        operationCompleted
+      });
       
-      setTimeLeft(diff);
-      setProgress(((30 - diff) / 30) * 100);
-      setCanOperate(diff === 0);
+      setTimeLeft(diffSeconds);
+      setProgress(Math.min(100, ((30 - diffSeconds) / 30) * 100));
+      setCanOperate(diffSeconds === 0);
     };
 
     // Calcular imediatamente
     calculateTimeLeft();
 
     // Atualizar a cada segundo
-    const timer = setInterval(calculateTimeLeft, 1000);
+    const timer = setInterval(() => {
+      calculateTimeLeft();
+    }, 1000);
+
+    console.log('Timer started');
 
     return () => {
+      console.log('Timer cleanup');
       clearInterval(timer);
     };
   }, [isEnabled, nextOperationTime, operationCompleted]);
 
-  if (!isEnabled) return null;
+  useEffect(() => {
+    console.log('Timer state:', {
+      timeLeft,
+      progress,
+      canOperate,
+      isEnabled,
+      operationCompleted
+    });
+  }, [timeLeft, progress, canOperate, isEnabled, operationCompleted]);
+
+  if (!isEnabled) {
+    console.log('Timer component disabled');
+    return null;
+  }
 
   return (
     <div className="w-full space-y-2">
