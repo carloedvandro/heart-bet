@@ -14,14 +14,17 @@ export function TradeActions({
   onWithdraw,
   onShowRules 
 }: TradeActionsProps) {
-  // Função para verificar se todos os campos obrigatórios estão preenchidos
+  // Função para verificar se o perfil existe e está completo
   const isProfileComplete = (profile: FinancialProfile | null): boolean => {
+    // Se não houver perfil, retorna falso
     if (!profile) return false;
     
+    // Se o perfil existe mas não tem CPF, considera incompleto
+    if (!profile.cpf) return false;
+
+    // Lista de campos obrigatórios
     const requiredFields = [
-      'id',
       'full_name',
-      'cpf',
       'phone',
       'pix_type',
       'pix_key',
@@ -34,14 +37,25 @@ export function TradeActions({
       'birth_date'
     ];
 
-    return requiredFields.every(field => Boolean(profile[field as keyof FinancialProfile]));
+    // Verifica se todos os campos obrigatórios estão preenchidos
+    return requiredFields.every(field => {
+      const value = profile[field as keyof FinancialProfile];
+      return value !== null && value !== undefined && value !== '';
+    });
   };
 
   // Verificações de estado do perfil
   const profileComplete = isProfileComplete(financialProfile);
   const termsAccepted = Boolean(financialProfile?.terms_accepted);
 
-  // Renderização condicional dos botões baseada no estado do perfil
+  // Log para debug
+  console.log('Profile status:', {
+    financialProfile,
+    profileComplete,
+    termsAccepted
+  });
+
+  // Se o perfil não estiver completo, mostra botão de completar cadastro
   if (!profileComplete) {
     return (
       <div className="flex flex-col gap-2 w-full sm:w-auto">
@@ -63,6 +77,7 @@ export function TradeActions({
     );
   }
 
+  // Se não aceitou os termos, mostra botão de aceitar termos
   if (!termsAccepted) {
     return (
       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
@@ -84,6 +99,7 @@ export function TradeActions({
     );
   }
 
+  // Se o perfil estiver completo e os termos aceitos, mostra todos os botões
   return (
     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
       <Button 
