@@ -14,8 +14,11 @@ export function TradeActions({
   onWithdraw,
   onShowRules 
 }: TradeActionsProps) {
+  // Verificar se o perfil financeiro existe checando se há um ID
+  const hasFinancialProfile = Boolean(financialProfile?.id);
+
   // Se não houver perfil financeiro, mostra botão de completar cadastro
-  if (!financialProfile) {
+  if (!hasFinancialProfile) {
     return (
       <div className="flex flex-col gap-2 w-full sm:w-auto">
         <Button 
