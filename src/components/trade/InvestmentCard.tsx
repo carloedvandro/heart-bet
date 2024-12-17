@@ -4,7 +4,7 @@ import { differenceInMinutes } from "date-fns";
 import { CancellationTimer } from "./CancellationTimer";
 import { TradeOperationTimer } from "./TradeOperationTimer";
 import { TradeOperationMessages } from "./TradeOperationMessages";
-import { useState, memo, useEffect } from "react";
+import { useState, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -45,9 +45,10 @@ const InvestmentCard = memo(({
     setIsOperating(true);
     try {
       const now = new Date();
-      const nextOperation = new Date(now.getTime() + 60 * 1000); // 1 minute for testing
+      const nextOperation = new Date(now.getTime() + 60 * 1000); // 1 minuto para teste
 
-      const { error } = await supabase
+      // Registrar a operação
+      const { error: operationError } = await supabase
         .from('trade_operations')
         .insert({
           investment_id: investment.id,
@@ -55,7 +56,17 @@ const InvestmentCard = memo(({
           next_operation_at: nextOperation.toISOString()
         });
 
-      if (error) throw error;
+      if (operationError) throw operationError;
+
+      // Chamar a função de cálculo de rendimentos
+      const { error: earningsError } = await supabase
+        .rpc('calculate_daily_earnings');
+
+      if (earningsError) {
+        console.error('Error calculating earnings:', earningsError);
+        toast.error('Erro ao calcular rendimentos');
+        throw earningsError;
+      }
 
     } catch (error) {
       console.error('Error starting operation:', error);
@@ -79,6 +90,7 @@ const InvestmentCard = memo(({
       
       if (data) {
         setCurrentBalance(data.current_balance);
+        toast.success('Operação concluída com sucesso! Rendimentos calculados.');
       }
 
       // Resetar operationCompleted após 1 minuto
