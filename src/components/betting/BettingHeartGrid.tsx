@@ -100,7 +100,7 @@ const BettingHeartGrid = memo(({
   );
 
   return (
-    <div className="flex flex-col gap-8 items-center animate-fade-in bg-white/70 p-6 rounded-lg shadow-lg">
+    <div className="flex flex-col gap-8 items-center animate-fade-in bg-white/0 p-6 rounded-lg shadow-lg">
       <PairsTable 
         mainHeart={mainHeart}
         selectedPairs={selectedHearts}
