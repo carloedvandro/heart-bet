@@ -65,16 +65,7 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
       },
-
       keyframes: {
-        "heart-beat": {
-          "0%, 100%": { transform: "scale(1)" },
-          "50%": { transform: "scale(1.1)" },
-        },
-        "heart-float": {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-10px)" },
-        },
         float: {
           "0%": { 
             transform: "translate(0, 100vh) rotate(0deg)",
@@ -96,24 +87,11 @@ export default {
             backgroundPosition: "100% 50%",
           },
         },
-        "shimmer": {
-          "0%": { transform: "translateX(-100%)" },
-          "50%": { transform: "translateX(0%)" },
-          "100%": { transform: "translateX(100%)" }
-        }
       },
       animation: {
-        "heart-beat": "heart-beat 0.8s ease-in-out infinite",
-        "heart-float": "heart-float 3s ease-in-out infinite",
         "float": "float 8s linear infinite",
-        "fade-in": "fade-in 0.5s ease-out",
-        "fade-in-delayed": "fade-in-delayed 1s ease-out forwards",
-        "fade-in-up": "fade-in-up 0.8s ease-out",
-        "deal-card": "deal-card 0.5s ease-out",
         "gradient-x": "gradient 15s ease infinite",
-        "shimmer": "shimmer 2s linear infinite",
       },
-
     },
   },
   plugins: [require("tailwindcss-animate")],
