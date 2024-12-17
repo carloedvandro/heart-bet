@@ -28,63 +28,23 @@ export default function Dashboard() {
         return;
       }
 
-      console.log("Fetching profile for user:", session.user.id);
-      
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", session.user.id)
-        .maybeSingle();
+        .single();
 
-      if (error) {
-        console.error("Error fetching profile:", error);
-        toast.error("Erro ao carregar perfil");
-        return;
+      if (error) throw error;
+      
+      if (data && data.balance > previousBalance) {
+        console.log('Balance increased, playing coin sound');
+        await playSounds.coin();
       }
-
-      if (!data) {
-        console.log("No profile found, creating new profile");
-        const { error: createError } = await supabase
-          .from("profiles")
-          .insert([
-            {
-              id: session.user.id,
-              email: session.user.email,
-              balance: 0,
-              is_admin: false
-            }
-          ]);
-
-        if (createError) {
-          console.error("Error creating profile:", createError);
-          toast.error("Erro ao criar perfil");
-          return;
-        }
-
-        // Fetch the newly created profile
-        const { data: newProfile, error: fetchError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", session.user.id)
-          .maybeSingle();
-
-        if (fetchError) {
-          console.error("Error fetching new profile:", fetchError);
-          return;
-        }
-
-        setProfile(newProfile);
-      } else {
-        if (data.balance > previousBalance) {
-          console.log('Balance increased, playing coin sound');
-          await playSounds.coin();
-        }
-        
-        setPreviousBalance(data?.balance || 0);
-        setProfile(data);
-      }
+      
+      setPreviousBalance(data?.balance || 0);
+      setProfile(data);
     } catch (error) {
-      console.error("Error in fetchProfile:", error);
+      console.error("Error fetching profile:", error);
       toast.error("Erro ao carregar perfil");
     } finally {
       setLoading(false);

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { differenceInSeconds } from "date-fns";
-import { toZonedTime, formatInTimeZone } from 'date-fns-tz';
+import { toZonedTime } from 'date-fns-tz';
 import { supabase } from "@/integrations/supabase/client";
 
 interface TradeOperationTimerProps {
@@ -17,7 +17,7 @@ export function TradeOperationTimer({
   isEnabled,
   operationCompleted
 }: TradeOperationTimerProps) {
-  const [timeLeft, setTimeLeft] = useState<number>(30);
+  const [timeLeft, setTimeLeft] = useState<number>(120); // 120 segundos
   const [canOperate, setCanOperate] = useState(false);
   const timeZone = 'America/Sao_Paulo';
   const [lastOperationTime, setLastOperationTime] = useState<Date | null>(null);
@@ -26,25 +26,23 @@ export function TradeOperationTimer({
   const fetchLastOperationTime = async () => {
     try {
       setIsLoading(true);
-      
-      if (!investmentId || investmentId === 'active') {
-        console.error('Invalid investment ID:', investmentId);
-        return;
-      }
-
-      const { data: operations, error: operationError } = await supabase
+      const { data: operations, error } = await supabase
         .from('trade_operations')
         .select('operated_at')
         .eq('investment_id', investmentId)
         .order('operated_at', { ascending: false })
         .limit(1);
 
-      if (operationError) {
-        console.error('Error fetching operations:', operationError);
+      if (error) {
+        console.error('Error fetching last operation time:', error);
         return;
       }
 
-      if (!operations || operations.length === 0) {
+      if (operations && operations.length > 0) {
+        const lastOpTime = toZonedTime(new Date(operations[0].operated_at), timeZone);
+        console.log('Last operation time:', lastOpTime);
+        setLastOperationTime(lastOpTime);
+      } else {
         const { data: investment, error: investmentError } = await supabase
           .from('trade_investments')
           .select('created_at')
@@ -52,19 +50,15 @@ export function TradeOperationTimer({
           .single();
 
         if (investmentError) {
-          console.error('Error fetching investment:', investmentError);
+          console.error('Error fetching investment creation time:', investmentError);
           return;
         }
 
         if (investment) {
           const creationTime = toZonedTime(new Date(investment.created_at), timeZone);
-          console.log('Using investment creation time:', formatInTimeZone(creationTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
+          console.log('Investment creation time:', creationTime);
           setLastOperationTime(creationTime);
         }
-      } else {
-        const lastOpTime = toZonedTime(new Date(operations[0].operated_at), timeZone);
-        console.log('Found last operation time:', formatInTimeZone(lastOpTime, timeZone, 'yyyy-MM-dd HH:mm:ss'));
-        setLastOperationTime(lastOpTime);
       }
     } catch (error) {
       console.error('Error in fetchLastOperationTime:', error);
@@ -73,44 +67,46 @@ export function TradeOperationTimer({
     }
   };
 
+  // Atualizar o tempo quando o componente montar e quando isEnabled mudar
   useEffect(() => {
     if (isEnabled && investmentId) {
       fetchLastOperationTime();
     }
   }, [isEnabled, investmentId]);
 
+  // Atualizar o tempo quando uma operação for completada
   useEffect(() => {
     if (operationCompleted) {
       const now = toZonedTime(new Date(), timeZone);
       setLastOperationTime(now);
-      setTimeLeft(30);
+      setTimeLeft(120);
       setCanOperate(false);
     }
   }, [operationCompleted, timeZone]);
 
   useEffect(() => {
     if (!isEnabled || !lastOperationTime || isLoading) {
+      setTimeLeft(120);
+      setCanOperate(false);
       return;
     }
 
     const calculateTimeLeft = () => {
       const now = toZonedTime(new Date(), timeZone);
       const secondsPassed = differenceInSeconds(now, lastOperationTime);
-      const remaining = Math.max(30 - secondsPassed, 0);
-      
-      console.log('Operation timer calculation:', {
-        now: formatInTimeZone(now, timeZone, 'yyyy-MM-dd HH:mm:ss'),
-        lastOperation: formatInTimeZone(lastOperationTime, timeZone, 'yyyy-MM-dd HH:mm:ss'),
-        secondsPassed,
-        remaining
-      });
+      const remaining = Math.max(120 - secondsPassed, 0);
 
-      setTimeLeft(remaining);
-      setCanOperate(secondsPassed >= 30);
+      if (secondsPassed >= 120) {
+        setCanOperate(true);
+        setTimeLeft(0);
+      } else {
+        setCanOperate(false);
+        setTimeLeft(remaining);
+      }
     };
 
-    calculateTimeLeft();
     const interval = setInterval(calculateTimeLeft, 1000);
+    calculateTimeLeft(); // Initial calculation
 
     return () => clearInterval(interval);
   }, [isEnabled, lastOperationTime, timeZone, isLoading]);
@@ -125,7 +121,7 @@ export function TradeOperationTimer({
         </div>
       ) : !canOperate ? (
         <div className="text-sm text-muted-foreground">
-          Tempo restante para operar: {timeLeft} segundos
+          Tempo restante para operar: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
         </div>
       ) : (
         <Button 

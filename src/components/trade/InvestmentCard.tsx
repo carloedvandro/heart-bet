@@ -1,10 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { differenceInMinutes, differenceInSeconds } from "date-fns";
+import { Button } from "@/components/ui/button";
+import { differenceInMinutes } from "date-fns";
+import { CancellationTimer } from "./CancellationTimer";
+import { TradeOperationTimer } from "./TradeOperationTimer";
+import { TradeOperationMessages } from "./TradeOperationMessages";
 import { useState, memo, useEffect } from "react";
-import { InvestmentInfo } from "./investment-card/InvestmentInfo";
-import { InvestmentBalance } from "./investment-card/InvestmentBalance";
-import { InvestmentOperations } from "./investment-card/InvestmentOperations";
-import { toZonedTime } from 'date-fns-tz';
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Investment {
   id: string;
@@ -20,112 +22,152 @@ interface InvestmentCardProps {
   investment: Investment;
   onCancelInvestment: (id: string, createdAt: string) => void;
   isProcessing: boolean;
-  onDelete?: () => void;
 }
 
 const InvestmentCard = memo(({ 
   investment, 
   onCancelInvestment, 
-  isProcessing,
-  onDelete
+  isProcessing 
 }: InvestmentCardProps) => {
-  const [canCancel, setCanCancel] = useState(false);
-  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [canCancel, setCanCancel] = useState(
+    differenceInMinutes(new Date(), new Date(investment.created_at)) <= 30 && 
+    investment.status === 'active'
+  );
   const [isOperating, setIsOperating] = useState(false);
   const [operationCompleted, setOperationCompleted] = useState(false);
-  const timeZone = 'America/Sao_Paulo';
+  const [currentBalance, setCurrentBalance] = useState(investment.current_balance);
 
-  useEffect(() => {
-    const calculateTimeLeft = () => {
-      const now = toZonedTime(new Date(), timeZone);
-      const createdAt = toZonedTime(new Date(investment.created_at), timeZone);
-      const minutesPassed = differenceInMinutes(now, createdAt);
-      const secondsPassed = differenceInSeconds(now, createdAt);
-      const remainingSeconds = Math.max(300 - secondsPassed, 0); // 5 minutes in seconds
-      
-      // Atualiza o estado apenas se o investimento estiver ativo
-      if (investment.status === 'active') {
-        setTimeLeft(remainingSeconds);
-        setCanCancel(minutesPassed < 5);
-      } else {
-        setTimeLeft(0);
-        setCanCancel(false);
-      }
-      
-      // Log para debug
-      console.log('Time calculation:', {
-        now: now.toISOString(),
-        createdAt: createdAt.toISOString(),
-        minutesPassed,
-        secondsPassed,
-        remainingSeconds,
-        canCancel: minutesPassed < 5 && investment.status === 'active',
-        status: investment.status
-      });
-    };
-
-    calculateTimeLeft();
-    const interval = setInterval(calculateTimeLeft, 1000);
-
-    return () => clearInterval(interval);
-  }, [investment.created_at, investment.status, timeZone]);
+  const handleTimeExpired = () => {
+    setCanCancel(false);
+  };
 
   const handleOperationStart = async () => {
     setIsOperating(true);
+    try {
+      const now = new Date();
+      const nextOperation = new Date(now.getTime() + 60 * 1000); // 1 minute for testing
+
+      const { error } = await supabase
+        .from('trade_operations')
+        .insert({
+          investment_id: investment.id,
+          operated_at: now.toISOString(),
+          next_operation_at: nextOperation.toISOString()
+        });
+
+      if (error) throw error;
+
+    } catch (error) {
+      console.error('Error starting operation:', error);
+      toast.error('Erro ao iniciar operação');
+      setIsOperating(false);
+    }
   };
 
-  const handleOperationComplete = () => {
+  const handleOperationComplete = async () => {
     setIsOperating(false);
     setOperationCompleted(true);
-    setTimeout(() => {
-      setOperationCompleted(false);
-    }, 60000);
-  };
+    
+    try {
+      // Calcular o ganho baseado na taxa diária
+      const earningAmount = investment.amount * (investment.daily_rate / 100);
 
-  // Format remaining time as MM:SS
-  const formatTimeLeft = (seconds: number): string => {
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = seconds % 60;
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
-  };
+      // Inserir o ganho na tabela trade_earnings
+      const { error: earningsError } = await supabase
+        .from('trade_earnings')
+        .insert({
+          investment_id: investment.id,
+          amount: earningAmount
+        });
 
-  // Se o status não for 'active', não renderiza o card
-  if (investment.status !== 'active') {
-    return null;
-  }
+      if (earningsError) throw earningsError;
+
+      // Atualizar o saldo atual do investimento
+      const { data, error: balanceError } = await supabase
+        .from('trade_investments')
+        .select('current_balance')
+        .eq('id', investment.id)
+        .single();
+
+      if (balanceError) throw balanceError;
+      
+      if (data) {
+        setCurrentBalance(data.current_balance);
+      }
+
+      // Resetar operationCompleted após 1 minuto
+      setTimeout(() => {
+        setOperationCompleted(false);
+      }, 60000);
+
+    } catch (error) {
+      console.error('Error completing operation:', error);
+      toast.error('Erro ao completar operação');
+    }
+  };
 
   return (
     <Card>
       <CardContent className="pt-6">
         <div className="flex flex-col md:flex-row justify-between gap-4">
-          <InvestmentInfo 
-            createdAt={investment.created_at}
-            amount={investment.amount}
-            dailyRate={investment.daily_rate}
-            status={investment.status}
-          />
-          
-          <div className="flex flex-col gap-4">
-            <InvestmentBalance 
-              lockedUntil={investment.locked_until}
-              currentBalance={investment.current_balance}
-              status={investment.status}
-              investmentId={investment.id}
-              onDelete={onDelete}
-            />
-
-            <InvestmentOperations 
-              canCancel={canCancel}
-              timeLeft={timeLeft > 0 ? formatTimeLeft(timeLeft) : null}
-              createdAt={investment.created_at}
-              status={investment.status}
-              isProcessing={isProcessing}
-              onCancelInvestment={() => onCancelInvestment(investment.id, investment.created_at)}
-              onOperationStart={handleOperationStart}
-              onOperationComplete={handleOperationComplete}
-              isOperating={isOperating}
-              operationCompleted={operationCompleted}
-            />
+          <div className="space-y-2">
+            <p className="text-sm text-gray-500">
+              Investido em: {new Date(investment.created_at).toLocaleDateString()}
+            </p>
+            <p className="font-semibold">
+              R$ {Number(investment.amount).toFixed(2)}
+            </p>
+            <p className="text-sm text-green-600">
+              Rendimento: {investment.daily_rate}% ao dia
+            </p>
+            {investment.status === 'cancelled' && (
+              <p className="text-sm text-red-500">
+                Investimento Cancelado
+              </p>
+            )}
+          </div>
+          <div className="text-right space-y-2">
+            <p className="text-sm text-gray-500">
+              Bloqueado até: {new Date(investment.locked_until).toLocaleDateString()}
+            </p>
+            <p className="font-semibold">
+              Saldo atual: R$ {Number(currentBalance).toFixed(2)}
+            </p>
+            {canCancel ? (
+              <div className="flex flex-col items-end gap-1">
+                <Button 
+                  variant="destructive" 
+                  size="sm"
+                  className="w-full md:w-auto"
+                  onClick={() => onCancelInvestment(investment.id, investment.created_at)}
+                  disabled={isProcessing || investment.status !== 'active'}
+                >
+                  {isProcessing ? "Cancelando..." : "Cancelar Investimento"}
+                </Button>
+                <CancellationTimer 
+                  createdAt={investment.created_at}
+                  onTimeExpired={handleTimeExpired}
+                  isActive={investment.status === 'active'}
+                />
+              </div>
+            ) : investment.status === 'cancelled' ? (
+              <p className="text-sm text-red-500">
+                Investimento cancelado em {new Date().toLocaleDateString()}
+              </p>
+            ) : (
+              <div className="flex flex-col items-end gap-2">
+                <TradeOperationTimer
+                  investmentId={investment.id}
+                  onOperationStart={handleOperationStart}
+                  isEnabled={!canCancel && investment.status === 'active' && !isOperating}
+                  operationCompleted={operationCompleted}
+                />
+                <TradeOperationMessages
+                  isOperating={isOperating}
+                  onOperationComplete={handleOperationComplete}
+                />
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

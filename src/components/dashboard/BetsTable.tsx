@@ -15,7 +15,7 @@ interface BetsTableProps {
 
 export function BetsTable({ refreshTrigger }: BetsTableProps) {
   const [bets, setBets] = useState<Bet[]>([]);
-  const [allBets, setAllBets] = useState<Bet[]>([]); 
+  const [allBets, setAllBets] = useState<Bet[]>([]); // New state for storing all bets
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(0);
@@ -70,10 +70,6 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
     fetchBets();
   }, [fetchBets, refreshTrigger]);
 
-  const handleBetDeleted = useCallback(() => {
-    fetchBets();
-  }, [fetchBets]);
-
   const handleNextPage = () => {
     if (hasMore) {
       setCurrentPage(prev => prev + 1);
@@ -96,7 +92,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       <BetsTableActions 
         date={date}
         setDate={setDate}
-        bets={allBets}
+        bets={allBets} // Pass all bets instead of paginated bets
       />
 
       {bets.length === 0 ? (
@@ -105,14 +101,11 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
         </p>
       ) : (
         <>
-          <BetsTableContent 
-            bets={bets} 
-            onBetDeleted={handleBetDeleted}
-          />
+          <BetsTableContent bets={bets} />
           
           <div className="flex flex-col items-center gap-2">
             <div className="text-sm text-muted-foreground">
-              Página {currentPage + 1} de {Math.ceil(totalItems / itemsPerPage)}
+              Página {currentPage + 1} de {totalPages}
             </div>
             <div className="flex justify-center gap-4">
               <Button

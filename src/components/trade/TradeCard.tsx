@@ -176,7 +176,6 @@ export function TradeCard() {
             investments={investments}
             onCancelInvestment={handleCancelInvestmentWithState}
             processingCancellation={processingCancellation}
-            onInvestmentDeleted={refetchInvestments}
           />
         )}
       </CardContent>

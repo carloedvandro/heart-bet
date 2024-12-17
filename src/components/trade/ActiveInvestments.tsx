@@ -1,22 +1,29 @@
-import { Investment } from "@/types/trade";
 import { InvestmentCard } from "./InvestmentCard";
+
+interface Investment {
+  id: string;
+  created_at: string;
+  amount: number;
+  daily_rate: number;
+  locked_until: string;
+  current_balance: number;
+  status: string;
+}
 
 interface ActiveInvestmentsProps {
   investments: Investment[];
   onCancelInvestment: (id: string, createdAt: string) => void;
   processingCancellation: string | null;
-  onInvestmentDeleted?: () => void;
 }
 
 export function ActiveInvestments({ 
   investments, 
-  onCancelInvestment, 
-  processingCancellation,
-  onInvestmentDeleted
+  onCancelInvestment,
+  processingCancellation 
 }: ActiveInvestmentsProps) {
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-medium">Investimentos</h3>
+      <h3 className="text-lg font-semibold">Investimentos Ativos</h3>
       <div className="space-y-4">
         {investments.map((investment) => (
           <InvestmentCard
@@ -24,7 +31,6 @@ export function ActiveInvestments({
             investment={investment}
             onCancelInvestment={onCancelInvestment}
             isProcessing={processingCancellation === investment.id}
-            onDelete={onInvestmentDeleted}
           />
         ))}
       </div>
