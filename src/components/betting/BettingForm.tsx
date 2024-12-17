@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { Bet } from "@/integrations/supabase/custom-types";
 import { BetType, DrawPeriod, Position } from "@/types/betting";
-import BetForm from "./BetForm";
+import BetForm from "../BetForm";
 import BettingHeartGrid from "./BettingHeartGrid";
 import { Button } from "../ui/button";
 import { Eraser } from "lucide-react";
@@ -58,7 +58,8 @@ const BettingForm = ({ onBetPlaced, initialBetType = "simple_group" }: BettingFo
 
   const handleBetTypeChange = (newBetType: BetType) => {
     setBetType(newBetType);
-    setIsPlayerOpen(false); // Fecha o player quando muda o tipo de aposta
+    setIsPlayerOpen(false);
+    handleClearSelection();
   };
 
   return (

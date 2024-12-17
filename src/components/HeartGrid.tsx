@@ -25,7 +25,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
   const [pendingBet, setPendingBet] = useState<Bet | null>(null);
   const [currentBetType, setCurrentBetType] = useState<BetType>("simple_group");
   const { clearCombinations } = useTemporaryBetState();
-  const [formKey, setFormKey] = useState(0); // Add this line to force form reset
+  const [formKey, setFormKey] = useState(0);
 
   const handleReset = () => {
     console.log("Resetting bet state");
@@ -33,7 +33,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
     setPendingBet(null);
     setShowConfirmDialog(false);
     clearCombinations();
-    setFormKey(prev => prev + 1); // Increment form key to force reset
+    setFormKey(prev => prev + 1);
   };
 
   const handleBetPlaced = (bet: Bet) => {
@@ -67,7 +67,7 @@ const HeartGrid = ({ onBetPlaced }: HeartGridProps) => {
         <BettingForm 
           onBetPlaced={handleBetPlaced} 
           initialBetType={currentBetType}
-          key={formKey} // Use formKey here to force reset
+          key={formKey}
         />
       )}
 
