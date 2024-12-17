@@ -26,10 +26,10 @@ const FloatingHeart = ({ index }: { index: number }) => {
         left: randomLeft,
         animationDelay: randomDelay,
         animationDuration: randomDuration,
-        '--tw-float-r': randomRotate,
-        '--tw-float-x': `${-50 + Math.random() * 100}px`,
+        '--float-r': randomRotate,
+        '--float-x': `${-50 + Math.random() * 100}px`,
         fontSize: randomSize,
-      }}
+      } as React.CSSProperties}
     >
       ❤️
     </div>

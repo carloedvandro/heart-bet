@@ -75,7 +75,7 @@ export default {
             opacity: "1"
           },
           "100%": { 
-            transform: "translate(var(--tw-float-x, -100px), -100vh) rotate(var(--tw-float-r, 360deg))",
+            transform: "translate(var(--float-x, -100px), -100vh) rotate(var(--float-r, 360deg))",
             opacity: "0"
           }
         },
