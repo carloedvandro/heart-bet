@@ -92,26 +92,35 @@ export function TradeCard() {
   return (
     <Card className="bg-white/90 backdrop-blur">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
+        <CardTitle className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <span>Investimento Trade</span>
-          <div className="space-x-2">
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             {!financialProfile ? (
-              <Button onClick={() => setShowProfileDialog(true)} variant="default">
+              <Button 
+                onClick={() => setShowProfileDialog(true)} 
+                variant="default"
+                className="w-full sm:w-auto"
+              >
                 Completar Cadastro
               </Button>
             ) : !financialProfile.terms_accepted ? (
-              <Button onClick={() => setShowTermsDialog(true)} variant="default">
+              <Button 
+                onClick={() => setShowTermsDialog(true)} 
+                variant="default"
+                className="w-full sm:w-auto"
+              >
                 Aceitar Termos
               </Button>
             ) : (
-              <>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span>
+                      <span className="w-full sm:w-auto">
                         <Button 
                           onClick={handleStartInvestment}
                           disabled={!isInvestmentEnabled}
+                          className="w-full"
                         >
                           Novo Investimento
                         </Button>
@@ -127,11 +136,12 @@ export function TradeCard() {
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span>
+                      <span className="w-full sm:w-auto">
                         <Button 
                           variant="outline" 
                           onClick={handleWithdraw}
                           disabled={!isInvestmentEnabled}
+                          className="w-full"
                         >
                           Solicitar Saque
                         </Button>
@@ -144,7 +154,7 @@ export function TradeCard() {
                     )}
                   </Tooltip>
                 </TooltipProvider>
-              </>
+              </div>
             )}
           </div>
         </CardTitle>
