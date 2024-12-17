@@ -13,11 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Wallet } from "lucide-react";
 import { playSounds } from "@/utils/soundEffects";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function RechargeDialog() {
   const [amount, setAmount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const handleRecharge = async () => {
     if (amount <= 0) {
@@ -36,7 +38,6 @@ export function RechargeDialog() {
         return;
       }
 
-      // Criar a recarga
       const { error: rechargeError } = await supabase
         .from("recharges")
         .insert({
@@ -64,19 +65,21 @@ export function RechargeDialog() {
       <DialogTrigger asChild>
         <Button 
           variant="outline" 
-          className="bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-600 hover:text-blue-700"
+          className={`bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-600 hover:text-blue-700 ${
+            isMobile ? 'text-xs h-8 px-2' : ''
+          }`}
         >
-          <Wallet className="mr-2 h-4 w-4" />
-          Recarregar
+          <Wallet className={`${isMobile ? 'h-3 w-3' : 'h-4 w-4'} mr-2`} />
+          {isMobile ? 'Recarregar' : 'Recarregar Saldo'}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] dark:bg-gray-800">
         <DialogHeader>
-          <DialogTitle>Solicitar Recarga</DialogTitle>
+          <DialogTitle className="dark:text-white">Solicitar Recarga</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="amount">Valor da Recarga (R$)</Label>
+            <Label htmlFor="amount" className="dark:text-white">Valor da Recarga (R$)</Label>
             <Input
               id="amount"
               type="number"
@@ -85,9 +88,10 @@ export function RechargeDialog() {
               value={amount}
               onChange={(e) => setAmount(Number(e.target.value))}
               placeholder="Digite o valor"
+              className="dark:bg-gray-700 dark:text-white dark:border-gray-600"
             />
           </div>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-sm text-muted-foreground dark:text-gray-300">
             Após confirmar a solicitação, você poderá enviar o comprovante de pagamento.
           </p>
         </div>

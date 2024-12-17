@@ -28,7 +28,6 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
     cleanup
   } = useAudioPlayer(audioUrl);
 
-  // Efeito para iniciar a reprodução automaticamente quando o player é aberto
   useEffect(() => {
     if (isOpen && !isPlaying && !isLoading) {
       console.log("Iniciando reprodução automática");
@@ -37,18 +36,18 @@ const FloatingAudioPlayer = ({ audioUrl, isOpen, onClose }: FloatingAudioPlayerP
   }, [isOpen, isPlaying, isLoading, togglePlay]);
 
   const handleClose = () => {
-    cleanup(); // Chama a função cleanup que agora reseta todos os estados
+    cleanup();
     onClose();
   };
 
   if (!isOpen) return null;
 
   return (
-    <Card className="fixed bottom-4 right-4 p-4 w-80 space-y-4 bg-white/95 backdrop-blur shadow-lg z-50 animate-in slide-in-from-right-1/4">
+    <Card className="fixed bottom-4 right-4 p-4 w-80 space-y-4 dark:bg-gray-800/95 bg-white/95 backdrop-blur shadow-lg z-50 animate-in slide-in-from-right-1/4">
       <div className="flex justify-between items-center">
-        <h3 className="font-medium">Regras do Jogo</h3>
-        <Button variant="ghost" size="icon" onClick={handleClose}>
-          <X className="h-4 w-4" />
+        <h3 className="font-medium dark:text-white">Regras do Jogo</h3>
+        <Button variant="ghost" size="icon" onClick={handleClose} className="dark:hover:bg-gray-700">
+          <X className="h-4 w-4 dark:text-white" />
         </Button>
       </div>
 
