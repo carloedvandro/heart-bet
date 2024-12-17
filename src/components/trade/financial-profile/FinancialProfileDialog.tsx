@@ -45,7 +45,7 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
     try {
       setLoading(true);
       
-      const { error: insertError } = await supabase
+      const { error } = await supabase
         .from('financial_profiles')
         .insert({
           id: session.user.id,
@@ -53,11 +53,11 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
           cpf: formatCPF(formData.cpf)
         });
 
-      if (insertError) {
-        if (insertError.code === '23505' && insertError.message?.includes('financial_profiles_cpf_key')) {
+      if (error) {
+        if (error.code === '23505' && error.message?.includes('financial_profiles_cpf_key')) {
           toast.error("Este CPF já está cadastrado no sistema");
         } else {
-          console.error('Error inserting profile:', insertError);
+          console.error('Error inserting profile:', error);
           toast.error("Erro ao cadastrar perfil financeiro");
         }
         return;
