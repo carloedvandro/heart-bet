@@ -17,11 +17,11 @@ export function TradeActions({
 }: TradeActionsProps) {
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  // Adiciona um delay inicial de segurança
+  // Aumenta o delay inicial para 5 segundos
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsInitialLoading(false);
-    }, 2000); // 2 segundos de delay
+    }, 5000); // 5 segundos de delay
 
     return () => clearTimeout(timer);
   }, []);
@@ -45,10 +45,10 @@ export function TradeActions({
 
       return data;
     },
-    staleTime: 0, // Desabilita o cache para sempre buscar dados frescos
-    refetchInterval: 5000, // Refetch a cada 5 segundos
-    refetchOnMount: true, // Refetch quando o componente montar
-    refetchOnWindowFocus: true, // Refetch quando a janela ganhar foco
+    staleTime: 0,
+    refetchInterval: 5000,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 
   // Função para verificar se o perfil existe e está completo
