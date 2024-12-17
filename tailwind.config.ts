@@ -1,15 +1,14 @@
-import type { Config } from "tailwindcss";
+import { type Config } from "tailwindcss";
 import { fontFamily } from "tailwindcss/defaultTheme";
 
-const config = {
+export default {
   darkMode: ["class"],
   content: [
     './pages/**/*.{ts,tsx}',
     './components/**/*.{ts,tsx}',
     './app/**/*.{ts,tsx}',
     './src/**/*.{ts,tsx}',
-  ],
-  prefix: "",
+	],
   theme: {
     container: {
       center: true,
@@ -53,18 +52,6 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        heart: {
-          red: "var(--heart-red)",
-          blue: "var(--heart-blue)",
-          black: "var(--heart-black)",
-          yellow: "var(--heart-yellow)",
-          green: "var(--heart-green)",
-          purple: "var(--heart-purple)",
-          pink: "var(--heart-pink)",
-          brown: "var(--heart-brown)",
-          gray: "var(--heart-gray)",
-          white: "var(--heart-white)",
-        }
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -84,18 +71,16 @@ const config = {
           to: { height: "0" },
         },
         shimmer: {
-          '0%': { transform: 'translateX(-100%)' },
-          '100%': { transform: 'translateX(100%)' }
+          '0%': { backgroundPosition: '200% 0' },
+          '100%': { backgroundPosition: '-200% 0' },
         }
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
-        "shimmer": "shimmer 2s infinite linear"
+        "shimmer": "shimmer 2s linear infinite",
       },
     },
   },
   plugins: [require("tailwindcss-animate")],
-} satisfies Config;
-
-export default config;
+} satisfies Config

@@ -7,6 +7,7 @@ import { TradeOperationMessages } from "./TradeOperationMessages";
 import { useState, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { OperationProgress } from "./OperationProgress";
 
 interface Investment {
   id: string;
@@ -44,7 +45,11 @@ const InvestmentCard = memo(({
   const handleOperationStart = async () => {
     setIsOperating(true);
     try {
-      console.log('Iniciando operação para investimento:', investment.id);
+      console.log('=== Iniciando operação ===');
+      console.log('ID do investimento:', investment.id);
+      console.log('Valor investido:', investment.amount);
+      console.log('Taxa diária:', investment.daily_rate);
+      console.log('Saldo atual:', currentBalance);
       
       const now = new Date();
       const nextOperation = new Date(now.getTime() + 60 * 1000); // 1 minuto para teste
@@ -63,6 +68,8 @@ const InvestmentCard = memo(({
         throw operationError;
       }
 
+      console.log('Operação registrada com sucesso');
+
       // Chamar a função de cálculo de rendimentos
       const { data: earningsData, error: earningsError } = await supabase
         .rpc('calculate_daily_earnings');
@@ -72,12 +79,12 @@ const InvestmentCard = memo(({
         throw earningsError;
       }
 
-      console.log('Rendimentos calculados:', earningsData);
+      console.log('Função calculate_daily_earnings executada:', earningsData);
 
       // Buscar o investimento atualizado
       const { data: updatedInvestment, error: fetchError } = await supabase
         .from('trade_investments')
-        .select('current_balance')
+        .select('current_balance, trade_earnings(amount)')
         .eq('id', investment.id)
         .single();
 
@@ -87,15 +94,19 @@ const InvestmentCard = memo(({
       }
 
       if (updatedInvestment) {
+        console.log('=== Resultado da operação ===');
         console.log('Saldo anterior:', currentBalance);
         console.log('Novo saldo:', updatedInvestment.current_balance);
         
         const earned = updatedInvestment.current_balance - currentBalance;
+        console.log('Rendimento calculado:', earned);
+        
         setCurrentBalance(updatedInvestment.current_balance);
         
         if (earned > 0) {
           toast.success(`Operação concluída! Rendimento: R$ ${earned.toFixed(2)}`);
         } else {
+          console.warn('Nenhum rendimento registrado nesta operação');
           toast.info('Operação concluída, mas não houve rendimento neste período.');
         }
       }
@@ -114,7 +125,7 @@ const InvestmentCard = memo(({
     try {
       const { data, error } = await supabase
         .from('trade_investments')
-        .select('current_balance')
+        .select('current_balance, trade_earnings(amount)')
         .eq('id', investment.id)
         .single();
 
@@ -129,7 +140,6 @@ const InvestmentCard = memo(({
         }
       }
 
-      // Resetar operationCompleted após 1 minuto
       setTimeout(() => {
         setOperationCompleted(false);
       }, 60000);
@@ -196,6 +206,7 @@ const InvestmentCard = memo(({
                   isEnabled={!canCancel && investment.status === 'active' && !isOperating}
                   operationCompleted={operationCompleted}
                 />
+                {isOperating && <OperationProgress />}
                 <TradeOperationMessages
                   isOperating={isOperating}
                   onOperationComplete={handleOperationComplete}

@@ -1,22 +1,14 @@
 import { cn } from "@/lib/utils";
-import { Progress } from "@/components/ui/progress";
 
-interface OperationProgressProps {
-  value?: number;
-  className?: string;
-}
-
-export function OperationProgress({ value = 0, className }: OperationProgressProps) {
+export function OperationProgress() {
   return (
-    <div className={cn("relative w-full", className)}>
-      <Progress value={value} className="h-2 relative overflow-hidden">
-        <div
-          className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent animate-shimmer"
-          style={{
-            backgroundSize: '200% 100%',
-          }}
-        />
-      </Progress>
+    <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+      <div 
+        className={cn(
+          "h-full bg-gradient-to-r from-green-500 via-green-300 to-green-500",
+          "animate-shimmer bg-[length:200%_100%]"
+        )}
+      />
     </div>
   );
 }
