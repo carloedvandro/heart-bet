@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { memo } from 'react';
 
 interface InvestmentStatsProps {
   totalInvested: number;
@@ -7,7 +8,11 @@ interface InvestmentStatsProps {
   isLoading: boolean;
 }
 
-export function InvestmentStats({ totalInvested, totalEarnings, isLoading }: InvestmentStatsProps) {
+export const InvestmentStats = memo(function InvestmentStats({ 
+  totalInvested, 
+  totalEarnings, 
+  isLoading 
+}: InvestmentStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <Card>
@@ -41,4 +46,4 @@ export function InvestmentStats({ totalInvested, totalEarnings, isLoading }: Inv
       </Card>
     </div>
   );
-}
+});

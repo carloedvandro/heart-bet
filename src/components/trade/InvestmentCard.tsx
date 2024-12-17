@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { differenceInMinutes } from "date-fns";
 import { CancellationTimer } from "./CancellationTimer";
-import { useState } from "react";
+import { useState, memo } from "react";
 
 interface Investment {
   id: string;
@@ -20,7 +20,11 @@ interface InvestmentCardProps {
   isProcessing: boolean;
 }
 
-export function InvestmentCard({ investment, onCancelInvestment, isProcessing }: InvestmentCardProps) {
+export const InvestmentCard = memo(function InvestmentCard({ 
+  investment, 
+  onCancelInvestment, 
+  isProcessing 
+}: InvestmentCardProps) {
   const [canCancel, setCanCancel] = useState(
     differenceInMinutes(new Date(), new Date(investment.created_at)) <= 30 && 
     investment.status === 'active'
@@ -83,4 +87,4 @@ export function InvestmentCard({ investment, onCancelInvestment, isProcessing }:
       </CardContent>
     </Card>
   );
-}
+});

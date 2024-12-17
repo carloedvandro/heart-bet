@@ -14,12 +14,13 @@ export function useInvestments() {
 
       if (error) throw error;
       return data;
-    }
+    },
+    staleTime: 1000 * 60 * 5, // Cache por 5 minutos
+    refetchInterval: 1000 * 60 * 5, // Atualiza a cada 5 minutos
   });
 
   const handleCancelInvestment = async (investmentId: string) => {
     try {
-      // Primeiro, verificar se o investimento ainda está ativo
       const { data: currentInvestment, error: checkError } = await supabase
         .from('trade_investments')
         .select('amount, status')
@@ -40,7 +41,6 @@ export function useInvestments() {
         return;
       }
 
-      // Usar uma transação RPC para garantir atomicidade
       const { error: cancelError } = await supabase
         .rpc('cancel_investment', { investment_id: investmentId });
 
@@ -59,7 +59,6 @@ export function useInvestments() {
     }
   };
 
-  // Modificado para considerar apenas investimentos ativos
   const totalInvested = investments?.reduce((sum, inv) => 
     inv.status === 'active' ? sum + Number(inv.amount) : sum, 0) || 0;
     

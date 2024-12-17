@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { InvestmentCard } from "./InvestmentCard";
 
 interface Investment {
@@ -16,7 +17,7 @@ interface ActiveInvestmentsProps {
   processingCancellation: string | null;
 }
 
-export function ActiveInvestments({ 
+export const ActiveInvestments = memo(function ActiveInvestments({ 
   investments, 
   onCancelInvestment,
   processingCancellation 
@@ -36,4 +37,4 @@ export function ActiveInvestments({
       </div>
     </div>
   );
-}
+});
