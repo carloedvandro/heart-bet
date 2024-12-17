@@ -42,13 +42,14 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
       setLoading(true);
       
       // First check if CPF already exists
-      const { data: existingProfile } = await supabase
+      const { data: existingProfiles, error: searchError } = await supabase
         .from('financial_profiles')
         .select('id')
-        .eq('cpf', formData.cpf)
-        .single();
+        .eq('cpf', formData.cpf);
 
-      if (existingProfile) {
+      if (searchError) throw searchError;
+
+      if (existingProfiles && existingProfiles.length > 0) {
         toast.error("Este CPF já está cadastrado no sistema");
         return;
       }
