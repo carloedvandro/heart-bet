@@ -1,4 +1,3 @@
-import { memo } from 'react';
 import { InvestmentCard } from "./InvestmentCard";
 
 interface Investment {
@@ -17,11 +16,11 @@ interface ActiveInvestmentsProps {
   processingCancellation: string | null;
 }
 
-const ActiveInvestments = memo(({ 
+export function ActiveInvestments({ 
   investments, 
   onCancelInvestment,
   processingCancellation 
-}: ActiveInvestmentsProps) => {
+}: ActiveInvestmentsProps) {
   return (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold">Investimentos Ativos</h3>
@@ -37,8 +36,4 @@ const ActiveInvestments = memo(({
       </div>
     </div>
   );
-});
-
-ActiveInvestments.displayName = 'ActiveInvestments';
-
-export { ActiveInvestments };
+}

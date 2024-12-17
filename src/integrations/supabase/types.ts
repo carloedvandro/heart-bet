@@ -418,6 +418,45 @@ export type Database = {
         }
         Relationships: []
       }
+      trade_operations: {
+        Row: {
+          created_at: string
+          id: string
+          investment_id: string
+          next_operation_at: string
+          operated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          investment_id: string
+          next_operation_at: string
+          operated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          investment_id?: string
+          next_operation_at?: string
+          operated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_investment"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "trade_investments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "trade_operations_investment_id_fkey"
+            columns: ["investment_id"]
+            isOneToOne: false
+            referencedRelation: "trade_investments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       trade_withdrawals: {
         Row: {
           amount: number
