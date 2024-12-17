@@ -9,14 +9,14 @@ export const useTradeOperation = (
   dailyRate: number,
   initialBalance: number
 ) => {
+  const isMountedRef = useRef(true);
+  const retryCountRef = useRef(0);
+  const MAX_RETRIES = 3;
+
   const [isOperating, setIsOperating] = useState(false);
   const [operationCompleted, setOperationCompleted] = useState(false);
   const [currentBalance, setCurrentBalance] = useState(initialBalance);
   const [nextOperationTime, setNextOperationTime] = useState<Date | null>(null);
-  const retryCountRef = useRef(0);
-  const isMountedRef = useRef(true);
-  const fetchTimeoutRef = useRef<NodeJS.Timeout>();
-  const MAX_RETRIES = 3;
 
   const fetchNextOperationTime = useCallback(async () => {
     if (!isMountedRef.current || isOperating || operationCompleted) {
@@ -32,22 +32,22 @@ export const useTradeOperation = (
       if (!isMountedRef.current) return;
 
       if (error) {
+        console.error('Error fetching next operation time:', error);
         throw error;
       }
 
       if (data) {
-        const nextTime = new Date(data);
-        setNextOperationTime(nextTime);
+        setNextOperationTime(new Date(data));
         retryCountRef.current = 0;
       }
     } catch (error) {
-      console.error('Error fetching next operation time:', error);
+      console.error('Error in fetchNextOperationTime:', error);
       
       if (retryCountRef.current < MAX_RETRIES) {
         retryCountRef.current += 1;
         const delay = Math.min(1000 * Math.pow(2, retryCountRef.current), 5000);
         
-        fetchTimeoutRef.current = setTimeout(() => {
+        setTimeout(() => {
           if (isMountedRef.current) {
             fetchNextOperationTime();
           }
@@ -110,7 +110,6 @@ export const useTradeOperation = (
       if (isMountedRef.current) {
         setNextOperationTime(nextOperation);
       }
-      
     } catch (error) {
       console.error('Operation error:', error);
       toast.error('Erro durante a operação. Tente novamente em alguns minutos.');
@@ -127,14 +126,12 @@ export const useTradeOperation = (
     setIsOperating(false);
     setOperationCompleted(true);
     
-    const timer = setTimeout(() => {
+    setTimeout(() => {
       if (isMountedRef.current) {
         setOperationCompleted(false);
         fetchNextOperationTime();
       }
     }, 5000);
-
-    return () => clearTimeout(timer);
   }, [fetchNextOperationTime]);
 
   useEffect(() => {
@@ -151,17 +148,11 @@ export const useTradeOperation = (
 
       return () => {
         clearInterval(interval);
-        if (fetchTimeoutRef.current) {
-          clearTimeout(fetchTimeoutRef.current);
-        }
       };
     }
 
     return () => {
       isMountedRef.current = false;
-      if (fetchTimeoutRef.current) {
-        clearTimeout(fetchTimeoutRef.current);
-      }
     };
   }, [fetchNextOperationTime, isOperating, operationCompleted]);
 
