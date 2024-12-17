@@ -19,9 +19,14 @@ export function Header({ profile, onLogout }: HeaderProps) {
     <div className="relative z-50 bg-white/90 backdrop-blur-sm rounded-lg p-4 shadow-lg mb-6">
       <div className="flex justify-between items-center flex-wrap gap-4">
         <div className="flex items-center gap-4 flex-wrap">
-          <h1 className="text-3xl font-bold text-gray-800">
-            Olá, {displayName}
-          </h1>
+          <div>
+            <h1 className="text-3xl font-bold text-gray-800 leading-tight">
+              Corações Premiados
+            </h1>
+            <p className="text-sm text-gray-600 -mt-1">
+              {displayName}
+            </p>
+          </div>
           <BalanceDisplay profile={profile} />
         </div>
         <div className="flex items-center gap-4">
