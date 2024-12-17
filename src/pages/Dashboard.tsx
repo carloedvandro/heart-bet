@@ -14,14 +14,15 @@ type RechargeRow = Database['public']['Tables']['recharges']['Row'];
 // Componente de coração flutuante
 const FloatingHeart = ({ index }: { index: number }) => {
   const randomDelay = `${index * 0.5}s`;
-  const randomDuration = `${6 + Math.random() * 4}s`;
+  const randomDuration = `${8 + Math.random() * 4}s`;
   const randomLeft = `${Math.random() * 100}vw`;
   const randomRotate = `${Math.random() * 360}deg`;
   const randomSize = `${20 + Math.random() * 20}px`;
+  const heartColor = Math.random() > 0.5 ? 'text-heart-red' : 'text-heart-black';
   
   return (
     <div
-      className="absolute text-heart-red animate-float opacity-30"
+      className={`absolute animate-float animate-pulse ${heartColor} opacity-30`}
       style={{
         left: randomLeft,
         animationDelay: randomDelay,
@@ -166,7 +167,7 @@ export default function Dashboard() {
       {/* Floating hearts in dark mode */}
       {theme === 'dark' && (
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          {[...Array(20)].map((_, index) => (
+          {[...Array(30)].map((_, index) => (
             <FloatingHeart key={index} index={index} />
           ))}
         </div>
