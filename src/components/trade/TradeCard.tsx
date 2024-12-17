@@ -12,12 +12,14 @@ import { InvestmentStats } from "./InvestmentStats";
 import { ActiveInvestments } from "./ActiveInvestments";
 import { useInvestments } from "./hooks/useInvestments";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import ListenRulesButton from "../audio/ListenRulesButton";
 
 export function TradeCard() {
   const [showProfileDialog, setShowProfileDialog] = useState(false);
   const [showTermsDialog, setShowTermsDialog] = useState(false);
   const [showInvestDialog, setShowInvestDialog] = useState(false);
   const [showWithdrawDialog, setShowWithdrawDialog] = useState(false);
+  const [showRules, setShowRules] = useState(false);
   const [processingCancellation, setProcessingCancellation] = useState<string | null>(null);
 
   const { data: financialProfile, isLoading: isLoadingProfile } = useQuery({
@@ -109,13 +111,20 @@ export function TradeCard() {
                 </p>
               </div>
             ) : !financialProfile.terms_accepted ? (
-              <Button 
-                onClick={() => setShowTermsDialog(true)} 
-                variant="default"
-                className="w-full sm:w-auto"
-              >
-                Aceitar Termos
-              </Button>
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                <Button 
+                  onClick={() => setShowTermsDialog(true)} 
+                  variant="default"
+                  className="w-full sm:w-auto"
+                >
+                  Aceitar Termos
+                </Button>
+                <ListenRulesButton
+                  audioUrl="/lovable-uploads/cc8ca6b5-f893-4c37-ba56-0296ff945bf5.png"
+                  isOpen={showRules}
+                  onOpenChange={setShowRules}
+                />
+              </div>
             ) : (
               <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                 <TooltipProvider>
@@ -159,6 +168,11 @@ export function TradeCard() {
                     )}
                   </Tooltip>
                 </TooltipProvider>
+                <ListenRulesButton
+                  audioUrl="/lovable-uploads/cc8ca6b5-f893-4c37-ba56-0296ff945bf5.png"
+                  isOpen={showRules}
+                  onOpenChange={setShowRules}
+                />
               </div>
             )}
           </div>
