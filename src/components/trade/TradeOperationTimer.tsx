@@ -17,7 +17,7 @@ export function TradeOperationTimer({
   isEnabled,
   operationCompleted
 }: TradeOperationTimerProps) {
-  const [timeLeft, setTimeLeft] = useState<number>(1800); // 30 minutos em segundos
+  const [timeLeft, setTimeLeft] = useState<number>(120); // 120 segundos
   const [canOperate, setCanOperate] = useState(false);
   const timeZone = 'America/Sao_Paulo';
   const [lastOperationTime, setLastOperationTime] = useState<Date | null>(null);
@@ -77,7 +77,7 @@ export function TradeOperationTimer({
 
   useEffect(() => {
     if (!isEnabled || !lastOperationTime || isLoading) {
-      setTimeLeft(1800);
+      setTimeLeft(120); // Resetar para 120 segundos
       setCanOperate(false);
       return;
     }
@@ -86,7 +86,7 @@ export function TradeOperationTimer({
     if (operationCompleted) {
       const now = toZonedTime(new Date(), timeZone);
       setLastOperationTime(now);
-      setTimeLeft(1800);
+      setTimeLeft(120);
       setCanOperate(false);
       return;
     }
@@ -94,9 +94,9 @@ export function TradeOperationTimer({
     const calculateTimeLeft = () => {
       const now = toZonedTime(new Date(), timeZone);
       const secondsPassed = differenceInSeconds(now, lastOperationTime);
-      const remaining = Math.max(1800 - secondsPassed, 0); // Não permite valores negativos
+      const remaining = Math.max(120 - secondsPassed, 0); // 120 segundos, não permite valores negativos
 
-      if (secondsPassed >= 1800) {
+      if (secondsPassed >= 120) {
         setCanOperate(true);
         setTimeLeft(0);
       } else {

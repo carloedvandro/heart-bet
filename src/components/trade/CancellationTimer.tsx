@@ -1,25 +1,26 @@
 import { differenceInMinutes, differenceInSeconds } from "date-fns";
 import { useEffect, useState } from "react";
+import { toZonedTime } from 'date-fns-tz';
 
 interface CancellationTimerProps {
   createdAt: string;
   onTimeExpired: () => void;
-  isActive: boolean; // New prop to control timer state
+  isActive: boolean;
 }
 
 export function CancellationTimer({ createdAt, onTimeExpired, isActive }: CancellationTimerProps) {
   const [timeLeft, setTimeLeft] = useState<{ minutes: number; seconds: number }>({ minutes: 0, seconds: 0 });
-  const CANCELLATION_WINDOW = 30; // 30 minutos
+  const CANCELLATION_WINDOW = 5; // Reduzido para 5 minutos
+  const timeZone = 'America/Sao_Paulo';
 
   useEffect(() => {
-    // If not active, don't start the timer
     if (!isActive) {
       return;
     }
 
     const calculateTimeLeft = () => {
-      const now = new Date();
-      const created = new Date(createdAt);
+      const now = toZonedTime(new Date(), timeZone);
+      const created = toZonedTime(new Date(createdAt), timeZone);
       const minutesPassed = differenceInMinutes(now, created);
       const timeLeftMinutes = CANCELLATION_WINDOW - minutesPassed - 1;
       
@@ -41,7 +42,7 @@ export function CancellationTimer({ createdAt, onTimeExpired, isActive }: Cancel
     const interval = setInterval(calculateTimeLeft, 1000);
 
     return () => clearInterval(interval);
-  }, [createdAt, onTimeExpired, isActive]);
+  }, [createdAt, onTimeExpired, isActive, timeZone]);
 
   if (timeLeft.minutes < 0 || !isActive) return null;
 
