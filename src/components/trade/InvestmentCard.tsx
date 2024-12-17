@@ -44,6 +44,8 @@ const InvestmentCard = memo(({
   const handleOperationStart = async () => {
     setIsOperating(true);
     try {
+      console.log('Iniciando operação para investimento:', investment.id);
+      
       const now = new Date();
       const nextOperation = new Date(now.getTime() + 60 * 1000); // 1 minuto para teste
 
@@ -56,17 +58,21 @@ const InvestmentCard = memo(({
           next_operation_at: nextOperation.toISOString()
         });
 
-      if (operationError) throw operationError;
+      if (operationError) {
+        console.error('Erro ao registrar operação:', operationError);
+        throw operationError;
+      }
 
       // Chamar a função de cálculo de rendimentos
-      const { data, error: earningsError } = await supabase
+      const { data: earningsData, error: earningsError } = await supabase
         .rpc('calculate_daily_earnings');
 
       if (earningsError) {
-        console.error('Error calculating earnings:', earningsError);
-        toast.error('Erro ao calcular rendimentos');
+        console.error('Erro ao calcular rendimentos:', earningsError);
         throw earningsError;
       }
+
+      console.log('Rendimentos calculados:', earningsData);
 
       // Buscar o investimento atualizado
       const { data: updatedInvestment, error: fetchError } = await supabase
@@ -75,17 +81,28 @@ const InvestmentCard = memo(({
         .eq('id', investment.id)
         .single();
 
-      if (fetchError) throw fetchError;
+      if (fetchError) {
+        console.error('Erro ao buscar saldo atualizado:', fetchError);
+        throw fetchError;
+      }
 
       if (updatedInvestment) {
+        console.log('Saldo anterior:', currentBalance);
+        console.log('Novo saldo:', updatedInvestment.current_balance);
+        
+        const earned = updatedInvestment.current_balance - currentBalance;
         setCurrentBalance(updatedInvestment.current_balance);
-        const earned = updatedInvestment.current_balance - investment.amount;
-        toast.success(`Operação concluída! Rendimento: R$ ${earned.toFixed(2)}`);
+        
+        if (earned > 0) {
+          toast.success(`Operação concluída! Rendimento: R$ ${earned.toFixed(2)}`);
+        } else {
+          toast.info('Operação concluída, mas não houve rendimento neste período.');
+        }
       }
 
     } catch (error) {
-      console.error('Error starting operation:', error);
-      toast.error('Erro ao iniciar operação');
+      console.error('Erro durante a operação:', error);
+      toast.error('Erro ao realizar operação');
       setIsOperating(false);
     }
   };
@@ -104,9 +121,12 @@ const InvestmentCard = memo(({
       if (error) throw error;
       
       if (data) {
+        const earned = data.current_balance - currentBalance;
         setCurrentBalance(data.current_balance);
-        const earned = data.current_balance - investment.amount;
-        toast.success(`Rendimentos calculados: R$ ${earned.toFixed(2)}`);
+        
+        if (earned > 0) {
+          toast.success(`Rendimentos calculados: R$ ${earned.toFixed(2)}`);
+        }
       }
 
       // Resetar operationCompleted após 1 minuto
@@ -115,7 +135,7 @@ const InvestmentCard = memo(({
       }, 60000);
 
     } catch (error) {
-      console.error('Error fetching updated balance:', error);
+      console.error('Erro ao atualizar saldo:', error);
       toast.error('Erro ao atualizar saldo');
     }
   };
