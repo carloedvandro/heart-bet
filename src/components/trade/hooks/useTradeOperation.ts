@@ -7,9 +7,13 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
   const [operationCompleted, setOperationCompleted] = useState(false);
   const [currentBalance, setCurrentBalance] = useState(initialBalance);
   const [nextOperationTime, setNextOperationTime] = useState<Date | null>(null);
+  const [isCountingDown, setIsCountingDown] = useState(false);
 
   // Fetch next operation time from backend
   const fetchNextOperationTime = async () => {
+    // Se já estiver em contagem regressiva, não buscar novo tempo
+    if (isCountingDown) return;
+
     const { data, error } = await supabase
       .rpc('get_next_operation_time', { p_investment_id: investmentId });
 
@@ -22,11 +26,12 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
     fetchNextOperationTime();
     const interval = setInterval(fetchNextOperationTime, 5000);
     return () => clearInterval(interval);
-  }, [investmentId]);
+  }, [investmentId, isCountingDown]);
 
   const handleOperationStart = async () => {
     console.log('=== Starting Trade Operation ===');
     setIsOperating(true);
+    setIsCountingDown(true);
     
     try {
       const now = new Date();
@@ -84,17 +89,24 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
     } catch (error) {
       console.error('Operation error:', error);
       toast.error('Erro durante a operação');
+      setIsCountingDown(false);
     } finally {
       setIsOperating(false);
       setOperationCompleted(true);
-      setTimeout(() => setOperationCompleted(false), 5000);
+      setTimeout(() => {
+        setOperationCompleted(false);
+        setIsCountingDown(false);
+      }, 5000);
     }
   };
 
   const handleOperationComplete = () => {
     setIsOperating(false);
     setOperationCompleted(true);
-    setTimeout(() => setOperationCompleted(false), 5000);
+    setTimeout(() => {
+      setOperationCompleted(false);
+      setIsCountingDown(false);
+    }, 5000);
   };
 
   return {
