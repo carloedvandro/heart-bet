@@ -47,39 +47,57 @@ export function useTradeOperation({ investmentId }: UseTradeOperationProps) {
         .eq('id', investmentId)
         .single();
 
-      if (investmentError) throw investmentError;
+      if (investmentError) {
+        console.error('Error fetching investment:', investmentError);
+        throw investmentError;
+      }
       
       if (investment) {
+        console.log('Investment data:', investment);
         const earningAmount = Number((investment.amount * (investment.daily_rate / 100)).toFixed(2));
+        console.log('Calculated earning amount:', earningAmount);
         
-        // Registrar o rendimento
+        // Registrar o rendimento usando a data atual no fuso horário de São Paulo
+        const now = new Date();
+        const earned_at = now.toISOString().split('T')[0]; // Formato YYYY-MM-DD
+        
+        console.log('Inserting earning with data:', {
+          investment_id: investmentId,
+          amount: earningAmount,
+          earned_at
+        });
+
         const { error: earningError } = await supabase
           .from('trade_earnings')
           .insert({
             investment_id: investmentId,
             amount: earningAmount,
-            earned_at: new Date().toISOString()
+            earned_at
           });
 
-        if (earningError) throw earningError;
+        if (earningError) {
+          console.error('Error inserting earning:', earningError);
+          throw earningError;
+        }
 
         // Atualizar o saldo atual do investimento
         const newBalance = Number(investment.current_balance) + earningAmount;
+        console.log('Updating investment balance to:', newBalance);
+        
         const { error: updateError } = await supabase
           .from('trade_investments')
           .update({ current_balance: newBalance })
           .eq('id', investmentId);
 
-        if (updateError) throw updateError;
+        if (updateError) {
+          console.error('Error updating investment balance:', updateError);
+          throw updateError;
+        }
 
         // Forçar atualização dos dados do investimento
         queryClient.invalidateQueries({ queryKey: ['trade-investments'] });
+        console.log('Operation completed successfully');
       }
-
-      // Resetar operationCompleted após 1 minuto
-      setTimeout(() => {
-        setOperationCompleted(false);
-      }, 60000);
 
     } catch (error) {
       console.error('Error completing operation:', error);
