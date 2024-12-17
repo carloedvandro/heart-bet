@@ -8,7 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "../ui/button";
 import { CheckCircle, XCircle } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { FinancialProfileDialog } from "../trade/FinancialProfileDialog";
 
 interface HeaderProps {
   profile: Profile | null;
@@ -17,7 +18,7 @@ interface HeaderProps {
 
 export function Header({ profile, onLogout }: HeaderProps) {
   const session = useSession();
-  const navigate = useNavigate();
+  const [showProfileDialog, setShowProfileDialog] = useState(false);
   const displayName = session?.user?.email || 'Usuário';
 
   // Query to check if financial profile exists
@@ -44,7 +45,7 @@ export function Header({ profile, onLogout }: HeaderProps) {
   const isProfileComplete = !!financialProfile;
 
   const handleProfileClick = () => {
-    navigate('/trade'); // This will navigate to the trade page where they can complete their profile
+    setShowProfileDialog(true);
   };
 
   return (
@@ -93,6 +94,11 @@ export function Header({ profile, onLogout }: HeaderProps) {
           <LogoutButton onLogout={onLogout} />
         </div>
       </div>
+
+      <FinancialProfileDialog 
+        open={showProfileDialog} 
+        onOpenChange={setShowProfileDialog} 
+      />
     </div>
   );
 }
