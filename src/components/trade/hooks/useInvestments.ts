@@ -2,14 +2,22 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { playSounds } from "@/utils/soundEffects";
+import { useSession } from "@supabase/auth-helpers-react";
 
 export function useInvestments() {
+  const session = useSession();
+
   const { data: investments, isLoading, refetch } = useQuery({
-    queryKey: ['trade-investments'],
+    queryKey: ['trade-investments', session?.user?.id],
     queryFn: async () => {
+      if (!session?.user?.id) {
+        return [];
+      }
+
       const { data, error } = await supabase
         .from('trade_investments')
         .select('*, trade_earnings(sum:amount)')
+        .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -17,6 +25,7 @@ export function useInvestments() {
     },
     staleTime: 1000 * 60 * 5, // Cache por 5 minutos
     refetchInterval: 1000 * 60 * 5, // Atualiza a cada 5 minutos
+    enabled: !!session?.user?.id, // Só executa a query se houver um usuário logado
   });
 
   const handleCancelInvestment = async (investmentId: string) => {
@@ -25,6 +34,7 @@ export function useInvestments() {
         .from('trade_investments')
         .select('amount, status')
         .eq('id', investmentId)
+        .eq('user_id', session?.user?.id) // Garante que o investimento pertence ao usuário
         .single();
 
       if (checkError) throw checkError;
