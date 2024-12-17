@@ -5,14 +5,14 @@ import { toZonedTime } from 'date-fns-tz';
 import { supabase } from "@/integrations/supabase/client";
 
 interface TradeOperationTimerProps {
-  investmentId: string; // Mudado de investmentCreatedAt para investmentId
+  investmentId: string;
   onOperationStart: () => void;
   isEnabled: boolean;
   operationCompleted: boolean;
 }
 
 export function TradeOperationTimer({ 
-  investmentId, // Atualizado o nome do prop
+  investmentId,
   onOperationStart,
   isEnabled,
   operationCompleted
@@ -21,34 +21,62 @@ export function TradeOperationTimer({
   const [canOperate, setCanOperate] = useState(false);
   const timeZone = 'America/Sao_Paulo';
   const [lastOperationTime, setLastOperationTime] = useState<Date | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Fetch the last operation time from the database
   useEffect(() => {
     const fetchLastOperationTime = async () => {
-      const { data, error } = await supabase
-        .from('trade_investments')
-        .select('created_at')
-        .eq('id', investmentId) // Usando o ID correto
-        .single();
+      try {
+        setIsLoading(true);
+        const { data: operations, error } = await supabase
+          .from('trade_operations')
+          .select('operated_at')
+          .eq('investment_id', investmentId)
+          .order('operated_at', { ascending: false })
+          .limit(1);
 
-      if (error) {
-        console.error('Error fetching investment creation time:', error);
-        return;
-      }
+        if (error) {
+          console.error('Error fetching last operation time:', error);
+          return;
+        }
 
-      if (data) {
-        const creationTime = toZonedTime(new Date(data.created_at), timeZone);
-        setLastOperationTime(creationTime);
+        if (operations && operations.length > 0) {
+          const lastOpTime = toZonedTime(new Date(operations[0].operated_at), timeZone);
+          console.log('Last operation time:', lastOpTime);
+          setLastOperationTime(lastOpTime);
+        } else {
+          // Se não houver operações anteriores, use a data de criação do investimento
+          const { data: investment, error: investmentError } = await supabase
+            .from('trade_investments')
+            .select('created_at')
+            .eq('id', investmentId)
+            .single();
+
+          if (investmentError) {
+            console.error('Error fetching investment creation time:', investmentError);
+            return;
+          }
+
+          if (investment) {
+            const creationTime = toZonedTime(new Date(investment.created_at), timeZone);
+            console.log('Investment creation time:', creationTime);
+            setLastOperationTime(creationTime);
+          }
+        }
+      } catch (error) {
+        console.error('Error in fetchLastOperationTime:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    if (isEnabled) {
+    if (isEnabled && investmentId) {
       fetchLastOperationTime();
     }
-  }, [isEnabled, investmentId]);
+  }, [isEnabled, investmentId, timeZone]);
 
   useEffect(() => {
-    if (!isEnabled || !lastOperationTime) {
+    if (!isEnabled || !lastOperationTime || isLoading) {
       setTimeLeft(1800);
       setCanOperate(false);
       return;
@@ -66,7 +94,7 @@ export function TradeOperationTimer({
     const calculateTimeLeft = () => {
       const now = toZonedTime(new Date(), timeZone);
       const secondsPassed = differenceInSeconds(now, lastOperationTime);
-      const remaining = 1800 - secondsPassed; // 30 minutos = 1800 segundos
+      const remaining = Math.max(1800 - secondsPassed, 0); // Não permite valores negativos
 
       if (secondsPassed >= 1800) {
         setCanOperate(true);
@@ -81,13 +109,17 @@ export function TradeOperationTimer({
     calculateTimeLeft(); // Initial calculation
 
     return () => clearInterval(interval);
-  }, [isEnabled, operationCompleted, lastOperationTime, timeZone]);
+  }, [isEnabled, operationCompleted, lastOperationTime, timeZone, isLoading]);
 
   if (!isEnabled) return null;
 
   return (
     <div className="space-y-4">
-      {!canOperate ? (
+      {isLoading ? (
+        <div className="text-sm text-muted-foreground">
+          Carregando cronômetro...
+        </div>
+      ) : !canOperate ? (
         <div className="text-sm text-muted-foreground">
           Tempo restante para operar: {Math.floor(timeLeft / 60)}:{(timeLeft % 60).toString().padStart(2, '0')}
         </div>
