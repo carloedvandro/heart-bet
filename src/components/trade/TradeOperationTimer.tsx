@@ -24,56 +24,64 @@ export function TradeOperationTimer({
   const [isLoading, setIsLoading] = useState(true);
 
   // Fetch the last operation time from the database
-  useEffect(() => {
-    const fetchLastOperationTime = async () => {
-      try {
-        setIsLoading(true);
-        const { data: operations, error } = await supabase
-          .from('trade_operations')
-          .select('operated_at')
-          .eq('investment_id', investmentId)
-          .order('operated_at', { ascending: false })
-          .limit(1);
+  const fetchLastOperationTime = async () => {
+    try {
+      setIsLoading(true);
+      const { data: operations, error } = await supabase
+        .from('trade_operations')
+        .select('operated_at')
+        .eq('investment_id', investmentId)
+        .order('operated_at', { ascending: false })
+        .limit(1);
 
-        if (error) {
-          console.error('Error fetching last operation time:', error);
+      if (error) {
+        console.error('Error fetching last operation time:', error);
+        return;
+      }
+
+      if (operations && operations.length > 0) {
+        const lastOpTime = toZonedTime(new Date(operations[0].operated_at), timeZone);
+        console.log('Last operation time:', lastOpTime);
+        setLastOperationTime(lastOpTime);
+      } else {
+        // Se não houver operações anteriores, use a data de criação do investimento
+        const { data: investment, error: investmentError } = await supabase
+          .from('trade_investments')
+          .select('created_at')
+          .eq('id', investmentId)
+          .single();
+
+        if (investmentError) {
+          console.error('Error fetching investment creation time:', investmentError);
           return;
         }
 
-        if (operations && operations.length > 0) {
-          const lastOpTime = toZonedTime(new Date(operations[0].operated_at), timeZone);
-          console.log('Last operation time:', lastOpTime);
-          setLastOperationTime(lastOpTime);
-        } else {
-          // Se não houver operações anteriores, use a data de criação do investimento
-          const { data: investment, error: investmentError } = await supabase
-            .from('trade_investments')
-            .select('created_at')
-            .eq('id', investmentId)
-            .single();
-
-          if (investmentError) {
-            console.error('Error fetching investment creation time:', investmentError);
-            return;
-          }
-
-          if (investment) {
-            const creationTime = toZonedTime(new Date(investment.created_at), timeZone);
-            console.log('Investment creation time:', creationTime);
-            setLastOperationTime(creationTime);
-          }
+        if (investment) {
+          const creationTime = toZonedTime(new Date(investment.created_at), timeZone);
+          console.log('Investment creation time:', creationTime);
+          setLastOperationTime(creationTime);
         }
-      } catch (error) {
-        console.error('Error in fetchLastOperationTime:', error);
-      } finally {
-        setIsLoading(false);
       }
-    };
+    } catch (error) {
+      console.error('Error in fetchLastOperationTime:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  // Atualizar o tempo quando o componente montar e quando isEnabled mudar
+  useEffect(() => {
     if (isEnabled && investmentId) {
       fetchLastOperationTime();
     }
-  }, [isEnabled, investmentId, timeZone]);
+  }, [isEnabled, investmentId]);
+
+  // Atualizar o tempo quando uma operação for completada
+  useEffect(() => {
+    if (operationCompleted) {
+      fetchLastOperationTime();
+    }
+  }, [operationCompleted]);
 
   useEffect(() => {
     if (!isEnabled || !lastOperationTime || isLoading) {
