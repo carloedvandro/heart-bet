@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { differenceInMinutes, differenceInSeconds } from "date-fns";
+import { differenceInSeconds } from "date-fns";
 
 interface TradeOperationTimerProps {
   investmentCreatedAt: string;
@@ -15,40 +15,29 @@ export function TradeOperationTimer({
   isEnabled,
   operationCompleted
 }: TradeOperationTimerProps) {
-  const [timeLeft, setTimeLeft] = useState<{ minutes: number; seconds: number }>({ 
-    minutes: 1, 
-    seconds: 0 
-  });
+  const [timeLeft, setTimeLeft] = useState<number>(60); // 60 seconds countdown
   const [canOperate, setCanOperate] = useState(false);
 
   useEffect(() => {
-    if (!isEnabled) return;
+    if (!isEnabled || operationCompleted) {
+      setTimeLeft(60);
+      setCanOperate(false);
+      return;
+    }
 
     const calculateTimeLeft = () => {
       const now = new Date();
-      let targetTime: Date;
+      const created = new Date(investmentCreatedAt);
+      const secondsPassed = differenceInSeconds(now, created) % 60;
+      const remaining = 60 - secondsPassed;
 
-      if (operationCompleted) {
-        // Se a operação foi completada, define o próximo horário alvo como 1 minuto a partir de agora
-        targetTime = new Date(now.getTime() + 1 * 60 * 1000);
-      } else {
-        // Caso contrário, usa o tempo original de criação do investimento
-        const created = new Date(investmentCreatedAt);
-        targetTime = new Date(created.getTime() + 1 * 60 * 1000);
-      }
-
-      if (now >= targetTime) {
+      if (remaining <= 0) {
         setCanOperate(true);
-        return;
+        setTimeLeft(0);
+      } else {
+        setCanOperate(false);
+        setTimeLeft(remaining);
       }
-
-      const minutesLeft = differenceInMinutes(targetTime, now);
-      const secondsLeft = differenceInSeconds(targetTime, now) % 60;
-
-      setTimeLeft({
-        minutes: minutesLeft,
-        seconds: secondsLeft
-      });
     };
 
     calculateTimeLeft();
@@ -57,7 +46,7 @@ export function TradeOperationTimer({
     return () => clearInterval(interval);
   }, [investmentCreatedAt, isEnabled, operationCompleted]);
 
-  // Reset canOperate quando a operação for completada
+  // Reset canOperate when operation is completed
   useEffect(() => {
     if (operationCompleted) {
       setCanOperate(false);
@@ -70,7 +59,7 @@ export function TradeOperationTimer({
     <div className="space-y-4">
       {!canOperate ? (
         <div className="text-sm text-muted-foreground">
-          Tempo restante para operar: {timeLeft.minutes}m {timeLeft.seconds}s
+          Tempo restante para operar: {timeLeft}s
         </div>
       ) : (
         <Button 
