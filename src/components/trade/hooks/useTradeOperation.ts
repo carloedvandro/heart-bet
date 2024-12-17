@@ -2,7 +2,12 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export const useTradeOperation = (investmentId: string, amount: number, dailyRate: number, initialBalance: number) => {
+export const useTradeOperation = (
+  investmentId: string,
+  amount: number,
+  dailyRate: number,
+  initialBalance: number
+) => {
   const [isOperating, setIsOperating] = useState(false);
   const [operationCompleted, setOperationCompleted] = useState(false);
   const [currentBalance, setCurrentBalance] = useState(initialBalance);
@@ -11,56 +16,63 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
 
   // Fetch next operation time from backend
   const fetchNextOperationTime = useCallback(async () => {
-    // Se já estiver em contagem regressiva ou operando, não buscar novo tempo
-    if (isCountingDown || isOperating) {
+    // Não buscar novo tempo se estiver em operação ou contagem regressiva
+    if (isOperating || isCountingDown) {
+      console.log('Skipping fetchNextOperationTime - operation in progress');
       return;
     }
 
     try {
+      console.log('Fetching next operation time...');
       const { data, error } = await supabase
         .rpc('get_next_operation_time', { p_investment_id: investmentId });
 
       if (!error && data) {
+        console.log('Next operation time received:', new Date(data));
         setNextOperationTime(new Date(data));
       }
     } catch (error) {
       console.error('Error fetching next operation time:', error);
     }
-  }, [investmentId, isCountingDown, isOperating]);
+  }, [investmentId, isOperating, isCountingDown]);
 
+  // Efeito para buscar o próximo horário de operação
   useEffect(() => {
     let isMounted = true;
-    
-    // Só configurar o intervalo se não estivermos em contagem regressiva ou operando
-    if (!isCountingDown && !isOperating) {
-      const fetchData = async () => {
-        if (isMounted) {
-          await fetchNextOperationTime();
-        }
-      };
+    let interval: NodeJS.Timeout | null = null;
 
+    const fetchData = async () => {
+      if (isMounted && !isOperating && !isCountingDown) {
+        await fetchNextOperationTime();
+      }
+    };
+
+    // Iniciar busca apenas se não estiver em operação
+    if (!isOperating && !isCountingDown) {
+      console.log('Setting up fetch interval');
       fetchData();
-      
-      const interval = setInterval(() => {
-        if (isMounted && !isCountingDown && !isOperating) {
-          fetchData();
-        }
-      }, 5000);
-
-      return () => {
-        isMounted = false;
-        clearInterval(interval);
-      };
+      interval = setInterval(fetchData, 5000);
     }
-  }, [fetchNextOperationTime, isCountingDown, isOperating]);
+
+    return () => {
+      console.log('Cleaning up fetch interval');
+      isMounted = false;
+      if (interval) {
+        clearInterval(interval);
+      }
+    };
+  }, [fetchNextOperationTime, isOperating, isCountingDown]);
 
   const handleOperationStart = async () => {
-    if (isOperating) return;
+    if (isOperating || isCountingDown) {
+      console.log('Operation already in progress');
+      return;
+    }
 
-    console.log('=== Starting Trade Operation ===');
+    console.log('Starting operation...');
     setIsOperating(true);
     setIsCountingDown(true);
-    
+
     try {
       const now = new Date();
       const nextOperation = new Date(now.getTime() + 30 * 1000);
@@ -120,28 +132,25 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
     } finally {
       setIsOperating(false);
       setOperationCompleted(true);
-      
-      const timer = setTimeout(() => {
-        if (!isOperating) {
-          setOperationCompleted(false);
-          setIsCountingDown(false);
-        }
-      }, 5000);
-
-      return () => clearTimeout(timer);
     }
   };
 
   const handleOperationComplete = useCallback(() => {
+    console.log('Operation completed');
     setIsOperating(false);
     setOperationCompleted(true);
     
+    // Aguardar 5 segundos antes de resetar os estados
     const timer = setTimeout(() => {
+      console.log('Resetting operation states');
       setOperationCompleted(false);
       setIsCountingDown(false);
     }, 5000);
 
-    return () => clearTimeout(timer);
+    return () => {
+      console.log('Cleaning up operation complete timer');
+      clearTimeout(timer);
+    };
   }, []);
 
   return {
