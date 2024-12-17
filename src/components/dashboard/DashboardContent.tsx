@@ -1,68 +1,47 @@
 import { Profile } from "@/integrations/supabase/custom-types";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import HeartGrid from "@/components/HeartGrid";
-import { BetsTable } from "./BetsTable";
-import { TradeCard } from "../trade/TradeCard";
+import { ProfileLayout } from "./profile/ProfileLayout";
+import { BetLayout } from "./bet/BetLayout";
+import { InvestmentLayout } from "./investment/InvestmentLayout";
+import { TradeLayout } from "./trade/TradeLayout";
+import { BetsLayout } from "./bets/BetsLayout";
+import { useEffect, useState } from "react";
 
 interface DashboardContentProps {
   profile: Profile | null;
   refreshTrigger: number;
   onBetPlaced: () => void;
-  initialView?: 'bet' | 'investment' | 'trade' | 'bets' | 'profile';
+  initialView?: string;
 }
 
-export const DashboardContent = ({ 
-  profile, 
-  refreshTrigger, 
-  onBetPlaced,
-  initialView = 'bet'
-}: DashboardContentProps) => {
+export function DashboardContent({ profile, refreshTrigger, onBetPlaced, initialView }: DashboardContentProps) {
+  const [currentView, setCurrentView] = useState(initialView || "home");
+
+  useEffect(() => {
+    if (initialView) {
+      setCurrentView(initialView);
+    }
+  }, [initialView]);
+
   const renderContent = () => {
-    switch (initialView) {
-      case 'bet':
-        return (
-          <Card className="bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-            <CardHeader>
-              <CardTitle>Nova Aposta</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <HeartGrid onBetPlaced={onBetPlaced} />
-            </CardContent>
-          </Card>
-        );
-      
-      case 'trade':
-        return <TradeCard />;
-      
-      case 'bets':
-        return (
-          <Card className="bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-            <CardHeader>
-              <CardTitle>Suas Apostas</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <BetsTable refreshTrigger={refreshTrigger} />
-            </CardContent>
-          </Card>
-        );
-      
+    switch (currentView) {
+      case "bet":
+        return <BetLayout profile={profile} onBetPlaced={onBetPlaced} />;
+      case "investment":
+        return <InvestmentLayout profile={profile} />;
+      case "trade":
+        return <TradeLayout profile={profile} />;
+      case "bets":
+        return <BetsLayout profile={profile} refreshTrigger={refreshTrigger} />;
+      case "profile":
+        return <ProfileLayout profile={profile} />;
       default:
-        return (
-          <Card className="bg-white/90 backdrop-blur supports-[backdrop-filter]:bg-white/60">
-            <CardHeader>
-              <CardTitle>Em construção</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p>Esta seção está sendo implementada.</p>
-            </CardContent>
-          </Card>
-        );
+        return <BetLayout profile={profile} onBetPlaced={onBetPlaced} />;
     }
   };
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6 relative z-10 pb-24">
+    <main className="pb-24">
       {renderContent()}
-    </div>
+    </main>
   );
-};
+}
