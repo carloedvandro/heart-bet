@@ -4,9 +4,10 @@ import { differenceInMinutes } from "date-fns";
 import { CancellationTimer } from "./CancellationTimer";
 import { TradeOperationTimer } from "./TradeOperationTimer";
 import { TradeOperationMessages } from "./TradeOperationMessages";
-import { useState, memo, useEffect } from "react";
+import { useState, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface Investment {
   id: string;
@@ -36,6 +37,7 @@ const InvestmentCard = memo(({
   const [isOperating, setIsOperating] = useState(false);
   const [operationCompleted, setOperationCompleted] = useState(false);
   const [currentBalance, setCurrentBalance] = useState(investment.current_balance);
+  const queryClient = useQueryClient();
 
   const handleTimeExpired = () => {
     setCanCancel(false);
@@ -93,6 +95,8 @@ const InvestmentCard = memo(({
       
       if (data) {
         setCurrentBalance(data.current_balance);
+        // Forçar atualização dos dados do investimento
+        queryClient.invalidateQueries({ queryKey: ['trade-investments'] });
       }
 
       // Resetar operationCompleted após 1 minuto
