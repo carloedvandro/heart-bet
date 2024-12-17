@@ -1,14 +1,5 @@
+import { Investment } from "@/types/trade";
 import { InvestmentCard } from "./InvestmentCard";
-
-interface Investment {
-  id: string;
-  created_at: string;
-  amount: number;
-  daily_rate: number;
-  locked_until: string;
-  current_balance: number;
-  status: string;
-}
 
 interface ActiveInvestmentsProps {
   investments: Investment[];
@@ -21,19 +12,22 @@ export function ActiveInvestments({
   onCancelInvestment,
   processingCancellation 
 }: ActiveInvestmentsProps) {
+  const handleDelete = () => {
+    // Recarregar a lista de investimentos
+    window.location.reload();
+  };
+
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Investimentos Ativos</h3>
-      <div className="space-y-4">
-        {investments.map((investment) => (
-          <InvestmentCard
-            key={investment.id}
-            investment={investment}
-            onCancelInvestment={onCancelInvestment}
-            isProcessing={processingCancellation === investment.id}
-          />
-        ))}
-      </div>
+      {investments.map((investment) => (
+        <InvestmentCard
+          key={investment.id}
+          investment={investment}
+          onCancelInvestment={onCancelInvestment}
+          isProcessing={processingCancellation === investment.id}
+          onDelete={handleDelete}
+        />
+      ))}
     </div>
   );
 }
