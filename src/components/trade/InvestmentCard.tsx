@@ -4,7 +4,9 @@ import { differenceInMinutes } from "date-fns";
 import { CancellationTimer } from "./CancellationTimer";
 import { TradeOperationTimer } from "./TradeOperationTimer";
 import { TradeOperationMessages } from "./TradeOperationMessages";
-import { useState, memo } from "react";
+import { useState, memo, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface Investment {
   id: string;
@@ -33,18 +35,61 @@ const InvestmentCard = memo(({
   );
   const [isOperating, setIsOperating] = useState(false);
   const [operationCompleted, setOperationCompleted] = useState(false);
+  const [currentBalance, setCurrentBalance] = useState(investment.current_balance);
 
   const handleTimeExpired = () => {
     setCanCancel(false);
   };
 
-  const handleOperationStart = () => {
+  const handleOperationStart = async () => {
     setIsOperating(true);
+    try {
+      const now = new Date();
+      const nextOperation = new Date(now.getTime() + 60 * 1000); // 1 minute for testing
+
+      const { error } = await supabase
+        .from('trade_operations')
+        .insert({
+          investment_id: investment.id,
+          operated_at: now.toISOString(),
+          next_operation_at: nextOperation.toISOString()
+        });
+
+      if (error) throw error;
+
+    } catch (error) {
+      console.error('Error starting operation:', error);
+      toast.error('Erro ao iniciar operação');
+      setIsOperating(false);
+    }
   };
 
-  const handleOperationComplete = () => {
+  const handleOperationComplete = async () => {
     setIsOperating(false);
     setOperationCompleted(true);
+    
+    try {
+      const { data, error } = await supabase
+        .from('trade_investments')
+        .select('current_balance')
+        .eq('id', investment.id)
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        setCurrentBalance(data.current_balance);
+      }
+
+      // Resetar operationCompleted após 1 minuto
+      setTimeout(() => {
+        setOperationCompleted(false);
+      }, 60000);
+
+    } catch (error) {
+      console.error('Error fetching updated balance:', error);
+      toast.error('Erro ao atualizar saldo');
+    }
   };
 
   return (
@@ -72,7 +117,7 @@ const InvestmentCard = memo(({
               Bloqueado até: {new Date(investment.locked_until).toLocaleDateString()}
             </p>
             <p className="font-semibold">
-              Saldo atual: R$ {Number(investment.current_balance).toFixed(2)}
+              Saldo atual: R$ {Number(currentBalance).toFixed(2)}
             </p>
             {canCancel ? (
               <div className="flex flex-col items-end gap-1">
@@ -100,7 +145,8 @@ const InvestmentCard = memo(({
                 <TradeOperationTimer
                   investmentCreatedAt={investment.created_at}
                   onOperationStart={handleOperationStart}
-                  isEnabled={!canCancel && investment.status === 'active' && !operationCompleted}
+                  isEnabled={!canCancel && investment.status === 'active' && !isOperating}
+                  operationCompleted={operationCompleted}
                 />
                 <TradeOperationMessages
                   isOperating={isOperating}

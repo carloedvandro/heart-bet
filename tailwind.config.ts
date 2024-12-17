@@ -65,6 +65,7 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
       },
+
       keyframes: {
         "heart-beat": {
           "0%, 100%": { transform: "scale(1)" },
@@ -116,6 +117,11 @@ export default {
             transform: "translateY(-20px) translateX(-30px) rotate(-15deg)",
           }
         },
+        "shimmer": {
+          "0%": { transform: "translateX(-100%)" },
+          "50%": { transform: "translateX(0%)" },
+          "100%": { transform: "translateX(100%)" }
+        }
       },
       animation: {
         "heart-beat": "heart-beat 0.8s ease-in-out infinite",
@@ -126,7 +132,9 @@ export default {
         "deal-card": "deal-card 0.5s ease-out",
         "gradient-x": "gradient 15s ease infinite",
         "float": "float 6s ease-in-out infinite",
+        "shimmer": "shimmer 2s linear infinite",
       },
+
     },
   },
   plugins: [require("tailwindcss-animate")],
