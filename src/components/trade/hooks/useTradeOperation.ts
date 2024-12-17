@@ -17,8 +17,8 @@ export const useTradeOperation = (
   // Fetch next operation time from backend
   const fetchNextOperationTime = useCallback(async () => {
     // Não buscar novo tempo se estiver em operação ou contagem regressiva
-    if (isOperating || isCountingDown) {
-      console.log('Skipping fetchNextOperationTime - operation in progress');
+    if (isOperating || isCountingDown || operationCompleted) {
+      console.log('Skipping fetchNextOperationTime - operation in progress or completed');
       return;
     }
 
@@ -28,30 +28,36 @@ export const useTradeOperation = (
         .rpc('get_next_operation_time', { p_investment_id: investmentId });
 
       if (!error && data) {
-        console.log('Next operation time received:', new Date(data));
-        setNextOperationTime(new Date(data));
+        const nextTime = new Date(data);
+        console.log('Next operation time received:', nextTime);
+        
+        // Só atualizar se o tempo for diferente do atual
+        if (!nextOperationTime || nextTime.getTime() !== nextOperationTime.getTime()) {
+          setNextOperationTime(nextTime);
+        }
       }
     } catch (error) {
       console.error('Error fetching next operation time:', error);
     }
-  }, [investmentId, isOperating, isCountingDown]);
+  }, [investmentId, isOperating, isCountingDown, operationCompleted, nextOperationTime]);
 
   // Efeito para buscar o próximo horário de operação
   useEffect(() => {
     let isMounted = true;
     let interval: NodeJS.Timeout | null = null;
 
-    const fetchData = async () => {
-      if (isMounted && !isOperating && !isCountingDown) {
-        await fetchNextOperationTime();
-      }
-    };
+    // Só buscar se não estiver em nenhuma operação ativa
+    if (!isOperating && !isCountingDown && !operationCompleted) {
+      console.log('Initial fetch of operation time');
+      fetchNextOperationTime();
 
-    // Iniciar busca apenas se não estiver em operação
-    if (!isOperating && !isCountingDown) {
-      console.log('Setting up fetch interval');
-      fetchData();
-      interval = setInterval(fetchData, 5000);
+      // Configurar intervalo apenas se não houver operação em andamento
+      interval = setInterval(() => {
+        if (isMounted && !isOperating && !isCountingDown && !operationCompleted) {
+          console.log('Periodic fetch of operation time');
+          fetchNextOperationTime();
+        }
+      }, 5000);
     }
 
     return () => {
@@ -61,7 +67,7 @@ export const useTradeOperation = (
         clearInterval(interval);
       }
     };
-  }, [fetchNextOperationTime, isOperating, isCountingDown]);
+  }, [fetchNextOperationTime, isOperating, isCountingDown, operationCompleted]);
 
   const handleOperationStart = async () => {
     if (isOperating || isCountingDown) {
@@ -129,9 +135,6 @@ export const useTradeOperation = (
     } catch (error) {
       console.error('Operation error:', error);
       toast.error('Erro durante a operação');
-    } finally {
-      setIsOperating(false);
-      setOperationCompleted(true);
     }
   };
 
@@ -145,13 +148,15 @@ export const useTradeOperation = (
       console.log('Resetting operation states');
       setOperationCompleted(false);
       setIsCountingDown(false);
+      // Buscar próximo tempo de operação após reset
+      fetchNextOperationTime();
     }, 5000);
 
     return () => {
       console.log('Cleaning up operation complete timer');
       clearTimeout(timer);
     };
-  }, []);
+  }, [fetchNextOperationTime]);
 
   return {
     isOperating,
