@@ -96,13 +96,18 @@ export function TradeCard() {
           <span>Investimento Trade</span>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             {!financialProfile ? (
-              <Button 
-                onClick={() => setShowProfileDialog(true)} 
-                variant="default"
-                className="w-full sm:w-auto"
-              >
-                Completar Cadastro
-              </Button>
+              <div className="flex flex-col gap-2 w-full sm:w-auto">
+                <Button 
+                  onClick={() => setShowProfileDialog(true)} 
+                  variant="default"
+                  className="w-full sm:w-auto"
+                >
+                  Completar Cadastro
+                </Button>
+                <p className="text-sm text-muted-foreground text-center sm:text-left">
+                  Para investir no mercado trade, complete seu cadastro financeiro
+                </p>
+              </div>
             ) : !financialProfile.terms_accepted ? (
               <Button 
                 onClick={() => setShowTermsDialog(true)} 
