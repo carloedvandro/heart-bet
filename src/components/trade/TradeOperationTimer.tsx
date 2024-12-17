@@ -15,11 +15,20 @@ export function TradeOperationTimer({
   isEnabled,
   operationCompleted
 }: TradeOperationTimerProps) {
-  const [timeLeft, setTimeLeft] = useState<number>(60); // 60 seconds countdown
+  const [timeLeft, setTimeLeft] = useState<number>(60);
   const [canOperate, setCanOperate] = useState(false);
+  const [lastOperationTime, setLastOperationTime] = useState<Date>(new Date(investmentCreatedAt));
 
   useEffect(() => {
-    if (!isEnabled || operationCompleted) {
+    if (!isEnabled) {
+      setTimeLeft(60);
+      setCanOperate(false);
+      return;
+    }
+
+    // When operation is completed, update the last operation time
+    if (operationCompleted) {
+      setLastOperationTime(new Date());
       setTimeLeft(60);
       setCanOperate(false);
       return;
@@ -27,11 +36,10 @@ export function TradeOperationTimer({
 
     const calculateTimeLeft = () => {
       const now = new Date();
-      const created = new Date(investmentCreatedAt);
-      const secondsPassed = differenceInSeconds(now, created) % 60;
-      const remaining = 60 - secondsPassed;
+      const secondsPassed = differenceInSeconds(now, lastOperationTime);
+      const remaining = 60 - (secondsPassed % 60);
 
-      if (remaining <= 0) {
+      if (secondsPassed >= 60) {
         setCanOperate(true);
         setTimeLeft(0);
       } else {
@@ -40,18 +48,11 @@ export function TradeOperationTimer({
       }
     };
 
-    calculateTimeLeft();
     const interval = setInterval(calculateTimeLeft, 1000);
+    calculateTimeLeft(); // Initial calculation
 
     return () => clearInterval(interval);
-  }, [investmentCreatedAt, isEnabled, operationCompleted]);
-
-  // Reset canOperate when operation is completed
-  useEffect(() => {
-    if (operationCompleted) {
-      setCanOperate(false);
-    }
-  }, [operationCompleted]);
+  }, [isEnabled, operationCompleted, lastOperationTime]);
 
   if (!isEnabled) return null;
 
