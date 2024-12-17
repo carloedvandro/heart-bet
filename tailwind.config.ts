@@ -68,27 +68,16 @@ export default {
       keyframes: {
         float: {
           "0%": { 
-            transform: "translate(0, 100vh) rotate(0deg) scale(1)",
+            transform: "translate(0, 100vh) rotate(0deg)",
             opacity: "0"
           },
           "10%": { 
             opacity: "1"
           },
-          "50%": {
-            transform: "translate(var(--float-x, -100px), 0) rotate(var(--float-r, 180deg)) scale(1.2)",
-          },
           "100%": { 
-            transform: "translate(var(--float-x, -100px), -100vh) rotate(var(--float-r, 360deg)) scale(1)",
+            transform: "translate(var(--float-x, -100px), -100vh) rotate(var(--float-r, 360deg))",
             opacity: "0"
           }
-        },
-        pulse: {
-          "0%, 100%": {
-            transform: "scale(1)",
-          },
-          "50%": {
-            transform: "scale(1.1)",
-          },
         },
         gradient: {
           "0%, 100%": {
@@ -100,8 +89,7 @@ export default {
         },
       },
       animation: {
-        "float": "float 12s linear infinite",
-        "pulse": "pulse 2s ease-in-out infinite",
+        "float": "float 8s linear infinite",
         "gradient-x": "gradient 15s ease infinite",
       },
     },
