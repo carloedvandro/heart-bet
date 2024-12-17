@@ -17,7 +17,6 @@ export function TradeOperationTimer({
   isEnabled,
   operationCompleted
 }: TradeOperationTimerProps) {
-  // Change timer to 24 hours (86400 seconds)
   const [timeLeft, setTimeLeft] = useState<number>(86400); 
   const [canOperate, setCanOperate] = useState(false);
   const timeZone = 'America/Sao_Paulo';
@@ -27,6 +26,13 @@ export function TradeOperationTimer({
   const fetchLastOperationTime = async () => {
     try {
       setIsLoading(true);
+      
+      // Only proceed if we have a valid UUID
+      if (!investmentId || investmentId === 'active') {
+        console.error('Invalid investment ID:', investmentId);
+        return;
+      }
+
       const { data: operations, error } = await supabase
         .from('trade_operations')
         .select('operated_at')
