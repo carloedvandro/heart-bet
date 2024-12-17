@@ -41,17 +41,24 @@ const InvestmentCard = memo(({
       const secondsPassed = differenceInSeconds(now, createdAt);
       const remainingSeconds = Math.max(300 - secondsPassed, 0); // 5 minutes in seconds
       
-      setTimeLeft(remainingSeconds);
-      setCanCancel(minutesPassed < 5 && investment.status === 'active');
+      // Atualiza o estado apenas se o investimento estiver ativo
+      if (investment.status === 'active') {
+        setTimeLeft(remainingSeconds);
+        setCanCancel(minutesPassed < 5);
+      } else {
+        setTimeLeft(0);
+        setCanCancel(false);
+      }
       
-      // Log for debugging
+      // Log para debug
       console.log('Time calculation:', {
         now: now.toISOString(),
         createdAt: createdAt.toISOString(),
         minutesPassed,
         secondsPassed,
         remainingSeconds,
-        canCancel: minutesPassed < 5 && investment.status === 'active'
+        canCancel: minutesPassed < 5 && investment.status === 'active',
+        status: investment.status
       });
     };
 

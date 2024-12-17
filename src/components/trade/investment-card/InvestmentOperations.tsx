@@ -17,7 +17,6 @@ interface InvestmentOperationsProps {
 export function InvestmentOperations({
   canCancel,
   timeLeft,
-  createdAt,
   status,
   isProcessing,
   onCancelInvestment,
@@ -28,14 +27,14 @@ export function InvestmentOperations({
 }: InvestmentOperationsProps) {
   return (
     <div className="flex flex-col gap-2">
-      {canCancel && (
+      {canCancel && status === 'active' && (
         <div className="flex flex-col gap-1">
           <Button 
             variant="destructive" 
             size="sm"
             className="w-full md:w-auto"
             onClick={onCancelInvestment}
-            disabled={isProcessing || status !== 'active'}
+            disabled={isProcessing}
           >
             {isProcessing ? "Cancelando..." : "Cancelar Investimento"}
           </Button>
@@ -47,12 +46,14 @@ export function InvestmentOperations({
         </div>
       )}
 
-      <TradeOperationTimer
-        investmentId={status}
-        onOperationStart={onOperationStart}
-        isEnabled={!canCancel && status === 'active'}
-        operationCompleted={operationCompleted}
-      />
+      {!canCancel && status === 'active' && (
+        <TradeOperationTimer
+          investmentId={status}
+          onOperationStart={onOperationStart}
+          isEnabled={true}
+          operationCompleted={operationCompleted}
+        />
+      )}
     </div>
   );
 }
