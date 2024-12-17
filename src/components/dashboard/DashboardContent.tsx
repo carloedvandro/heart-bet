@@ -2,6 +2,7 @@ import { Profile } from "@/integrations/supabase/custom-types";
 import { ProfileLayout } from "./profile/ProfileLayout";
 import { useLocation } from "react-router-dom";
 import { TradeCard } from "../trade/TradeCard";
+import BettingForm from "../betting/BettingForm";
 
 interface DashboardContentProps {
   profile: Profile | null;
@@ -20,8 +21,9 @@ export function DashboardContent({ profile, refreshTrigger, onBetPlaced, initial
         return <TradeCard />;
       case 'profile':
         return <ProfileLayout profile={profile} />;
-      // Temporarily show "Em desenvolvimento" for other views
       case 'bet':
+        return <BettingForm onBetPlaced={onBetPlaced} />;
+      // Temporarily show "Em desenvolvimento" for other views
       case 'investment':
       case 'bets':
         return (
