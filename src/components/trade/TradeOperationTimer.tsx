@@ -28,16 +28,26 @@ export function TradeOperationTimer({
     const calculateTimeLeft = () => {
       const now = new Date();
       const diff = Math.max(0, Math.floor((nextOperationTime.getTime() - now.getTime()) / 1000));
+      
+      console.log('Current time:', now.toISOString());
+      console.log('Next operation time:', nextOperationTime.toISOString());
+      console.log('Time difference (seconds):', diff);
+      
       setTimeLeft(diff);
       setProgress(((30 - diff) / 30) * 100);
       setCanOperate(diff === 0);
     };
 
+    // Calcular imediatamente
     calculateTimeLeft();
+
+    // Atualizar a cada segundo
     const timer = setInterval(calculateTimeLeft, 1000);
 
-    return () => clearInterval(timer);
-  }, [isEnabled, nextOperationTime]);
+    return () => {
+      clearInterval(timer);
+    };
+  }, [isEnabled, nextOperationTime, operationCompleted]);
 
   if (!isEnabled) return null;
 
@@ -51,7 +61,7 @@ export function TradeOperationTimer({
           <OperationProgress value={progress} />
         </>
       )}
-      {canOperate && (
+      {canOperate && !operationCompleted && (
         <Button
           onClick={onOperationStart}
           className="w-full sm:w-auto flex items-center gap-2"
