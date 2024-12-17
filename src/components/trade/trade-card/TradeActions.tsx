@@ -15,14 +15,17 @@ export function TradeActions({
   onShowRules 
 }: TradeActionsProps) {
   // Verificar se o perfil financeiro existe e tem os campos obrigatórios preenchidos
-  const hasFinancialProfile = Boolean(
+  const hasCompleteProfile = Boolean(
     financialProfile?.id && 
     financialProfile?.full_name && 
     financialProfile?.cpf
   );
 
+  // Verificar se aceitou os termos
+  const hasAcceptedTerms = Boolean(financialProfile?.terms_accepted);
+
   // Se não houver perfil financeiro completo, mostra botão de completar cadastro
-  if (!hasFinancialProfile) {
+  if (!hasCompleteProfile) {
     return (
       <div className="flex flex-col gap-2 w-full sm:w-auto">
         <Button 
@@ -43,8 +46,8 @@ export function TradeActions({
     );
   }
 
-  // Se tiver perfil mas não aceitou os termos, mostra botões de aceitar termos e ler regras
-  if (!financialProfile.terms_accepted) {
+  // Se tiver perfil mas não aceitou os termos, mostra apenas botões de aceitar termos e ler regras
+  if (!hasAcceptedTerms) {
     return (
       <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
         <Button 
@@ -65,7 +68,7 @@ export function TradeActions({
     );
   }
 
-  // Se tiver perfil e aceitou os termos, mostra todos os botões
+  // Se tiver perfil completo E aceitou os termos, mostra todos os botões
   return (
     <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
       <Button 
