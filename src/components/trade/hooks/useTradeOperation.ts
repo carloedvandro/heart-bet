@@ -40,15 +40,38 @@ export function useTradeOperation({ investmentId }: UseTradeOperationProps) {
     setOperationCompleted(true);
     
     try {
-      const { data, error: balanceError } = await supabase
+      // Buscar informações do investimento
+      const { data: investment, error: investmentError } = await supabase
         .from('trade_investments')
-        .select('current_balance')
+        .select('amount, daily_rate, current_balance')
         .eq('id', investmentId)
         .single();
 
-      if (balanceError) throw balanceError;
+      if (investmentError) throw investmentError;
       
-      if (data) {
+      if (investment) {
+        const earningAmount = Number((investment.amount * (investment.daily_rate / 100)).toFixed(2));
+        
+        // Registrar o rendimento
+        const { error: earningError } = await supabase
+          .from('trade_earnings')
+          .insert({
+            investment_id: investmentId,
+            amount: earningAmount,
+            earned_at: new Date().toISOString()
+          });
+
+        if (earningError) throw earningError;
+
+        // Atualizar o saldo atual do investimento
+        const newBalance = Number(investment.current_balance) + earningAmount;
+        const { error: updateError } = await supabase
+          .from('trade_investments')
+          .update({ current_balance: newBalance })
+          .eq('id', investmentId);
+
+        if (updateError) throw updateError;
+
         // Forçar atualização dos dados do investimento
         queryClient.invalidateQueries({ queryKey: ['trade-investments'] });
       }
