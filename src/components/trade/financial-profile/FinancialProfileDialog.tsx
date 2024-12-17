@@ -58,9 +58,7 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
           toast.error("Este CPF já está cadastrado no sistema");
           return;
         }
-        console.error('Error inserting profile:', error);
-        toast.error("Erro ao cadastrar perfil financeiro");
-        return;
+        throw error;
       }
 
       toast.success("Perfil financeiro cadastrado com sucesso!");
