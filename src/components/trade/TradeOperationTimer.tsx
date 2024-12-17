@@ -23,25 +23,25 @@ export function TradeOperationTimer({
   const [canOperate, setCanOperate] = useState(false);
 
   useEffect(() => {
-    if (operationCompleted) {
-      setTimeLeft(10);
-      setProgress(0);
-      setCanOperate(false);
-    }
-  }, [operationCompleted]);
+    if (!isEnabled) return;
 
-  useEffect(() => {
-    if (!isEnabled || (!timeLeft && !nextOperationTime)) return;
-
-    // Se tiver nextOperationTime, calcular o tempo restante
+    // Calculate initial time left based on nextOperationTime
     if (nextOperationTime) {
       const now = new Date();
       const diff = Math.max(0, Math.floor((nextOperationTime.getTime() - now.getTime()) / 1000));
       setTimeLeft(diff);
-      if (diff === 0) {
-        setCanOperate(true);
-      }
+      setProgress(((30 - diff) / 30) * 100); // Using 30 seconds as total time
+      setCanOperate(diff === 0);
+    } else if (!operationCompleted) {
+      // If no next operation time and not completed, start new timer
+      setTimeLeft(30); // Set to 30 seconds
+      setProgress(0);
+      setCanOperate(false);
     }
+  }, [isEnabled, nextOperationTime, operationCompleted]);
+
+  useEffect(() => {
+    if (!isEnabled || timeLeft === null) return;
 
     const timer = setInterval(() => {
       setTimeLeft((current) => {
@@ -50,20 +50,14 @@ export function TradeOperationTimer({
           setCanOperate(true);
           return 0;
         }
-        setProgress(((10 - current) / 10) * 100);
-        return current - 1;
+        const newTimeLeft = current - 1;
+        setProgress(((30 - newTimeLeft) / 30) * 100);
+        return newTimeLeft;
       });
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [isEnabled, timeLeft, nextOperationTime]);
-
-  useEffect(() => {
-    if (isEnabled && !operationCompleted && !nextOperationTime) {
-      setTimeLeft(10);
-      setCanOperate(false);
-    }
-  }, [isEnabled, operationCompleted, nextOperationTime]);
+  }, [isEnabled, timeLeft]);
 
   if (!isEnabled) return null;
 

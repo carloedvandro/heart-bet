@@ -12,12 +12,22 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
   });
 
   useEffect(() => {
-    // Verificar e limpar timer expirado
-    if (nextOperationTime && new Date() >= nextOperationTime) {
-      localStorage.removeItem(`nextOperation_${investmentId}`);
-      setNextOperationTime(null);
+    // Load persisted next operation time on component mount
+    const storedTime = localStorage.getItem(`nextOperation_${investmentId}`);
+    if (storedTime) {
+      const parsedTime = new Date(storedTime);
+      // Only set if the stored time is in the future
+      if (parsedTime > new Date()) {
+        setNextOperationTime(parsedTime);
+        console.log('Loaded persisted next operation time:', parsedTime);
+      } else {
+        // Clear expired time
+        localStorage.removeItem(`nextOperation_${investmentId}`);
+        setNextOperationTime(null);
+        console.log('Cleared expired operation time');
+      }
     }
-  }, [nextOperationTime, investmentId]);
+  }, [investmentId]);
 
   const handleOperationStart = async () => {
     console.log('=== Starting Trade Operation ===');
@@ -32,7 +42,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
     
     try {
       const now = new Date();
-      const nextOperation = new Date(now.getTime() + 10 * 1000);
+      const nextOperation = new Date(now.getTime() + 30 * 1000); // Increased to 30 seconds
 
       console.log('Registering operation at:', now.toISOString());
       console.log('Next operation scheduled for:', nextOperation.toISOString());
@@ -93,7 +103,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
         
         setCurrentBalance(updatedInvestment.current_balance);
         
-        // Salvar próximo horário de operação
+        // Save next operation time to localStorage
         localStorage.setItem(`nextOperation_${investmentId}`, nextOperation.toISOString());
         setNextOperationTime(nextOperation);
         
