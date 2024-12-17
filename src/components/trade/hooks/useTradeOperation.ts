@@ -8,16 +8,17 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
   const [currentBalance, setCurrentBalance] = useState(initialBalance);
 
   const handleOperationStart = async () => {
+    console.log('=== Starting Trade Operation ===');
+    console.log('Investment Details:', {
+      id: investmentId,
+      amount,
+      dailyRate,
+      currentBalance
+    });
+    
     setIsOperating(true);
+    
     try {
-      console.log('=== Starting Trade Operation ===');
-      console.log('Investment Details:', {
-        id: investmentId,
-        amount,
-        dailyRate,
-        currentBalance
-      });
-      
       const now = new Date();
       const nextOperation = new Date(now.getTime() + 60 * 1000);
 
@@ -38,8 +39,8 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
       }
 
       console.log('Operation registered successfully');
-
       console.log('Calling calculate_daily_earnings function...');
+      
       const { data: earningsData, error: earningsError } = await supabase
         .rpc('calculate_daily_earnings');
 
@@ -49,6 +50,9 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
       }
 
       console.log('calculate_daily_earnings response:', earningsData);
+
+      // Add a small delay to ensure the earnings are calculated
+      await new Promise(resolve => setTimeout(resolve, 2000));
 
       console.log('Fetching updated investment data...');
       const { data: updatedInvestment, error: fetchError } = await supabase
@@ -91,6 +95,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
   };
 
   const handleOperationComplete = async () => {
+    console.log('=== Operation Complete ===');
     setIsOperating(false);
     setOperationCompleted(true);
     
@@ -101,10 +106,16 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
         .eq('id', investmentId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching final balance:', error);
+        throw error;
+      }
+      
+      console.log('Final investment data:', data);
       
       if (data) {
         const earned = data.current_balance - currentBalance;
+        console.log('Final earnings calculation:', earned);
         setCurrentBalance(data.current_balance);
         
         if (earned > 0) {
@@ -117,7 +128,7 @@ export const useTradeOperation = (investmentId: string, amount: number, dailyRat
       }, 60000);
 
     } catch (error) {
-      console.error('Error updating balance:', error);
+      console.error('Error updating final balance:', error);
       toast.error('Error updating balance');
     }
   };
