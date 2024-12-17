@@ -1,12 +1,13 @@
 import type { Config } from "tailwindcss";
+import { fontFamily } from "tailwindcss/defaultTheme";
 
-export default {
+const config = {
   darkMode: ["class"],
   content: [
-    "./pages/**/*.{ts,tsx}",
-    "./components/**/*.{ts,tsx}",
-    "./app/**/*.{ts,tsx}",
-    "./src/**/*.{ts,tsx}",
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
   ],
   prefix: "",
   theme: {
@@ -18,19 +19,26 @@ export default {
       },
     },
     extend: {
-      colors: {
-        heart: {
-          red: "#FF0000",      // Vermelho (1)
-          blue: "#0000FF",     // Azul (2)
-          black: "#000000",    // Preto (3)
-          yellow: "#FFD700",   // Amarelo (4)
-          green: "#00FF00",    // Verde (5)
-          purple: "#800080",   // Roxo (6)
-          pink: "#FF69B4",     // Rosa (7)
-          brown: "#8B4513",    // Marrom (8)
-          gray: "#808080",     // Cinza (9)
-          white: "#FFFFFF",    // Branco (0)
+      keyframes: {
+        "accordion-down": {
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' }
+        }
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        "shimmer": "shimmer 2s infinite linear"
+      },
+      colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -65,77 +73,17 @@ export default {
           foreground: "hsl(var(--card-foreground))",
         },
       },
-
-      keyframes: {
-        "heart-beat": {
-          "0%, 100%": { transform: "scale(1)" },
-          "50%": { transform: "scale(1.1)" },
-        },
-        "heart-float": {
-          "0%, 100%": { transform: "translateY(0)" },
-          "50%": { transform: "translateY(-10px)" },
-        },
-        "fade-in": {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        "fade-in-delayed": {
-          "0%": { opacity: "0", transform: "translateY(10px)" },
-          "50%": { opacity: "0", transform: "translateY(10px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        "fade-in-up": {
-          "0%": { opacity: "0", transform: "translateY(20px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
-        "deal-card": {
-          "0%": { 
-            transform: "translateY(-100px) rotate(-20deg)",
-            opacity: "0"
-          },
-          "100%": {
-            transform: "translateY(0) rotate(0deg)",
-            opacity: "1"
-          }
-        },
-        gradient: {
-          "0%, 100%": {
-            backgroundPosition: "0% 50%",
-          },
-          "50%": {
-            backgroundPosition: "100% 50%",
-          },
-        },
-        float: {
-          "0%, 100%": {
-            transform: "translateY(0) translateX(0) rotate(0deg)",
-          },
-          "33%": {
-            transform: "translateY(-40px) translateX(30px) rotate(15deg)",
-          },
-          "66%": {
-            transform: "translateY(-20px) translateX(-30px) rotate(-15deg)",
-          }
-        },
-        "shimmer": {
-          "0%": { transform: "translateX(-100%)" },
-          "50%": { transform: "translateX(0%)" },
-          "100%": { transform: "translateX(100%)" }
-        }
+      borderRadius: {
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
       },
-      animation: {
-        "heart-beat": "heart-beat 0.8s ease-in-out infinite",
-        "heart-float": "heart-float 3s ease-in-out infinite",
-        "fade-in": "fade-in 0.5s ease-out",
-        "fade-in-delayed": "fade-in-delayed 1s ease-out forwards",
-        "fade-in-up": "fade-in-up 0.8s ease-out",
-        "deal-card": "deal-card 0.5s ease-out",
-        "gradient-x": "gradient 15s ease infinite",
-        "float": "float 6s ease-in-out infinite",
-        "shimmer": "shimmer 2s linear infinite",
+      fontFamily: {
+        sans: ["var(--font-sans)", ...fontFamily.sans],
       },
-
     },
   },
   plugins: [require("tailwindcss-animate")],
 } satisfies Config;
+
+export default config;
