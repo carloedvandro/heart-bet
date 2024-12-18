@@ -11,7 +11,6 @@ import { DashboardContent } from "@/components/dashboard/DashboardContent";
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type RechargeRow = Database['public']['Tables']['recharges']['Row'];
 
-// Componente de coração flutuante
 const FloatingHeart = ({ index }: { index: number }) => {
   const randomDelay = `${index * 0.5}s`;
   const randomDuration = `${6 + Math.random() * 4}s`;
@@ -163,7 +162,6 @@ export default function Dashboard() {
         backgroundImage: 'url("/lovable-uploads/5a0e0336-aecf-49bc-961c-013d9aee3443.png")',
       } : undefined}
     >
-      {/* Floating hearts in dark mode */}
       {theme === 'dark' && (
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
           {[...Array(20)].map((_, index) => (
@@ -172,7 +170,6 @@ export default function Dashboard() {
         </div>
       )}
       
-      {/* Animated gradient overlay */}
       <div 
         className={`absolute inset-0 ${
           theme === 'light' 
@@ -184,7 +181,6 @@ export default function Dashboard() {
         }}
       />
       
-      {/* Content wrapper with glass effect */}
       <div className="relative z-10">
         <Header profile={profile} onLogout={handleLogout} />
         <DashboardContent 
