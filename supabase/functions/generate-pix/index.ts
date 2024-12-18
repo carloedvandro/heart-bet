@@ -1,5 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { FirecrawlApp } from 'https://esm.sh/@mendable/firecrawl-js'
+import { FirecrawlApp } from 'https://esm.sh/@mendable/firecrawl-js@1.9.4'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,9 +40,9 @@ serve(async (req) => {
       )
     }
 
+    console.log('Starting Firecrawl process with amount:', amount)
     const firecrawl = new FirecrawlApp({ apiKey: firecrawlApiKey })
 
-    // Start the crawling process with authentication
     const result = await firecrawl.crawlUrl('https://app.sistemabarao.com.br/ellite-apostas/recarga-pix', {
       authenticate: {
         type: 'form',
