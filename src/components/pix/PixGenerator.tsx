@@ -1,127 +1,150 @@
-import { useState } from 'react'
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { toast } from "sonner"
-import { supabase } from "@/integrations/supabase/client"
-import { Loader2 } from "lucide-react"
+import { useState } from "react";
+import { useSession } from "@supabase/auth-helpers-react";
+import { supabase } from "@/integrations/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
+import { Loader2 } from "lucide-react";
+import Image from "next/image";
 
 export function PixGenerator() {
-  const [amount, setAmount] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const [amount, setAmount] = useState("");
+  const [loading, setLoading] = useState(false);
   const [pixData, setPixData] = useState<{
-    qrCode: string;
-    pixCode: string;
-  } | null>(null)
+    pixQrCode: string;
+    pixKey: string;
+  } | null>(null);
+  const session = useSession();
 
-  const handleGeneratePix = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     
-    if (!amount || isNaN(Number(amount))) {
-      toast.error('Por favor, insira um valor válido')
-      return
+    if (!session?.user?.id) {
+      toast.error("Você precisa estar logado para gerar um PIX");
+      return;
     }
 
-    setIsLoading(true)
+    const numericAmount = Number(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      toast.error("Por favor, insira um valor válido");
+      return;
+    }
+
+    setLoading(true);
     try {
-      console.log('Calling generate-pix function with amount:', amount)
-      const { data, error } = await supabase.functions.invoke('generate-pix', {
-        body: { amount: Number(amount) }
-      })
-
-      console.log('Response from generate-pix:', { data, error })
-
-      if (error) {
-        console.error('Supabase function error:', error)
-        throw error
-      }
-
-      if (data.success) {
-        setPixData({
-          qrCode: data.qrCode,
-          pixCode: data.pixCode
+      // Criar registro de recarga pendente
+      const { data: recharge, error: rechargeError } = await supabase
+        .from('recharges')
+        .insert({
+          user_id: session.user.id,
+          amount: numericAmount,
+          status: 'pending'
         })
-        toast.success('PIX gerado com sucesso!')
-      } else {
-        throw new Error(data.error || 'Erro ao gerar PIX')
-      }
-    } catch (error) {
-      console.error('Error generating PIX:', error)
-      toast.error('Erro ao gerar o PIX. Por favor, tente novamente em alguns instantes.')
-    } finally {
-      setIsLoading(false)
-    }
-  }
+        .select()
+        .single();
 
-  const handleCopyPixCode = () => {
-    if (pixData?.pixCode) {
-      navigator.clipboard.writeText(pixData.pixCode)
-      toast.success('Código PIX copiado!')
+      if (rechargeError) throw rechargeError;
+
+      // Gerar PIX via Asaas
+      const { data, error } = await supabase.functions.invoke('generate-asaas-payment', {
+        body: { amount: numericAmount }
+      });
+
+      if (error) throw error;
+
+      setPixData({
+        pixQrCode: data.payment.pixQrCode,
+        pixKey: data.payment.pixKey
+      });
+
+      toast.success("PIX gerado com sucesso!");
+    } catch (error) {
+      console.error('Error generating PIX:', error);
+      toast.error("Erro ao gerar PIX. Por favor, tente novamente.");
+    } finally {
+      setLoading(false);
     }
-  }
+  };
+
+  const handleCopyPixKey = async () => {
+    if (!pixData?.pixKey) return;
+    
+    try {
+      await navigator.clipboard.writeText(pixData.pixKey);
+      toast.success("Código PIX copiado!");
+    } catch (error) {
+      console.error('Error copying PIX key:', error);
+      toast.error("Erro ao copiar código PIX");
+    }
+  };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>Gerar PIX</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleGeneratePix} className="space-y-4">
-          <div className="space-y-2">
-            <label htmlFor="amount" className="text-sm font-medium">
-              Valor
-            </label>
-            <Input
-              id="amount"
-              type="number"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              placeholder="Digite o valor"
-              min="0"
-              step="0.01"
-              required
-              disabled={isLoading}
+    <div className="w-full max-w-md mx-auto space-y-6">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="amount">Valor da Recarga</Label>
+          <Input
+            id="amount"
+            type="number"
+            min="0"
+            step="0.01"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="0.00"
+            required
+          />
+        </div>
+
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={loading}
+        >
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Gerando PIX...
+            </>
+          ) : (
+            "Gerar PIX"
+          )}
+        </Button>
+      </form>
+
+      {pixData && (
+        <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+          <div className="flex justify-center">
+            <img
+              src={`data:image/png;base64,${pixData.pixQrCode}`}
+              alt="QR Code PIX"
+              className="w-48 h-48"
             />
           </div>
-          
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? (
-              <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Gerando PIX...
-              </>
-            ) : (
-              'Gerar PIX'
-            )}
-          </Button>
-        </form>
 
-        {pixData && (
-          <div className="mt-6 space-y-4">
-            <div className="flex justify-center">
-              <img
-                src={`data:image/png;base64,${pixData.qrCode}`}
-                alt="QR Code do PIX"
-                className="max-w-[200px]"
+          <div className="space-y-2">
+            <Label>Código PIX</Label>
+            <div className="flex gap-2">
+              <Input
+                value={pixData.pixKey}
+                readOnly
+                className="font-mono text-sm"
               />
-            </div>
-            
-            <div className="space-y-2">
-              <p className="text-sm font-medium">Código PIX:</p>
-              <div className="flex gap-2">
-                <Input
-                  value={pixData.pixCode}
-                  readOnly
-                  className="font-mono text-sm"
-                />
-                <Button onClick={handleCopyPixCode} type="button">
-                  Copiar
-                </Button>
-              </div>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCopyPixKey}
+              >
+                Copiar
+              </Button>
             </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
-  )
+
+          <p className="text-sm text-gray-500 text-center">
+            Após o pagamento, seu saldo será atualizado automaticamente.
+          </p>
+        </div>
+      )}
+    </div>
+  );
 }
