@@ -20,10 +20,7 @@ export function useSignIn() {
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
-        options: {
-          redirectTo: window.location.origin + '/dashboard'
-        }
+        password
       });
 
       if (error) {
