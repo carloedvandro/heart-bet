@@ -7,7 +7,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Log the incoming request
+  // Log the incoming request details
   console.log('Function invoked:', {
     method: req.method,
     url: req.url,
@@ -16,9 +16,7 @@ serve(async (req) => {
 
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { 
-      headers: corsHeaders
-    });
+    return new Response(null, { headers: corsHeaders });
   }
 
   // Only allow POST requests
@@ -69,19 +67,17 @@ serve(async (req) => {
       })
     });
 
-    const paymentResponseText = await paymentResponse.text();
-    console.log('Raw Asaas payment response:', paymentResponseText);
-
     if (!paymentResponse.ok) {
+      const errorText = await paymentResponse.text();
       console.error('Asaas payment creation failed:', {
         status: paymentResponse.status,
         statusText: paymentResponse.statusText,
-        body: paymentResponseText
+        body: errorText
       });
       throw new Error(`Failed to create payment: ${paymentResponse.statusText}`);
     }
 
-    const paymentData = JSON.parse(paymentResponseText);
+    const paymentData = await paymentResponse.json();
     console.log('Payment created successfully:', paymentData);
 
     console.log('Generating PIX QR Code...');
@@ -92,19 +88,17 @@ serve(async (req) => {
       }
     });
 
-    const pixResponseText = await pixResponse.text();
-    console.log('Raw PIX response:', pixResponseText);
-
     if (!pixResponse.ok) {
+      const errorText = await pixResponse.text();
       console.error('PIX QR Code generation failed:', {
         status: pixResponse.status,
         statusText: pixResponse.statusText,
-        body: pixResponseText
+        body: errorText
       });
       throw new Error('Failed to generate PIX QR Code');
     }
 
-    const pixData = JSON.parse(pixResponseText);
+    const pixData = await pixResponse.json();
     console.log('PIX QR Code generated successfully');
 
     return new Response(
