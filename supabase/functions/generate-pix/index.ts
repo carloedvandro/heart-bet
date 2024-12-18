@@ -21,6 +21,7 @@ serve(async (req) => {
     }
 
     const { amount } = await req.json()
+    console.log('Processing PIX generation request for amount:', amount)
 
     if (!amount || isNaN(amount)) {
       return new Response(
@@ -29,28 +30,6 @@ serve(async (req) => {
       )
     }
 
-    console.log('Starting browser process with amount:', amount)
-    
-    browser = await puppeteer.launch({ 
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--single-process'
-      ],
-    });
-    
-    const page = await browser.newPage();
-    await page.setDefaultNavigationTimeout(30000);
-    
-    // Login
-    console.log('Navigating to login page...')
-    await page.goto('https://app.sistemabarao.com.br/login', {
-      waitUntil: 'networkidle0',
-      timeout: 30000
-    });
-
     const username = Deno.env.get('SISTEMA_BARAO_USER')
     const password = Deno.env.get('SISTEMA_BARAO_PASS')
 
@@ -58,31 +37,56 @@ serve(async (req) => {
       throw new Error('Missing credentials')
     }
 
+    console.log('Launching browser...')
+    browser = await puppeteer.launch({
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--single-process',
+        '--no-zygote',
+        '--disable-accelerated-2d-canvas',
+        '--disable-gl-drawing-for-tests',
+        '--mute-audio',
+        '--disable-web-security'
+      ],
+      headless: true,
+    });
+
+    const page = await browser.newPage();
+    await page.setDefaultNavigationTimeout(60000);
+    await page.setViewport({ width: 1280, height: 800 });
+
+    console.log('Navigating to login page...')
+    await page.goto('https://app.sistemabarao.com.br/login', {
+      waitUntil: 'networkidle0',
+      timeout: 60000
+    });
+
+    console.log('Filling login form...')
     await page.type('input[name="username"]', username);
     await page.type('input[name="password"]', password);
     
     console.log('Submitting login form...')
     await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }),
+      page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 60000 }),
       page.click('button[type="submit"]')
     ]);
 
-    // Navigate to PIX page
     console.log('Navigating to PIX page...')
     await page.goto('https://app.sistemabarao.com.br/ellite-apostas/recarga-pix', {
       waitUntil: 'networkidle0',
-      timeout: 30000
+      timeout: 60000
     });
     
-    // Fill amount and generate PIX
     console.log('Generating PIX for amount:', amount)
     await page.type('#amount', amount.toString());
     await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 30000 }),
+      page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 60000 }),
       page.click('#generate-pix-button')
     ]);
 
-    // Get QR code and PIX code
     console.log('Extracting QR code and PIX code...')
     const qrCodeBase64 = await page.$eval('#qr-code-img', (img) => img.src.split(',')[1]);
     const pixCode = await page.$eval('#pix-code', (input) => input.value);
@@ -101,23 +105,26 @@ serve(async (req) => {
     )
   } catch (error) {
     console.error('Error:', error)
+    
+    // Ensure browser is closed in case of error
+    if (browser) {
+      try {
+        await browser.close()
+      } catch (closeError) {
+        console.error('Error closing browser:', closeError)
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error', 
-        details: error.message 
+        details: error.message,
+        stack: error.stack
       }),
       { 
         headers: corsHeaders,
         status: 500 
       }
     )
-  } finally {
-    if (browser) {
-      try {
-        await browser.close()
-      } catch (error) {
-        console.error('Error closing browser:', error)
-      }
-    }
   }
 })
