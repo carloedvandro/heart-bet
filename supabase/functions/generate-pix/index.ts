@@ -54,6 +54,17 @@ serve(async (req) => {
     await page.setDefaultNavigationTimeout(30000);
     await page.setViewport({ width: 1280, height: 800 });
 
+    // Primeiro, navegar para a página principal
+    console.log('Navigating to main page...')
+    await page.goto('https://app.sistemabarao.com.br/', {
+      waitUntil: 'networkidle0',
+    });
+
+    // Aguardar 5 segundos
+    console.log('Waiting 5 seconds before proceeding...')
+    await new Promise(resolve => setTimeout(resolve, 5000));
+
+    // Agora navegar para a página de login
     console.log('Navigating to login page...')
     await page.goto('https://app.sistemabarao.com.br/login', {
       waitUntil: 'networkidle0',
@@ -68,6 +79,10 @@ serve(async (req) => {
       page.waitForNavigation({ waitUntil: 'networkidle0' }),
       page.click('button[type="submit"]')
     ]);
+
+    // Aguardar mais 5 segundos antes de navegar para a página do PIX
+    console.log('Waiting 5 seconds before navigating to PIX page...')
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     console.log('Navigating to PIX page...')
     await page.goto('https://app.sistemabarao.com.br/ellite-apostas/recarga-pix', {
