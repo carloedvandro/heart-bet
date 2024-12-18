@@ -3,7 +3,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
 }
 
 serve(async (req) => {
@@ -13,6 +13,7 @@ serve(async (req) => {
     headers: Object.fromEntries(req.headers.entries())
   });
 
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -57,7 +58,7 @@ serve(async (req) => {
         'access_token': asaasApiKey
       },
       body: JSON.stringify({
-        customer: 'cus_000005113863', // Customer ID de teste do sandbox
+        customer: 'cus_000005113863',
         billingType: 'PIX',
         value: amount,
         dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
