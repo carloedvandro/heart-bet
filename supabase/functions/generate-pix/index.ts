@@ -1,5 +1,5 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { FirecrawlApp } from 'https://esm.sh/@mendable/firecrawl-js@1.9.4'
+import puppeteer from "https://deno.land/x/puppeteer@16.2.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -27,9 +27,8 @@ serve(async (req) => {
 
     const username = Deno.env.get('SISTEMA_BARAO_USER')
     const password = Deno.env.get('SISTEMA_BARAO_PASS')
-    const firecrawlApiKey = Deno.env.get('FIRECRAWL_API_KEY')
 
-    if (!username || !password || !firecrawlApiKey) {
+    if (!username || !password) {
       console.error('Missing required environment variables')
       return new Response(
         JSON.stringify({ error: 'Configuration error' }),
@@ -40,65 +39,52 @@ serve(async (req) => {
       )
     }
 
-    console.log('Starting Firecrawl process with amount:', amount)
-    const firecrawl = new FirecrawlApp({ apiKey: firecrawlApiKey })
+    console.log('Starting browser process with amount:', amount)
+    
+    const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
+    const page = await browser.newPage();
 
-    const result = await firecrawl.crawlUrl('https://app.sistemabarao.com.br/ellite-apostas/recarga-pix', {
-      authenticate: {
-        type: 'form',
-        loginUrl: 'https://app.sistemabarao.com.br/login',
-        usernameField: 'username',
-        passwordField: 'password',
-        credentials: {
-          username,
-          password,
-        },
-      },
-      actions: [
-        {
-          type: 'input',
-          selector: '#amount',
-          value: amount.toString(),
-        },
-        {
-          type: 'click',
-          selector: '#generate-pix-button',
-          waitForNavigation: true,
-        },
-        {
-          type: 'screenshot',
-          selector: '#qr-code-container',
-          output: 'base64',
-        },
-        {
-          type: 'extract',
-          selector: '#pix-code',
-          attribute: 'value',
-        },
-      ],
-    })
+    try {
+      // Login
+      await page.goto('https://app.sistemabarao.com.br/login');
+      await page.type('input[name="username"]', username);
+      await page.type('input[name="password"]', password);
+      await Promise.all([
+        page.waitForNavigation(),
+        page.click('button[type="submit"]')
+      ]);
 
-    if (!result.success) {
-      console.error('Crawling failed:', result.error)
+      // Navigate to PIX page
+      await page.goto('https://app.sistemabarao.com.br/ellite-apostas/recarga-pix');
+      
+      // Fill amount and generate PIX
+      await page.type('#amount', amount.toString());
+      await Promise.all([
+        page.waitForNavigation(),
+        page.click('#generate-pix-button')
+      ]);
+
+      // Get QR code and PIX code
+      const qrCodeBase64 = await page.$eval('#qr-code-img', (img) => img.src.split(',')[1]);
+      const pixCode = await page.$eval('#pix-code', (input) => input.value);
+
+      await browser.close();
+
       return new Response(
-        JSON.stringify({ error: 'Failed to generate PIX' }),
+        JSON.stringify({
+          success: true,
+          qrCode: qrCodeBase64,
+          pixCode: pixCode,
+        }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 500 
         }
       )
+    } catch (error) {
+      console.error('Error during web automation:', error)
+      await browser.close()
+      throw error
     }
-
-    return new Response(
-      JSON.stringify({
-        success: true,
-        qrCode: result.screenshots[0],
-        pixCode: result.data.pixCode,
-      }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    )
   } catch (error) {
     console.error('Error:', error)
     return new Response(
