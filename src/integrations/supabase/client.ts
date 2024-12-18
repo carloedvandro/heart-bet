@@ -90,7 +90,7 @@ const initializeClient = async () => {
 supabase.auth.onAuthStateChange((event, session) => {
   console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
   
-  if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+  if (event === 'SIGNED_OUT') {
     // Clear all auth data
     localStorage.removeItem('supabase.auth.token');
     localStorage.removeItem('supabase.auth.refreshToken');
