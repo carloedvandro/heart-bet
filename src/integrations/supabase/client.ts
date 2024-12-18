@@ -28,16 +28,16 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         headers.set('Authorization', `Bearer ${accessToken}`);
       }
       
-      // Set required headers if not present
+      // Set required headers
       headers.set('apikey', supabaseKey);
       headers.set('Content-Type', 'application/json');
       headers.set('Accept', 'application/json');
-      headers.set('Prefer', 'return=minimal'); // Add this to handle empty results better
+      headers.set('Prefer', 'return=minimal');
 
       const response = await fetch(url, {
         ...init,
         headers,
-        credentials: 'include' // Add this to handle cookies properly
+        credentials: 'include'
       });
 
       // Don't retry on rate limit errors
@@ -58,12 +58,12 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
           url: response.url,
           headers: Object.fromEntries(response.headers.entries()),
           body: errorText,
-          session: session // Log session info for debugging
+          session: session
         });
 
         // Special handling for 406 errors (no rows found)
         if (response.status === 406) {
-          return response; // Let the caller handle this case
+          return response;
         }
 
         throw new Error(`HTTP error! status: ${response.status}`);
@@ -106,8 +106,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   }
 });
 
-// Enhanced auth state change logging
-supabase.auth.onAuthStateChange((event, session) => {
+// Enhanced auth state change logging and profile creation
+supabase.auth.onAuthStateChange(async (event, session) => {
   console.log('Auth state changed:', { 
     event, 
     session,
@@ -117,30 +117,41 @@ supabase.auth.onAuthStateChange((event, session) => {
 
   // Automatically create profile if it doesn't exist on sign in
   if (event === 'SIGNED_IN' && session?.user) {
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (!data && !error) {
-          // Profile doesn't exist, create it
-          supabase
-            .from('profiles')
-            .insert([
-              {
-                id: session.user.id,
-                email: session.user.email,
-                balance: 0,
-                is_admin: false
-              }
-            ])
-            .then(({ error: insertError }) => {
-              if (insertError) {
-                console.error('Error creating profile:', insertError);
-              }
-            });
+    try {
+      // Add a small delay to ensure auth is fully initialized
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      const { data: existingProfile, error: selectError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', session.user.id)
+        .single();
+
+      if (selectError) {
+        console.error('Error checking profile:', selectError);
+        return;
+      }
+
+      if (!existingProfile) {
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: session.user.id,
+              email: session.user.email,
+              balance: 0,
+              is_admin: false
+            }
+          ]);
+
+        if (insertError) {
+          console.error('Error creating profile:', insertError);
+        } else {
+          console.log('Profile created successfully');
         }
-      });
+      }
+    } catch (error) {
+      console.error('Error in profile creation:', error);
+    }
   }
 });
