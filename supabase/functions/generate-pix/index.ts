@@ -43,31 +43,30 @@ serve(async (req) => {
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-gpu',
-        '--single-process',
-        '--no-zygote',
       ],
       headless: true,
     });
 
     const page = await browser.newPage();
-    await page.setDefaultNavigationTimeout(30000);
+    await page.setDefaultNavigationTimeout(60000); // Increased timeout to 60 seconds
     await page.setViewport({ width: 1280, height: 800 });
 
-    // Primeiro, navegar para a página principal
+    // First navigate to main page and wait
     console.log('Navigating to main page...')
     await page.goto('https://app.sistemabarao.com.br/', {
       waitUntil: 'networkidle0',
+      timeout: 60000,
     });
 
-    // Aguardar 5 segundos
+    // Wait 5 seconds
     console.log('Waiting 5 seconds before proceeding...')
     await new Promise(resolve => setTimeout(resolve, 5000));
 
-    // Agora navegar para a página de login
+    // Navigate to login page
     console.log('Navigating to login page...')
     await page.goto('https://app.sistemabarao.com.br/login', {
       waitUntil: 'networkidle0',
+      timeout: 60000,
     });
 
     console.log('Filling login form...')
@@ -76,23 +75,24 @@ serve(async (req) => {
     
     console.log('Submitting login form...')
     await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle0' }),
+      page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 60000 }),
       page.click('button[type="submit"]')
     ]);
 
-    // Aguardar mais 5 segundos antes de navegar para a página do PIX
-    console.log('Waiting 5 seconds before navigating to PIX page...')
+    // Wait 5 seconds after login
+    console.log('Waiting 5 seconds after login...')
     await new Promise(resolve => setTimeout(resolve, 5000));
 
     console.log('Navigating to PIX page...')
     await page.goto('https://app.sistemabarao.com.br/ellite-apostas/recarga-pix', {
       waitUntil: 'networkidle0',
+      timeout: 60000,
     });
     
     console.log('Generating PIX for amount:', amount)
     await page.type('#amount', amount.toString());
     await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle0' }),
+      page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 60000 }),
       page.click('#generate-pix-button')
     ]);
 
