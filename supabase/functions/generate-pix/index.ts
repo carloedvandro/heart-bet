@@ -39,33 +39,35 @@ serve(async (req) => {
 
     console.log('Launching browser...')
     browser = await puppeteer.launch({
-      headless: true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
         '--disable-gpu',
-        '--single-process'
+        '--single-process',
+        '--no-zygote',
       ],
+      headless: true,
     });
 
     const page = await browser.newPage();
-    await page.setDefaultNavigationTimeout(60000);
+    await page.setDefaultNavigationTimeout(30000);
     await page.setViewport({ width: 1280, height: 800 });
 
+    // Primeiro, navegar para a página principal
     console.log('Navigating to main page...')
     await page.goto('https://app.sistemabarao.com.br/', {
       waitUntil: 'networkidle0',
-      timeout: 60000,
     });
 
-    // Wait for page to be fully loaded
-    await page.waitForTimeout(5000);
+    // Aguardar 5 segundos
+    console.log('Waiting 5 seconds before proceeding...')
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
+    // Agora navegar para a página de login
     console.log('Navigating to login page...')
     await page.goto('https://app.sistemabarao.com.br/login', {
       waitUntil: 'networkidle0',
-      timeout: 60000,
     });
 
     console.log('Filling login form...')
@@ -74,33 +76,29 @@ serve(async (req) => {
     
     console.log('Submitting login form...')
     await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 60000 }),
+      page.waitForNavigation({ waitUntil: 'networkidle0' }),
       page.click('button[type="submit"]')
     ]);
 
-    // Wait after login
-    await page.waitForTimeout(5000);
+    // Aguardar mais 5 segundos antes de navegar para a página do PIX
+    console.log('Waiting 5 seconds before navigating to PIX page...')
+    await new Promise(resolve => setTimeout(resolve, 5000));
 
     console.log('Navigating to PIX page...')
     await page.goto('https://app.sistemabarao.com.br/ellite-apostas/recarga-pix', {
       waitUntil: 'networkidle0',
-      timeout: 60000,
     });
     
     console.log('Generating PIX for amount:', amount)
     await page.type('#amount', amount.toString());
     await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 60000 }),
+      page.waitForNavigation({ waitUntil: 'networkidle0' }),
       page.click('#generate-pix-button')
     ]);
 
     console.log('Extracting QR code and PIX code...')
     const qrCodeBase64 = await page.$eval('#qr-code-img', (img) => img.src.split(',')[1]);
     const pixCode = await page.$eval('#pix-code', (input) => input.value);
-
-    if (!qrCodeBase64 || !pixCode) {
-      throw new Error('Failed to extract PIX data');
-    }
 
     await browser.close();
     browser = null;
@@ -127,7 +125,6 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({ 
-        success: false,
         error: 'Internal server error', 
         details: error.message,
         stack: error.stack
