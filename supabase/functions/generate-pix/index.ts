@@ -48,7 +48,7 @@ serve(async (req) => {
     });
 
     const page = await browser.newPage();
-    await page.setDefaultNavigationTimeout(60000); // Increased timeout to 60 seconds
+    await page.setDefaultNavigationTimeout(60000);
     await page.setViewport({ width: 1280, height: 800 });
 
     // First navigate to main page and wait
