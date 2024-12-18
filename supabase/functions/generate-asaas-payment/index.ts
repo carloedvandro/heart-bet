@@ -6,7 +6,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  console.log('Function invoked with request:', {
+  console.log('Function invoked:', {
     method: req.method,
     url: req.url,
     headers: Object.fromEntries(req.headers.entries())
@@ -55,7 +55,7 @@ serve(async (req) => {
     }
 
     console.log('Creating payment in Asaas...');
-    const paymentResponse = await fetch('https://api.asaas.com/v3/payments', {
+    const paymentResponse = await fetch('https://sandbox.asaas.com/api/v3/payments', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ serve(async (req) => {
     console.log('Payment created successfully:', paymentData);
 
     console.log('Generating PIX QR Code...');
-    const pixResponse = await fetch(`https://api.asaas.com/v3/payments/${paymentData.id}/pixQrCode`, {
+    const pixResponse = await fetch(`https://sandbox.asaas.com/api/v3/payments/${paymentData.id}/pixQrCode`, {
       headers: {
         'Content-Type': 'application/json',
         'access_token': asaasApiKey
