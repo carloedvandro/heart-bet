@@ -40,25 +40,28 @@ serve(async (req) => {
     console.log('Launching browser...')
     browser = await puppeteer.launch({
       headless: true,
-      args: ['--no-sandbox'],
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-dev-shm-usage',
+        '--disable-gpu',
+        '--single-process'
+      ],
     });
 
     const page = await browser.newPage();
     await page.setDefaultNavigationTimeout(60000);
     await page.setViewport({ width: 1280, height: 800 });
 
-    // First navigate to main page and wait
     console.log('Navigating to main page...')
     await page.goto('https://app.sistemabarao.com.br/', {
       waitUntil: 'networkidle0',
       timeout: 60000,
     });
 
-    // Wait 5 seconds
-    console.log('Waiting 5 seconds before proceeding...')
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    // Wait for page to be fully loaded
+    await page.waitForTimeout(5000);
 
-    // Navigate to login page
     console.log('Navigating to login page...')
     await page.goto('https://app.sistemabarao.com.br/login', {
       waitUntil: 'networkidle0',
@@ -75,9 +78,8 @@ serve(async (req) => {
       page.click('button[type="submit"]')
     ]);
 
-    // Wait 5 seconds after login
-    console.log('Waiting 5 seconds after login...')
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    // Wait after login
+    await page.waitForTimeout(5000);
 
     console.log('Navigating to PIX page...')
     await page.goto('https://app.sistemabarao.com.br/ellite-apostas/recarga-pix', {
@@ -95,6 +97,10 @@ serve(async (req) => {
     console.log('Extracting QR code and PIX code...')
     const qrCodeBase64 = await page.$eval('#qr-code-img', (img) => img.src.split(',')[1]);
     const pixCode = await page.$eval('#pix-code', (input) => input.value);
+
+    if (!qrCodeBase64 || !pixCode) {
+      throw new Error('Failed to extract PIX data');
+    }
 
     await browser.close();
     browser = null;
