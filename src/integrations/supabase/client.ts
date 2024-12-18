@@ -8,6 +8,49 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase URL or Key');
 }
 
+// Create a custom fetch implementation with retries
+const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
+  const maxRetries = 3;
+  let attempt = 0;
+  
+  while (attempt < maxRetries) {
+    try {
+      // Add cache control headers
+      const modifiedInit = {
+        ...init,
+        headers: {
+          ...init?.headers,
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      };
+
+      const response = await fetch(input, modifiedInit);
+      
+      // Log response details for debugging
+      console.log(`Supabase request attempt ${attempt + 1}:`, {
+        url: input.toString(),
+        status: response.status,
+        ok: response.ok
+      });
+
+      return response;
+    } catch (error) {
+      attempt++;
+      console.error(`Attempt ${attempt} failed:`, error);
+      
+      if (attempt === maxRetries) throw error;
+      
+      // Add exponential backoff with jitter
+      await new Promise(resolve => 
+        setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt) + Math.random() * 1000, 10000))
+      );
+    }
+  }
+
+  throw new Error('Max retries reached');
+};
+
 export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
@@ -15,43 +58,53 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     detectSessionInUrl: true,
     storage: window.localStorage,
     flowType: 'pkce',
+    debug: true
   },
   global: {
     headers: {
       'X-Client-Info': 'supabase-js-web',
     },
+    fetch: customFetch
   },
 });
 
-// Set up auth state change listener
-supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_OUT') {
-    // Clear any stored tokens
+// Clear invalid session data on initialization
+const initializeClient = async () => {
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession();
+    
+    if (error || !session) {
+      console.log('No valid session found, clearing storage');
+      localStorage.removeItem('supabase.auth.token');
+      localStorage.removeItem('supabase.auth.refreshToken');
+      window.location.href = '/login';
+    }
+  } catch (error) {
+    console.error('Error initializing Supabase client:', error);
     localStorage.removeItem('supabase.auth.token');
-    // Optionally clear other auth-related storage
     localStorage.removeItem('supabase.auth.refreshToken');
+  }
+};
+
+// Set up auth state change listener with improved error handling
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
+  
+  if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+    // Clear all auth data
+    localStorage.removeItem('supabase.auth.token');
+    localStorage.removeItem('supabase.auth.refreshToken');
+    console.log('Cleared auth data due to:', event);
   } else if (event === 'SIGNED_IN' && session) {
     // Ensure the session is properly stored
     localStorage.setItem('supabase.auth.token', session.access_token);
     if (session.refresh_token) {
       localStorage.setItem('supabase.auth.refreshToken', session.refresh_token);
     }
+    console.log('Updated session storage after sign in');
   }
-  
-  console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
 });
 
-// Initialize session from storage if exists
-const initializeSession = async () => {
-  const { data: { session }, error } = await supabase.auth.getSession();
-  if (error) {
-    console.error('Error initializing session:', error);
-    // Clear potentially corrupted session data
-    localStorage.removeItem('supabase.auth.token');
-    localStorage.removeItem('supabase.auth.refreshToken');
-  } else if (session) {
-    console.log('Session initialized successfully');
-  }
-};
+initializeClient().catch(console.error);
 
-initializeSession().catch(console.error);
+export default supabase;

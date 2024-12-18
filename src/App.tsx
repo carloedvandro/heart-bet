@@ -11,7 +11,10 @@ import Dashboard from "./pages/Dashboard";
 
 const App = () => {
   return (
-    <SessionContextProvider supabaseClient={supabase}>
+    <SessionContextProvider 
+      supabaseClient={supabase}
+      initialSession={null}
+    >
       <TooltipProvider>
         <Toaster />
         <Sonner />
