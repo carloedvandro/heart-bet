@@ -15,13 +15,15 @@ const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
   
   while (attempt < maxRetries) {
     try {
-      // Add cache control headers
+      // Add cache control headers and API key
       const modifiedInit = {
         ...init,
         headers: {
           ...init?.headers,
           'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Pragma': 'no-cache',
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`
         }
       };
 
