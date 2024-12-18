@@ -1,6 +1,7 @@
 import { Moon, Sun } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "../ui/button";
+import { toast } from "sonner";
 
 export function ThemeToggle() {
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
@@ -21,6 +22,14 @@ export function ThemeToggle() {
     localStorage.setItem('theme', newTheme);
     document.documentElement.setAttribute('data-theme', newTheme);
     document.documentElement.classList.toggle('dark', newTheme === 'dark');
+    
+    // Mostra um toast informando sobre a atualização
+    toast.info(`Alterando para modo ${newTheme === 'light' ? 'claro' : 'escuro'}...`);
+    
+    // Aguarda 2 segundos e atualiza a página
+    setTimeout(() => {
+      window.location.reload();
+    }, 2000);
   };
 
   return (
