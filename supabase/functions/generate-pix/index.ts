@@ -41,23 +41,31 @@ serve(async (req) => {
 
     console.log('Starting browser process with amount:', amount)
     
-    const browser = await puppeteer.launch({ args: ['--no-sandbox'] });
+    const browser = await puppeteer.launch({ 
+      args: ['--no-sandbox', '--disable-setuid-sandbox'] 
+    });
+    
     const page = await browser.newPage();
 
     try {
       // Login
+      console.log('Navigating to login page...')
       await page.goto('https://app.sistemabarao.com.br/login');
       await page.type('input[name="username"]', username);
       await page.type('input[name="password"]', password);
+      
+      console.log('Submitting login form...')
       await Promise.all([
         page.waitForNavigation(),
         page.click('button[type="submit"]')
       ]);
 
       // Navigate to PIX page
+      console.log('Navigating to PIX page...')
       await page.goto('https://app.sistemabarao.com.br/ellite-apostas/recarga-pix');
       
       // Fill amount and generate PIX
+      console.log('Generating PIX for amount:', amount)
       await page.type('#amount', amount.toString());
       await Promise.all([
         page.waitForNavigation(),
@@ -65,9 +73,11 @@ serve(async (req) => {
       ]);
 
       // Get QR code and PIX code
+      console.log('Extracting QR code and PIX code...')
       const qrCodeBase64 = await page.$eval('#qr-code-img', (img) => img.src.split(',')[1]);
       const pixCode = await page.$eval('#pix-code', (input) => input.value);
 
+      console.log('Successfully generated PIX')
       await browser.close();
 
       return new Response(
