@@ -17,6 +17,11 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
   while (attempt < MAX_RETRIES) {
     try {
+      // Add a small delay before the first attempt
+      if (attempt === 0) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
       // Get the current session
       const sessionStr = localStorage.getItem(storageKey);
       const session = sessionStr ? JSON.parse(sessionStr) : null;
@@ -46,7 +51,8 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         ...init,
         headers,
         credentials: 'include',
-        mode: 'cors'
+        mode: 'cors',
+        cache: 'no-cache', // Disable caching
       });
 
       // Don't retry on rate limit or auth errors
