@@ -36,6 +36,14 @@ const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
         ok: response.ok
       });
 
+      if (!response.ok) {
+        const errorBody = await response.text();
+        console.error('Supabase request failed:', {
+          status: response.status,
+          body: errorBody
+        });
+      }
+
       return response;
     } catch (error) {
       attempt++;
@@ -65,6 +73,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   global: {
     headers: {
       'X-Client-Info': 'supabase-js-web',
+      'apikey': supabaseKey,
+      'Authorization': `Bearer ${supabaseKey}`
     },
     fetch: customFetch
   },
