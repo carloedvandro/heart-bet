@@ -65,7 +65,7 @@ export function RechargeDialog() {
       <DialogTrigger asChild>
         <Button 
           variant="outline" 
-          className={`bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-600 hover:text-blue-700 ${
+          className={`bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white border-none shadow-md hover:shadow-lg transition-all ${
             isMobile ? 'text-xs h-8 px-2' : ''
           }`}
         >

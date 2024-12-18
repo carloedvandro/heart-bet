@@ -13,7 +13,7 @@ export function LogoutButton({ onLogout }: LogoutButtonProps) {
     <Button 
       variant="outline" 
       onClick={onLogout} 
-      className={`bg-red-50 hover:bg-red-100 border-red-200 text-red-600 hover:text-red-700 ${
+      className={`bg-gradient-to-r from-rose-400 to-red-500 hover:from-rose-500 hover:to-red-600 text-white border-none shadow-md hover:shadow-lg transition-all ${
         isMobile ? 'text-xs h-8 px-2' : ''
       }`}
     >
