@@ -7,23 +7,28 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
+    console.log('Starting dollar value scraping...')
+    
     const firecrawl = new FirecrawlApp({ 
       apiKey: Deno.env.get('FIRECRAWL_API_KEY') 
     })
 
-    console.log('Starting dollar value scraping...')
+    console.log('Initialized Firecrawl with API key')
     
-    const result = await firecrawl.crawlUrl('https://www.google.com.br/search?q=valor+do+dolar', {
+    const result = await firecrawl.crawlUrl('https://www.google.com/search?q=valor+do+dolar&hl=pt-BR', {
       limit: 1,
       scrapeOptions: {
         selectors: ['.DFlfde.SwHCTb'], // Google's currency value selector
       }
     })
+
+    console.log('Scraping result:', result)
 
     if (!result.success) {
       throw new Error('Failed to scrape dollar value')
