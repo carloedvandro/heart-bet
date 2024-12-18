@@ -18,7 +18,7 @@ serve(async (req) => {
     if (!amount || isNaN(amount)) {
       return new Response(
         JSON.stringify({ error: 'Amount is required and must be a number' }),
-        { headers: corsHeaders, status: 400 }
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       )
     }
 
@@ -80,7 +80,7 @@ serve(async (req) => {
           pixKey: pixData.payload
         }
       }),
-      { headers: corsHeaders }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
@@ -90,7 +90,7 @@ serve(async (req) => {
         error: 'Internal server error', 
         details: error.message 
       }),
-      { headers: corsHeaders, status: 500 }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
 })

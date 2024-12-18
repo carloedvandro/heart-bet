@@ -43,14 +43,24 @@ export function PixGenerator() {
         .select()
         .single();
 
-      if (rechargeError) throw rechargeError;
+      if (rechargeError) {
+        console.error('Error creating recharge:', rechargeError);
+        throw new Error('Erro ao criar registro de recarga');
+      }
 
       // Gerar PIX via Asaas
       const { data, error } = await supabase.functions.invoke('generate-asaas-payment', {
         body: { amount: numericAmount }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error invoking function:', error);
+        throw new Error('Erro ao gerar PIX');
+      }
+
+      if (!data?.payment?.pixQrCode || !data?.payment?.pixKey) {
+        throw new Error('Dados do PIX inválidos');
+      }
 
       setPixData({
         pixQrCode: data.payment.pixQrCode,
@@ -60,7 +70,7 @@ export function PixGenerator() {
       toast.success("PIX gerado com sucesso!");
     } catch (error) {
       console.error('Error generating PIX:', error);
-      toast.error("Erro ao gerar PIX. Por favor, tente novamente.");
+      toast.error(error instanceof Error ? error.message : "Erro ao gerar PIX. Por favor, tente novamente.");
     } finally {
       setLoading(false);
     }
