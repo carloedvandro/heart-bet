@@ -22,9 +22,10 @@ serve(async (req) => {
       throw new Error('API key not configured')
     }
     
+    console.log('Initializing Firecrawl with API key...')
     const firecrawl = new FirecrawlApp({ apiKey })
-    console.log('Initialized Firecrawl with API key')
     
+    console.log('Making request to Google...')
     const result = await firecrawl.crawlUrl('https://www.google.com/search?q=valor+do+dolar&hl=pt-BR', {
       limit: 1,
       scrapeOptions: {
@@ -35,6 +36,7 @@ serve(async (req) => {
     console.log('Scraping result:', result)
 
     if (!result.success) {
+      console.error('Scraping failed:', result)
       throw new Error('Failed to scrape dollar value')
     }
 
