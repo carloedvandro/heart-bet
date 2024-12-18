@@ -49,7 +49,6 @@ serve(async (req) => {
       throw new Error('Configuration error: Missing API key');
     }
 
-    // Usando a URL do ambiente sandbox do Asaas
     console.log('Creating payment in Asaas Sandbox...');
     const paymentResponse = await fetch('https://sandbox.asaas.com/api/v3/payments', {
       method: 'POST',
