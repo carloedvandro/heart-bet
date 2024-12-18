@@ -4,6 +4,7 @@ import FirecrawlApp from 'npm:@mendable/firecrawl-js'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 serve(async (req) => {
@@ -15,10 +16,13 @@ serve(async (req) => {
   try {
     console.log('Starting dollar value scraping...')
     
-    const firecrawl = new FirecrawlApp({ 
-      apiKey: Deno.env.get('FIRECRAWL_API_KEY') 
-    })
-
+    const apiKey = Deno.env.get('FIRECRAWL_API_KEY')
+    if (!apiKey) {
+      console.error('FIRECRAWL_API_KEY not found in environment variables')
+      throw new Error('API key not configured')
+    }
+    
+    const firecrawl = new FirecrawlApp({ apiKey })
     console.log('Initialized Firecrawl with API key')
     
     const result = await firecrawl.crawlUrl('https://www.google.com/search?q=valor+do+dolar&hl=pt-BR', {
