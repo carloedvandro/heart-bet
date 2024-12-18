@@ -1,0 +1,61 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import FirecrawlApp from 'npm:@mendable/firecrawl-js'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    const firecrawl = new FirecrawlApp({ 
+      apiKey: Deno.env.get('FIRECRAWL_API_KEY') 
+    })
+
+    console.log('Starting dollar value scraping...')
+    
+    const result = await firecrawl.crawlUrl('https://www.google.com.br/search?q=valor+do+dolar', {
+      limit: 1,
+      scrapeOptions: {
+        selectors: ['.DFlfde.SwHCTb'], // Google's currency value selector
+      }
+    })
+
+    if (!result.success) {
+      throw new Error('Failed to scrape dollar value')
+    }
+
+    return new Response(
+      JSON.stringify({
+        success: true,
+        data: result.data
+      }),
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        } 
+      }
+    )
+
+  } catch (error) {
+    console.error('Error:', error)
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error.message
+      }),
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        },
+        status: 500
+      }
+    )
+  }
+})
