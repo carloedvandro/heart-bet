@@ -1,5 +1,4 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import FirecrawlApp from 'npm:@mendable/firecrawl-js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,34 +13,23 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Starting dollar value scraping...')
+    console.log('Starting dollar value fetch...')
     
-    const apiKey = Deno.env.get('FIRECRAWL_API_KEY')
-    if (!apiKey) {
-      console.error('FIRECRAWL_API_KEY not found in environment variables')
-      throw new Error('API key not configured')
-    }
+    const response = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL')
+    const data = await response.json()
     
-    const firecrawl = new FirecrawlApp({ apiKey })
-    console.log('Initialized Firecrawl with API key')
-    
-    const result = await firecrawl.crawlUrl('https://www.google.com/search?q=valor+do+dolar&hl=pt-BR', {
-      limit: 1,
-      scrapeOptions: {
-        selectors: ['.DFlfde.SwHCTb'], // Google's currency value selector
-      }
-    })
+    console.log('API Response:', data)
 
-    console.log('Scraping result:', result)
-
-    if (!result.success) {
-      throw new Error('Failed to scrape dollar value')
+    if (!data.USDBRL) {
+      throw new Error('Failed to fetch dollar value')
     }
 
     return new Response(
       JSON.stringify({
         success: true,
-        data: result.data
+        data: [{
+          content: data.USDBRL.bid
+        }]
       }),
       { 
         headers: { 
