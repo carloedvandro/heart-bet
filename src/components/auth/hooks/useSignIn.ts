@@ -22,9 +22,7 @@ export function useSignIn() {
         email,
         password,
         options: {
-          data: {
-            redirect_to: window.location.origin + '/dashboard'
-          }
+          redirectTo: window.location.origin + '/dashboard'
         }
       });
 
