@@ -14,7 +14,23 @@ serve(async (req) => {
 
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      headers: {
+        ...corsHeaders,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      }
+    });
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 405
+      }
+    );
   }
 
   try {
@@ -26,7 +42,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Amount is required and must be a number' }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           status: 400 
         }
       );
@@ -34,12 +50,11 @@ serve(async (req) => {
 
     const asaasApiKey = Deno.env.get('ASAAS_API_KEY');
     if (!asaasApiKey) {
-      console.error('Missing Asaas API key');
+      console.error('Missing Asaas API key in environment variables');
       throw new Error('Configuration error: Missing API key');
     }
 
     console.log('Creating payment in Asaas...');
-    // Criar cobrança no Asaas
     const paymentResponse = await fetch('https://api.asaas.com/v3/payments', {
       method: 'POST',
       headers: {
@@ -54,17 +69,22 @@ serve(async (req) => {
       })
     });
 
+    const paymentResponseText = await paymentResponse.text();
+    console.log('Raw Asaas payment response:', paymentResponseText);
+
     if (!paymentResponse.ok) {
-      const errorData = await paymentResponse.json();
-      console.error('Asaas payment creation failed:', errorData);
-      throw new Error('Failed to create payment');
+      console.error('Asaas payment creation failed:', {
+        status: paymentResponse.status,
+        statusText: paymentResponse.statusText,
+        body: paymentResponseText
+      });
+      throw new Error(`Failed to create payment: ${paymentResponse.statusText}`);
     }
 
-    const paymentData = await paymentResponse.json();
+    const paymentData = JSON.parse(paymentResponseText);
     console.log('Payment created successfully:', paymentData);
 
     console.log('Generating PIX QR Code...');
-    // Gerar QR Code PIX
     const pixResponse = await fetch(`https://api.asaas.com/v3/payments/${paymentData.id}/pixQrCode`, {
       headers: {
         'Content-Type': 'application/json',
@@ -72,13 +92,19 @@ serve(async (req) => {
       }
     });
 
+    const pixResponseText = await pixResponse.text();
+    console.log('Raw PIX response:', pixResponseText);
+
     if (!pixResponse.ok) {
-      const errorData = await pixResponse.json();
-      console.error('PIX QR Code generation failed:', errorData);
+      console.error('PIX QR Code generation failed:', {
+        status: pixResponse.status,
+        statusText: pixResponse.statusText,
+        body: pixResponseText
+      });
       throw new Error('Failed to generate PIX QR Code');
     }
 
-    const pixData = await pixResponse.json();
+    const pixData = JSON.parse(pixResponseText);
     console.log('PIX QR Code generated successfully');
 
     return new Response(
@@ -103,10 +129,11 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         error: 'Internal server error', 
-        details: error.message 
+        details: error.message,
+        stack: error.stack
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500 
       }
     );
