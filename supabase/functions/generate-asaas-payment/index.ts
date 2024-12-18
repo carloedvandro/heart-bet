@@ -7,6 +7,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Log incoming request
   console.log('Function invoked:', {
     method: req.method,
     url: req.url,
@@ -50,8 +51,8 @@ serve(async (req) => {
       throw new Error('Configuration error: Missing API key');
     }
 
-    console.log('Creating payment in Asaas Sandbox...');
-    const paymentResponse = await fetch('https://sandbox.asaas.com/api/v3/payments', {
+    console.log('Creating payment in Asaas...');
+    const paymentResponse = await fetch('https://api.asaas.com/v3/payments', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -80,7 +81,7 @@ serve(async (req) => {
     console.log('Payment created successfully:', paymentData);
 
     console.log('Generating PIX QR Code...');
-    const pixResponse = await fetch(`https://sandbox.asaas.com/api/v3/payments/${paymentData.id}/pixQrCode`, {
+    const pixResponse = await fetch(`https://api.asaas.com/v3/payments/${paymentData.id}/pixQrCode`, {
       headers: {
         'Content-Type': 'application/json',
         'access_token': asaasApiKey
