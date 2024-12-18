@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import Image from "next/image";
 
 export function PixGenerator() {
   const [amount, setAmount] = useState("");
