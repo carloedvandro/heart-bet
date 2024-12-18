@@ -24,11 +24,17 @@ export function PixGenerator() {
 
     setIsLoading(true)
     try {
+      console.log('Calling generate-pix function with amount:', amount)
       const { data, error } = await supabase.functions.invoke('generate-pix', {
         body: { amount: Number(amount) }
       })
 
-      if (error) throw error
+      console.log('Response from generate-pix:', { data, error })
+
+      if (error) {
+        console.error('Supabase function error:', error)
+        throw error
+      }
 
       if (data.success) {
         setPixData({
@@ -41,7 +47,7 @@ export function PixGenerator() {
       }
     } catch (error) {
       console.error('Error generating PIX:', error)
-      toast.error('Erro ao gerar o PIX. Tente novamente.')
+      toast.error('Erro ao gerar o PIX. Por favor, tente novamente em alguns instantes.')
     } finally {
       setIsLoading(false)
     }

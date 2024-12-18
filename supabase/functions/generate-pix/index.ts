@@ -46,22 +46,17 @@ serve(async (req) => {
         '--disable-gpu',
         '--single-process',
         '--no-zygote',
-        '--disable-accelerated-2d-canvas',
-        '--disable-gl-drawing-for-tests',
-        '--mute-audio',
-        '--disable-web-security'
       ],
       headless: true,
     });
 
     const page = await browser.newPage();
-    await page.setDefaultNavigationTimeout(60000);
+    await page.setDefaultNavigationTimeout(30000);
     await page.setViewport({ width: 1280, height: 800 });
 
     console.log('Navigating to login page...')
     await page.goto('https://app.sistemabarao.com.br/login', {
       waitUntil: 'networkidle0',
-      timeout: 60000
     });
 
     console.log('Filling login form...')
@@ -70,20 +65,19 @@ serve(async (req) => {
     
     console.log('Submitting login form...')
     await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 60000 }),
+      page.waitForNavigation({ waitUntil: 'networkidle0' }),
       page.click('button[type="submit"]')
     ]);
 
     console.log('Navigating to PIX page...')
     await page.goto('https://app.sistemabarao.com.br/ellite-apostas/recarga-pix', {
       waitUntil: 'networkidle0',
-      timeout: 60000
     });
     
     console.log('Generating PIX for amount:', amount)
     await page.type('#amount', amount.toString());
     await Promise.all([
-      page.waitForNavigation({ waitUntil: 'networkidle0', timeout: 60000 }),
+      page.waitForNavigation({ waitUntil: 'networkidle0' }),
       page.click('#generate-pix-button')
     ]);
 
@@ -91,10 +85,10 @@ serve(async (req) => {
     const qrCodeBase64 = await page.$eval('#qr-code-img', (img) => img.src.split(',')[1]);
     const pixCode = await page.$eval('#pix-code', (input) => input.value);
 
-    console.log('Successfully generated PIX')
     await browser.close();
     browser = null;
 
+    console.log('Successfully generated PIX')
     return new Response(
       JSON.stringify({
         success: true,
@@ -106,7 +100,6 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error:', error)
     
-    // Ensure browser is closed in case of error
     if (browser) {
       try {
         await browser.close()
