@@ -7,19 +7,16 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // Log the incoming request details
   console.log('Function invoked:', {
     method: req.method,
     url: req.url,
     headers: Object.fromEntries(req.headers.entries())
   });
 
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Only allow POST requests
   if (req.method !== 'POST') {
     console.error('Method not allowed:', req.method);
     return new Response(
@@ -52,7 +49,8 @@ serve(async (req) => {
       throw new Error('Configuration error: Missing API key');
     }
 
-    console.log('Creating payment in Asaas...');
+    // Usando a URL do ambiente sandbox do Asaas
+    console.log('Creating payment in Asaas Sandbox...');
     const paymentResponse = await fetch('https://sandbox.asaas.com/api/v3/payments', {
       method: 'POST',
       headers: {
@@ -60,6 +58,7 @@ serve(async (req) => {
         'access_token': asaasApiKey
       },
       body: JSON.stringify({
+        customer: 'cus_000005113863', // Customer ID de teste do sandbox
         billingType: 'PIX',
         value: amount,
         dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
