@@ -8,52 +8,66 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase URL or Key');
 }
 
-// Create a custom fetch implementation with retries
-const customFetch = async (input: RequestInfo | URL, init?: RequestInit) => {
-  const maxRetries = 3;
+const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
+  const MAX_RETRIES = 3;
   let attempt = 0;
-  
-  while (attempt < maxRetries) {
-    try {
-      // Add cache control headers and API key
-      const modifiedInit = {
-        ...init,
-        headers: {
-          ...init?.headers,
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache',
-          'apikey': supabaseKey,
-          'Authorization': `Bearer ${supabaseKey}`
-        }
-      };
 
-      const response = await fetch(input, modifiedInit);
-      
-      // Log response details for debugging
-      console.log(`Supabase request attempt ${attempt + 1}:`, {
-        url: input.toString(),
-        status: response.status,
-        ok: response.ok
+  while (attempt < MAX_RETRIES) {
+    try {
+      const headers = new Headers({
+        'apikey': supabaseKey,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'Prefer': 'return=minimal'
       });
 
+      if (init?.headers) {
+        const customHeaders = new Headers(init.headers);
+        customHeaders.forEach((value, key) => headers.set(key, value));
+      }
+
+      const response = await fetch(url, {
+        ...init,
+        headers
+      });
+
+      // Don't retry on rate limit errors
+      if (response.status === 429) {
+        const error = new Error('Rate limit exceeded');
+        (error as any).status = 429;
+        throw error;
+      }
+
       if (!response.ok) {
-        const errorBody = await response.text();
-        console.error('Supabase request failed:', {
+        const errorClone = response.clone();
+        const errorText = await errorClone.text();
+        console.error('Response not OK:', {
           status: response.status,
-          body: errorBody
+          statusText: response.statusText,
+          url: response.url,
+          headers: Object.fromEntries(response.headers.entries()),
+          body: errorText
         });
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
       return response;
     } catch (error) {
       attempt++;
-      console.error(`Attempt ${attempt} failed:`, error);
+      console.error(`Fetch attempt ${attempt} failed:`, error);
       
-      if (attempt === maxRetries) throw error;
+      // Don't retry rate limit errors
+      if ((error as any).status === 429) {
+        throw error;
+      }
       
-      // Add exponential backoff with jitter
+      if (attempt === MAX_RETRIES) {
+        throw error;
+      }
+      
       await new Promise(resolve => 
-        setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt) + Math.random() * 1000, 10000))
+        setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt - 1), 5000))
       );
     }
   }
@@ -65,58 +79,15 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   auth: {
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: true,
-    storage: window.localStorage,
+    detectSessionInUrl: false,
     flowType: 'pkce',
-    debug: true
   },
   global: {
-    headers: {
-      'X-Client-Info': 'supabase-js-web',
-      'apikey': supabaseKey,
-      'Authorization': `Bearer ${supabaseKey}`
-    },
     fetch: customFetch
-  },
-});
-
-// Clear invalid session data on initialization
-const initializeClient = async () => {
-  try {
-    const { data: { session }, error } = await supabase.auth.getSession();
-    
-    if (error || !session) {
-      console.log('No valid session found, clearing storage');
-      localStorage.removeItem('supabase.auth.token');
-      localStorage.removeItem('supabase.auth.refreshToken');
-      window.location.href = '/login';
-    }
-  } catch (error) {
-    console.error('Error initializing Supabase client:', error);
-    localStorage.removeItem('supabase.auth.token');
-    localStorage.removeItem('supabase.auth.refreshToken');
-  }
-};
-
-// Set up auth state change listener with improved error handling
-supabase.auth.onAuthStateChange((event, session) => {
-  console.log('Auth state changed:', event, session ? 'Session exists' : 'No session');
-  
-  if (event === 'SIGNED_OUT') {
-    // Clear all auth data
-    localStorage.removeItem('supabase.auth.token');
-    localStorage.removeItem('supabase.auth.refreshToken');
-    console.log('Cleared auth data due to:', event);
-  } else if (event === 'SIGNED_IN' && session) {
-    // Ensure the session is properly stored
-    localStorage.setItem('supabase.auth.token', session.access_token);
-    if (session.refresh_token) {
-      localStorage.setItem('supabase.auth.refreshToken', session.refresh_token);
-    }
-    console.log('Updated session storage after sign in');
   }
 });
 
-initializeClient().catch(console.error);
-
-export default supabase;
+// Only log auth state changes
+supabase.auth.onAuthStateChange((event) => {
+  console.log('Auth state changed:', event);
+});

@@ -55,7 +55,7 @@ export function Header({ profile, onLogout }: HeaderProps) {
               Corações Premiados
             </h1>
             <div className="flex items-center gap-2 flex-wrap">
-              <p className="text-sm text-gray-400 dark:text-gray-300 truncate max-w-[200px]">
+              <p className="text-sm text-gray-600 truncate max-w-[200px]">
                 {displayName}
               </p>
               <Button
