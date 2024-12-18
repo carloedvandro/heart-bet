@@ -9,12 +9,10 @@ export function useAuthHandlers() {
   const [resetAttempts, setResetAttempts] = useState(0);
   const [lastResetAttempt, setLastResetAttempt] = useState(0);
 
-  // Aumentando o limite de tentativas para 5 e reduzindo o período de espera para 30 segundos
   const MAX_ATTEMPTS = 5;
   const COOLDOWN_PERIOD = 30 * 1000; // 30 seconds in milliseconds
 
   const handleSignIn = async (email: string, password: string) => {
-    // Validate input first
     if (!email || !password) {
       toast.error("Por favor, preencha email e senha");
       return false;
@@ -26,9 +24,15 @@ export function useAuthHandlers() {
       // Log the attempt for debugging
       console.log(`Attempting sign-in for email: ${email}`);
 
+      // Add a small delay before the request
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: {
+          redirectTo: window.location.origin + '/dashboard'
+        }
       });
 
       if (error) {
@@ -38,7 +42,11 @@ export function useAuthHandlers() {
           status: error.status
         });
         
-        // More specific error handling
+        if (error.message?.includes('Failed to fetch')) {
+          toast.error("Erro de conexão. Por favor, tente novamente em alguns instantes.");
+          return false;
+        }
+        
         switch (error.message) {
           case "Invalid login credentials":
             toast.error("Email ou senha incorretos. Verifique suas credenciais.");
@@ -78,9 +86,15 @@ export function useAuthHandlers() {
       setIsLoading(true);
       console.log("Attempting signup for email:", email);
       
+      // Add a small delay before the request
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: window.location.origin + '/dashboard'
+        }
       });
 
       setSignUpAttempts(prev => prev + 1);
@@ -89,9 +103,14 @@ export function useAuthHandlers() {
       if (error) {
         console.error("Signup error:", error);
         
+        if (error.message?.includes('Failed to fetch')) {
+          toast.error("Erro de conexão. Por favor, tente novamente em alguns instantes.");
+          return false;
+        }
+        
         // Handle email rate limit error specifically
-        if (error.message?.includes("email rate limit exceeded") || 
-            error.message?.includes("over_email_send_rate_limit") ||
+        if (error.message?.includes('email rate limit exceeded') || 
+            error.message?.includes('over_email_send_rate_limit') ||
             error.status === 429) {
           toast.error("Limite de envio de emails excedido. Por favor, aguarde alguns minutos antes de tentar novamente.");
           return false;
@@ -106,10 +125,15 @@ export function useAuthHandlers() {
     } catch (error: any) {
       console.error("Erro no cadastro:", error);
       
+      if (error?.message?.includes('Failed to fetch')) {
+        toast.error("Erro de conexão. Por favor, tente novamente em alguns instantes.");
+        return false;
+      }
+      
       // Additional check for rate limit in catch block
       if (error?.status === 429 || 
-          error?.message?.includes("email rate limit exceeded") ||
-          error?.message?.includes("over_email_send_rate_limit")) {
+          error?.message?.includes('email rate limit exceeded') ||
+          error?.message?.includes('over_email_send_rate_limit')) {
         toast.error("Limite de envio de emails excedido. Por favor, aguarde alguns minutos antes de tentar novamente.");
         return false;
       }
@@ -140,6 +164,9 @@ export function useAuthHandlers() {
 
       console.log("Tentando resetar senha para o email:", email);
 
+      // Add a small delay before the request
+      await new Promise(resolve => setTimeout(resolve, 100));
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: window.location.origin + '/reset-password'
       });
@@ -149,6 +176,11 @@ export function useAuthHandlers() {
 
       if (error) {
         console.error("Erro detalhado no reset de senha:", error);
+
+        if (error.message?.includes('Failed to fetch')) {
+          toast.error("Erro de conexão. Por favor, tente novamente em alguns instantes.");
+          return false;
+        }
 
         if (error.status === 429) {
           const minutesLeft = Math.ceil(COOLDOWN_PERIOD / 60000);
