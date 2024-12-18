@@ -12,6 +12,7 @@ const storageKey = 'sb-' + supabaseUrl.split('//')[1] + '-auth-token';
 
 const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
   const MAX_RETRIES = 3;
+  const INITIAL_RETRY_DELAY = 1000; // 1 second
   let attempt = 0;
 
   while (attempt < MAX_RETRIES) {
@@ -34,16 +35,24 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       headers.set('Accept', 'application/json');
       headers.set('Prefer', 'return=minimal');
 
+      // Log request details for debugging
+      console.log('Making request to:', url.toString(), {
+        method: init?.method || 'GET',
+        headers: Object.fromEntries(headers.entries()),
+        hasAccessToken: !!accessToken
+      });
+
       const response = await fetch(url, {
         ...init,
         headers,
-        credentials: 'include'
+        credentials: 'include',
+        mode: 'cors'
       });
 
-      // Don't retry on rate limit errors
-      if (response.status === 429) {
-        const error = new Error('Rate limit exceeded');
-        (error as any).status = 429;
+      // Don't retry on rate limit or auth errors
+      if (response.status === 429 || response.status === 401 || response.status === 403) {
+        const error = new Error(response.statusText);
+        (error as any).status = response.status;
         throw error;
       }
 
@@ -74,7 +83,10 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       attempt++;
       console.error(`Fetch attempt ${attempt} failed:`, error);
       
-      if ((error as any).status === 429) {
+      // Don't retry certain errors
+      if ((error as any).status === 429 || 
+          (error as any).status === 401 || 
+          (error as any).status === 403) {
         throw error;
       }
       
@@ -82,10 +94,10 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         throw error;
       }
       
-      // Exponential backoff with max of 5 seconds
-      await new Promise(resolve => 
-        setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt - 1), 5000))
-      );
+      // Exponential backoff with jitter
+      const delay = Math.min(INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1), 5000) +
+                   Math.random() * 1000;
+      await new Promise(resolve => setTimeout(resolve, delay));
     }
   }
 
@@ -99,7 +111,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     detectSessionInUrl: true,
     flowType: 'pkce',
     storage: localStorage,
-    storageKey
+    storageKey,
+    debug: true
   },
   global: {
     fetch: customFetch
