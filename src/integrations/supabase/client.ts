@@ -10,6 +10,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
   const MAX_RETRIES = 3;
+  const INITIAL_RETRY_DELAY = 1000; // 1 second
   let attempt = 0;
   let lastError;
 
@@ -29,7 +30,7 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       }
 
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+      const timeout = setTimeout(() => controller.abort(), 15000); // Increased timeout to 15 seconds
 
       console.log('Supabase Request:', {
         url: url.toString(),
@@ -39,7 +40,8 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       const response = await fetch(url, {
         ...init,
         headers,
-        signal: controller.signal
+        signal: controller.signal,
+        credentials: 'include', // Add credentials inclusion
       });
 
       clearTimeout(timeout);
@@ -76,7 +78,9 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       console.error(`Fetch attempt ${attempt} failed:`, error);
       
       if ((error as any).status === 429 || error.name === 'AbortError') {
-        throw error;
+        const retryDelay = Math.min(INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1), 5000);
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        continue;
       }
       
       if (attempt === MAX_RETRIES) {
@@ -85,9 +89,8 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       }
       
       // Exponential backoff with max of 5 seconds
-      await new Promise(resolve => 
-        setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt - 1), 5000))
-      );
+      const retryDelay = Math.min(INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1), 5000);
+      await new Promise(resolve => setTimeout(resolve, retryDelay));
     }
   }
 
@@ -100,13 +103,20 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     persistSession: true,
     detectSessionInUrl: false,
     flowType: 'pkce',
+    storage: localStorage,
   },
   global: {
-    fetch: customFetch
+    fetch: customFetch,
+    headers: {
+      'x-client-info': 'supabase-js-web'
+    }
+  },
+  db: {
+    schema: 'public'
   }
 });
 
 // Log auth state changes
-supabase.auth.onAuthStateChange((event) => {
-  console.log('Auth state changed:', event);
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth state changed:', { event, session });
 });
