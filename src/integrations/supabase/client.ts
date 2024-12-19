@@ -31,6 +31,11 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
+      console.log('Supabase Request:', {
+        url: url.toString(),
+        method: init?.method || 'GET',
+      });
+
       const response = await fetch(url, {
         ...init,
         headers,
@@ -38,6 +43,12 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
       });
 
       clearTimeout(timeout);
+
+      console.log('Supabase Response:', {
+        url: url.toString(),
+        status: response.status,
+        statusText: response.statusText
+      });
 
       if (response.status === 429) {
         const error = new Error('Rate limit exceeded');
@@ -95,18 +106,7 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   }
 });
 
-// Add request/response interceptors for better debugging
-supabase.rest.interceptors.response.use(
-  (response) => {
-    console.log('Supabase Response:', {
-      url: response.url,
-      status: response.status,
-      statusText: response.statusText
-    });
-    return response;
-  },
-  (error) => {
-    console.error('Supabase Error:', error);
-    return Promise.reject(error);
-  }
-);
+// Log auth state changes
+supabase.auth.onAuthStateChange((event) => {
+  console.log('Auth state changed:', event);
+});
