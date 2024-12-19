@@ -33,8 +33,8 @@ export function InvestmentRulesDialog({ open, onOpenChange }: InvestmentRulesDia
                 <li>A transferência pode ser realizada após o aceite dos termos e condições e o preenchimento obrigatório do cadastro financeiro.</li>
                 <li>O saldo investido terá rendimentos diários, conforme o período de bloqueio escolhido pelo cliente:</li>
                 <ul className="list-none pl-6 space-y-1 mt-2">
-                  <li>• De 7 a 29 dias: Rendimento de 0,5% ao dia sobre o valor investido.</li>
-                  <li>• 30 dias ou mais: Rendimento de 1% ao dia sobre o valor investido.</li>
+                  <li>• 60 dias com rendimento de 0,5% ao dia.</li>
+                  <li>• 12 meses com rendimento de 1% ao dia.</li>
                 </ul>
                 <li>Nossos sistemas com inteligência artificial avançada monitoram continuamente os cálculos e operações para garantir o melhor desempenho e máxima segurança.</li>
               </ul>
@@ -66,8 +66,8 @@ export function InvestmentRulesDialog({ open, onOpenChange }: InvestmentRulesDia
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
                 <li>Ao transferir valores para o investimento trade, o saldo ficará bloqueado durante o período escolhido:</li>
                 <ul className="list-none pl-6 space-y-1 mt-2">
-                  <li>• 30 dias com rendimento de 0,5% ao dia.</li>
-                  <li>• 180 dias com rendimento de 1% ao dia.</li>
+                  <li>• 60 dias com rendimento de 0,5% ao dia.</li>
+                  <li>• 12 meses com rendimento de 1% ao dia.</li>
                 </ul>
                 <li>Durante o período de bloqueio, o cliente não poderá transferir ou sacar o valor investido.</li>
                 <li>Após o término do período escolhido, o saldo ficará liberado para transferências ou saques.</li>
@@ -157,7 +157,7 @@ export function InvestmentRulesDialog({ open, onOpenChange }: InvestmentRulesDia
                 <li><span className="font-semibold">Aceite dos Termos:</span> O cliente lê e aceita as regras e os riscos.</li>
                 <li><span className="font-semibold">Transferência do Saldo:</span> O cliente transfere o valor do saldo formal para o saldo trade.</li>
                 <li><span className="font-semibold">Operação Diária:</span> O cliente clica no botão "Operar Mercado" uma vez ao dia.</li>
-                <li><span className="font-semibold">Bloqueio do Saldo:</span> O saldo fica bloqueado pelo período escolhido (7 dias ou 30 dias).</li>
+                <li><span className="font-semibold">Bloqueio do Saldo:</span> O saldo fica bloqueado pelo período escolhido (60 dias ou 12 meses).</li>
                 <li><span className="font-semibold">Rendimentos Diários:</span> O sistema calcula e adiciona o rendimento diário ao saldo trade após a operação.</li>
                 <li><span className="font-semibold">Solicitação de Saque:</span> O cliente solicita o saque conforme as regras (sextas-feiras, com pagamento até terça-feira seguinte).</li>
                 <li><span className="font-semibold">Taxa de Saque:</span> Aplicação de 5% sobre o valor retirado.</li>

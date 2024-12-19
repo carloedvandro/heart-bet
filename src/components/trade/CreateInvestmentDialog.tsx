@@ -23,7 +23,7 @@ export function CreateInvestmentDialog({
   const session = useSession();
   const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState('');
-  const [lockPeriod, setLockPeriod] = useState<'30' | '180'>('30');
+  const [lockPeriod, setLockPeriod] = useState<'60' | '365'>('60');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,7 +33,7 @@ export function CreateInvestmentDialog({
       setLoading(true);
       const numericAmount = Number(amount);
       const lockPeriodDays = Number(lockPeriod);
-      const dailyRate = lockPeriodDays === 30 ? 0.5 : 1;
+      const dailyRate = lockPeriodDays === 60 ? 0.5 : 1;
       
       const lockedUntil = toZonedTime(new Date(), 'America/Sao_Paulo');
       lockedUntil.setDate(lockedUntil.getDate() + lockPeriodDays);
@@ -75,12 +75,12 @@ export function CreateInvestmentDialog({
       const { error: historyError } = await supabase
         .from('balance_history')
         .insert({
+          admin_id: session.user.id,
           user_id: session.user.id,
           operation_type: 'trade_investment',
           amount: numericAmount,
           previous_balance: profile.balance,
-          new_balance: profile.balance - numericAmount,
-          admin_id: session.user.id
+          new_balance: profile.balance - numericAmount
         });
 
       if (historyError) throw historyError;
@@ -122,14 +122,14 @@ export function CreateInvestmentDialog({
             <Label htmlFor="lockPeriod">Período de Bloqueio</Label>
             <Select
               value={lockPeriod}
-              onValueChange={(value: '30' | '180') => setLockPeriod(value)}
+              onValueChange={(value: '60' | '365') => setLockPeriod(value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Selecione o período" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="30">30 dias (0,5% ao dia)</SelectItem>
-                <SelectItem value="180">180 dias (1% ao dia)</SelectItem>
+                <SelectItem value="60">60 dias (0,5% ao dia)</SelectItem>
+                <SelectItem value="365">12 meses (1% ao dia)</SelectItem>
               </SelectContent>
             </Select>
           </div>
