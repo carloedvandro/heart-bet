@@ -53,39 +53,61 @@ export function PaymentProofsList() {
     try {
       setLoadingProofId(proof.id);
       setLoadingProof(true);
-      setSelectedProofUrl(null); // Reset previous URL
+      setSelectedProofUrl(null);
 
-      // First try to get a public URL
+      // Tentar obter URL pública com timestamp para evitar cache
+      const timestamp = new Date().getTime();
       const { data: publicUrlData } = await supabase.storage
         .from('payment_proofs')
-        .getPublicUrl(proof.file_path);
+        .getPublicUrl(`${proof.file_path}?t=${timestamp}`);
 
       if (!publicUrlData?.publicUrl) {
-        throw new Error('Erro ao gerar URL pública');
+        throw new Error('Falha ao gerar URL pública');
       }
 
-      // Add timestamp to prevent caching
-      const url = new URL(publicUrlData.publicUrl);
-      url.searchParams.append('t', Date.now().toString());
-      
-      setSelectedProofUrl(url.toString());
-    } catch (error) {
-      console.error('Error getting proof URL:', error);
-      
-      // If public URL fails, try signed URL as fallback
-      try {
-        const { data: signedUrlData } = await supabase.storage
-          .from('payment_proofs')
-          .createSignedUrl(proof.file_path, 600); // 10 minutes expiry
+      // Verificar se a imagem pode ser carregada antes de exibir
+      const img = new Image();
+      img.onerror = () => {
+        throw new Error('Falha ao carregar imagem da URL pública');
+      };
 
-        if (!signedUrlData?.signedUrl) {
-          throw new Error('Erro ao gerar URL assinada');
+      const loadPromise = new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+        img.src = publicUrlData.publicUrl;
+      });
+
+      await loadPromise;
+      setSelectedProofUrl(publicUrlData.publicUrl);
+
+    } catch (error) {
+      console.error('Erro ao carregar imagem:', error);
+      
+      try {
+        // Tentar URL assinada como fallback
+        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+          .from('payment_proofs')
+          .createSignedUrl(proof.file_path, 900); // 15 minutos
+
+        if (signedUrlError || !signedUrlData?.signedUrl) {
+          throw new Error('Falha ao gerar URL assinada');
         }
 
+        // Verificar se a imagem pode ser carregada da URL assinada
+        const img = new Image();
+        const loadPromise = new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = signedUrlData.signedUrl;
+        });
+
+        await loadPromise;
         setSelectedProofUrl(signedUrlData.signedUrl);
+
       } catch (fallbackError) {
-        console.error('Fallback error:', fallbackError);
-        toast.error('Não foi possível carregar o comprovante. Por favor, tente novamente em alguns instantes.');
+        console.error('Erro no fallback:', fallbackError);
+        toast.error('Não foi possível carregar o comprovante. Por favor, atualize a página e tente novamente.');
+        setSelectedProofUrl(null);
       }
     } finally {
       setLoadingProof(false);
@@ -94,7 +116,7 @@ export function PaymentProofsList() {
   };
 
   const handleImageError = () => {
-    toast.error('Não foi possível carregar a imagem. Por favor, tente visualizar novamente.');
+    toast.error('Erro ao carregar imagem. Por favor, atualize a página e tente novamente.');
     setSelectedProofUrl(null);
   };
 
