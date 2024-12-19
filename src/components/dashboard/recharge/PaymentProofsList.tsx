@@ -49,66 +49,60 @@ export function PaymentProofsList() {
     }
   };
 
+  const checkFileExists = async (filePath: string) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('payment_proofs')
+        .list(filePath.split('/').slice(0, -1).join('/'), {
+          limit: 1,
+          offset: 0,
+          search: filePath.split('/').pop(),
+        });
+
+      if (error) throw error;
+      return data && data.length > 0;
+    } catch (error) {
+      console.error('Error checking file existence:', error);
+      return false;
+    }
+  };
+
   const viewProof = async (proof: PaymentProof) => {
     try {
       setLoadingProofId(proof.id);
       setLoadingProof(true);
       setSelectedProofUrl(null);
 
-      // Tentar obter URL pública com timestamp para evitar cache
-      const timestamp = new Date().getTime();
-      const { data: publicUrlData } = await supabase.storage
-        .from('payment_proofs')
-        .getPublicUrl(`${proof.file_path}?t=${timestamp}`);
-
-      if (!publicUrlData?.publicUrl) {
-        throw new Error('Falha ao gerar URL pública');
+      // Verificar se o arquivo existe
+      const fileExists = await checkFileExists(proof.file_path);
+      if (!fileExists) {
+        throw new Error('Arquivo não encontrado no storage');
       }
 
-      // Verificar se a imagem pode ser carregada antes de exibir
-      const img = new Image();
-      img.onerror = () => {
-        throw new Error('Falha ao carregar imagem da URL pública');
-      };
+      // Tentar URL assinada primeiro
+      const { data: signedUrlData, error: signedUrlError } = await supabase.storage
+        .from('payment_proofs')
+        .createSignedUrl(proof.file_path, 900); // 15 minutos
 
-      const loadPromise = new Promise((resolve, reject) => {
+      if (signedUrlError || !signedUrlData?.signedUrl) {
+        throw new Error('Falha ao gerar URL assinada');
+      }
+
+      // Pré-carregar a imagem
+      await new Promise((resolve, reject) => {
+        const img = new Image();
         img.onload = resolve;
         img.onerror = reject;
-        img.src = publicUrlData.publicUrl;
+        img.src = signedUrlData.signedUrl;
       });
 
-      await loadPromise;
-      setSelectedProofUrl(publicUrlData.publicUrl);
+      setSelectedProofUrl(signedUrlData.signedUrl);
+      console.log('Imagem carregada com sucesso:', signedUrlData.signedUrl);
 
     } catch (error) {
       console.error('Erro ao carregar imagem:', error);
-      
-      try {
-        // Tentar URL assinada como fallback
-        const { data: signedUrlData, error: signedUrlError } = await supabase.storage
-          .from('payment_proofs')
-          .createSignedUrl(proof.file_path, 900); // 15 minutos
-
-        if (signedUrlError || !signedUrlData?.signedUrl) {
-          throw new Error('Falha ao gerar URL assinada');
-        }
-
-        // Verificar se a imagem pode ser carregada da URL assinada
-        const img = new Image();
-        const loadPromise = new Promise((resolve, reject) => {
-          img.onload = resolve;
-          img.onerror = reject;
-          img.src = signedUrlData.signedUrl;
-        });
-
-        await loadPromise;
-        setSelectedProofUrl(signedUrlData.signedUrl);
-
-      } catch (fallbackError) {
-        console.error('Erro no fallback:', fallbackError);
-        toast.error('Não foi possível carregar o comprovante. Por favor, atualize a página e tente novamente.');
-        setSelectedProofUrl(null);
-      }
+      toast.error('Não foi possível carregar o comprovante. O arquivo pode não estar mais disponível.');
+      setSelectedProofUrl(null);
     } finally {
       setLoadingProof(false);
       setLoadingProofId(null);
@@ -116,7 +110,8 @@ export function PaymentProofsList() {
   };
 
   const handleImageError = () => {
-    toast.error('Erro ao carregar imagem. Por favor, atualize a página e tente novamente.');
+    console.error('Erro ao renderizar imagem no componente');
+    toast.error('Erro ao exibir a imagem. Por favor, tente novamente.');
     setSelectedProofUrl(null);
   };
 
