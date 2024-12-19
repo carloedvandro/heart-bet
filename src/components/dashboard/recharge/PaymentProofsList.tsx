@@ -20,6 +20,7 @@ export function PaymentProofsList() {
   const [loading, setLoading] = useState(true);
   const [selectedProofUrl, setSelectedProofUrl] = useState<string | null>(null);
   const [loadingProof, setLoadingProof] = useState(false);
+  const [loadingProofId, setLoadingProofId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchProofs();
@@ -48,17 +49,30 @@ export function PaymentProofsList() {
     }
   };
 
-  const viewProof = async (filePath: string) => {
+  const viewProof = async (proof: PaymentProof) => {
     try {
+      setLoadingProofId(proof.id);
       setLoadingProof(true);
-      const { data, error } = await supabase.storage
+
+      // First try to get a public URL
+      const { data: publicUrlData } = await supabase.storage
         .from('payment_proofs')
-        .createSignedUrl(filePath, 60);
+        .getPublicUrl(proof.file_path);
+
+      if (publicUrlData?.publicUrl) {
+        setSelectedProofUrl(publicUrlData.publicUrl);
+        return;
+      }
+
+      // Fallback to signed URL if public URL fails
+      const { data: signedUrlData, error } = await supabase.storage
+        .from('payment_proofs')
+        .createSignedUrl(proof.file_path, 60);
 
       if (error) throw error;
 
-      if (data?.signedUrl) {
-        setSelectedProofUrl(data.signedUrl);
+      if (signedUrlData?.signedUrl) {
+        setSelectedProofUrl(signedUrlData.signedUrl);
       } else {
         throw new Error('URL não gerada');
       }
@@ -67,6 +81,7 @@ export function PaymentProofsList() {
       toast.error('Erro ao carregar o comprovante');
     } finally {
       setLoadingProof(false);
+      setLoadingProofId(null);
     }
   };
 
@@ -99,11 +114,11 @@ export function PaymentProofsList() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => viewProof(proof.file_path)}
-                disabled={loadingProof}
+                onClick={() => viewProof(proof)}
+                disabled={loadingProof && loadingProofId === proof.id}
               >
                 <Eye className="h-4 w-4 mr-2" />
-                {loadingProof ? 'Carregando...' : 'Visualizar'}
+                {loadingProof && loadingProofId === proof.id ? 'Carregando...' : 'Visualizar'}
               </Button>
             </div>
           ))}
