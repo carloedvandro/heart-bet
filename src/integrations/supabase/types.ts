@@ -488,7 +488,15 @@ export type Database = {
           status?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "trade_investments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       trade_operations: {
         Row: {
@@ -591,6 +599,12 @@ export type Database = {
         }
         Returns: undefined
       }
+      delete_trade_investment: {
+        Args: {
+          p_investment_id: string
+        }
+        Returns: undefined
+      }
       get_all_bets_today: {
         Args: {
           today_date: string
@@ -625,6 +639,21 @@ export type Database = {
           user_id: string
         }
         Returns: boolean
+      }
+      release_investment_funds: {
+        Args: {
+          p_investment_id: string
+          p_amount: number
+        }
+        Returns: undefined
+      }
+      update_investment_lock_period: {
+        Args: {
+          p_investment_id: string
+          p_new_lock_period: number
+          p_new_daily_rate: number
+        }
+        Returns: undefined
       }
     }
     Enums: {
