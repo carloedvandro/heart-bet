@@ -40,11 +40,13 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
       // Usar o nome original do arquivo
       const filePath = `${recharge.id}-${file.name}`;
 
+      // Upload do arquivo sem transformações
       const { error: uploadError } = await supabase.storage
         .from('payment_proofs')
         .upload(filePath, file, {
           contentType: file.type,
-          upsert: false
+          upsert: false,
+          duplex: 'half'  // Evita transformações no arquivo
         });
 
       if (uploadError) throw uploadError;
