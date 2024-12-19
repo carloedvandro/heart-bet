@@ -15,6 +15,7 @@ export function useInvestments() {
       }
 
       // Fetch investments with their operations and earnings
+      // Specify the relationship using !fk_investment
       const { data, error } = await supabase
         .from('trade_investments')
         .select(`
@@ -25,18 +26,15 @@ export function useInvestments() {
         .eq('user_id', session.user.id)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching investments:', error);
-        throw error;
-      }
+      if (error) throw error;
       
       // Log the raw data for debugging
       console.log('Raw investments data:', data);
       
       return data;
     },
-    staleTime: 1000 * 30, // Cache for 30 seconds
-    refetchInterval: 1000 * 30, // Update every 30 seconds
+    staleTime: 1000 * 30, // Cache por 30 segundos
+    refetchInterval: 1000 * 30, // Atualiza a cada 30 segundos
     enabled: !!session?.user?.id,
   });
 
@@ -47,7 +45,7 @@ export function useInvestments() {
         .select('amount, status')
         .eq('id', investmentId)
         .eq('user_id', session?.user?.id)
-        .maybeSingle();
+        .single();
 
       if (checkError) throw checkError;
 
@@ -85,7 +83,7 @@ export function useInvestments() {
   const totalInvested = investments?.reduce((sum, inv) => 
     inv.status === 'active' ? sum + Number(inv.amount) : sum, 0) || 0;
     
-  // Calculate total earnings from active investments
+  // Calculate total earnings based on operations and daily rate
   const totalEarnings = investments?.reduce((sum, inv) => {
     if (inv.status !== 'active') return sum;
 

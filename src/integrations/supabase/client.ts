@@ -10,9 +10,7 @@ if (!supabaseUrl || !supabaseKey) {
 
 const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
   const MAX_RETRIES = 3;
-  const INITIAL_RETRY_DELAY = 1000; // 1 second
   let attempt = 0;
-  let lastError;
 
   while (attempt < MAX_RETRIES) {
     try {
@@ -29,29 +27,12 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         customHeaders.forEach((value, key) => headers.set(key, value));
       }
 
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 15000); // Increased timeout to 15 seconds
-
-      console.log('Supabase Request:', {
-        url: url.toString(),
-        method: init?.method || 'GET',
-      });
-
       const response = await fetch(url, {
         ...init,
-        headers,
-        signal: controller.signal,
-        credentials: 'include', // Add credentials inclusion
+        headers
       });
 
-      clearTimeout(timeout);
-
-      console.log('Supabase Response:', {
-        url: url.toString(),
-        status: response.status,
-        statusText: response.statusText
-      });
-
+      // Don't retry on rate limit errors
       if (response.status === 429) {
         const error = new Error('Rate limit exceeded');
         (error as any).status = 429;
@@ -73,28 +54,25 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
       return response;
     } catch (error) {
-      lastError = error;
       attempt++;
       console.error(`Fetch attempt ${attempt} failed:`, error);
       
-      if ((error as any).status === 429 || error.name === 'AbortError') {
-        const retryDelay = Math.min(INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1), 5000);
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
-        continue;
-      }
-      
-      if (attempt === MAX_RETRIES) {
-        console.error('All retry attempts failed:', error);
+      // Don't retry rate limit errors
+      if ((error as any).status === 429) {
         throw error;
       }
       
-      // Exponential backoff with max of 5 seconds
-      const retryDelay = Math.min(INITIAL_RETRY_DELAY * Math.pow(2, attempt - 1), 5000);
-      await new Promise(resolve => setTimeout(resolve, retryDelay));
+      if (attempt === MAX_RETRIES) {
+        throw error;
+      }
+      
+      await new Promise(resolve => 
+        setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt - 1), 5000))
+      );
     }
   }
 
-  throw lastError || new Error('Max retries reached');
+  throw new Error('Max retries reached');
 };
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
@@ -103,20 +81,13 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     persistSession: true,
     detectSessionInUrl: false,
     flowType: 'pkce',
-    storage: localStorage,
   },
   global: {
-    fetch: customFetch,
-    headers: {
-      'x-client-info': 'supabase-js-web'
-    }
-  },
-  db: {
-    schema: 'public'
+    fetch: customFetch
   }
 });
 
-// Log auth state changes
-supabase.auth.onAuthStateChange((event, session) => {
-  console.log('Auth state changed:', { event, session });
+// Only log auth state changes
+supabase.auth.onAuthStateChange((event) => {
+  console.log('Auth state changed:', event);
 });
