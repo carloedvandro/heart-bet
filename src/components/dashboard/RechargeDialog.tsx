@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
 import { BinancePaymentDialog } from "../payments/BinancePaymentDialog";
+import { Copy } from "lucide-react";
 
 interface RechargeDialogProps {
   open: boolean;
@@ -23,6 +24,7 @@ export function RechargeDialog({
   const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState('');
   const [showBinanceDialog, setShowBinanceDialog] = useState(false);
+  const PIX_KEY = "30.266.458/0001-58";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,15 +45,6 @@ export function RechargeDialog({
 
       if (rechargeError) throw rechargeError;
 
-      const { data: pixCode, error: pixError } = await supabase.functions.invoke('generate-pix', {
-        body: { 
-          amount: numericAmount,
-          recharge_id: recharge.id
-        }
-      });
-
-      if (pixError) throw pixError;
-
       toast.success("Recarga criada com sucesso!");
       onOpenChange(false);
       onRechargeCreated?.();
@@ -65,6 +58,16 @@ export function RechargeDialog({
     }
   };
 
+  const handleCopyPixKey = async () => {
+    try {
+      await navigator.clipboard.writeText(PIX_KEY);
+      toast.success("Chave PIX copiada!");
+    } catch (error) {
+      console.error('Error copying PIX key:', error);
+      toast.error("Erro ao copiar chave PIX");
+    }
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -72,7 +75,7 @@ export function RechargeDialog({
           <DialogHeader>
             <DialogTitle>Nova Recarga</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
+          <div className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <Button 
                 variant="outline" 
@@ -104,8 +107,33 @@ export function RechargeDialog({
               </div>
             </div>
 
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-4">
+            <div className="space-y-4">
+              <div className="flex flex-col items-center space-y-4">
+                <img 
+                  src="/lovable-uploads/ef4a14bc-c808-4168-8d79-ba01d0fa9b6c.png" 
+                  alt="QR Code PIX"
+                  className="w-64 h-auto"
+                />
+                <div className="w-full space-y-2">
+                  <Label>Chave PIX (CNPJ)</Label>
+                  <div className="flex gap-2">
+                    <Input
+                      value={PIX_KEY}
+                      readOnly
+                      className="font-mono text-sm"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handleCopyPixKey}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <Label htmlFor="amount">Valor da Recarga</Label>
                   <Input
@@ -120,10 +148,19 @@ export function RechargeDialog({
                 </div>
 
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? "Processando..." : "Gerar PIX"}
+                  {loading ? "Processando..." : "Confirmar Recarga"}
                 </Button>
+              </form>
+
+              <div className="text-sm text-muted-foreground space-y-2">
+                <p>Instruções:</p>
+                <ol className="list-decimal list-inside space-y-1">
+                  <li>Abra o aplicativo do seu banco e acesse a área Pix.</li>
+                  <li>Procure o leitor de QR code e escaneie o código acima.</li>
+                  <li>Digite o valor desejado e finalize o pagamento.</li>
+                </ol>
               </div>
-            </form>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
