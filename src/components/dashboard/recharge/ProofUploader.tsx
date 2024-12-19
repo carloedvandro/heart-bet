@@ -16,9 +16,9 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
     
     const file = e.target.files[0];
     
-    // Verificar se o arquivo é uma imagem
+    // Verificação simples se é uma imagem
     if (!file.type.startsWith('image/')) {
-      toast.error("Por favor, envie apenas arquivos de imagem (JPG, PNG, etc)");
+      toast.error("Por favor, envie apenas arquivos de imagem");
       return;
     }
 
@@ -29,28 +29,20 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
         .from('recharges')
         .insert({
           user_id: (await supabase.auth.getUser()).data.user?.id,
-          amount: 0.01, // Set a minimal positive amount to satisfy the check constraint
+          amount: 0.01,
         })
         .select()
         .single();
 
       if (rechargeError) throw rechargeError;
-      
-      const fileExt = file.name.split('.').pop()?.toLowerCase();
-      const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
-      
-      if (!fileExt || !validExtensions.includes(fileExt)) {
-        throw new Error('Formato de arquivo inválido. Use JPG, PNG, GIF ou WebP.');
-      }
 
+      // Manter a extensão original do arquivo
+      const fileExt = file.name.split('.').pop();
       const filePath = `${recharge.id}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('payment_proofs')
-        .upload(filePath, file, {
-          upsert: true,
-          contentType: file.type // Definir explicitamente o content-type
-        });
+        .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
@@ -68,7 +60,7 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
       
     } catch (error) {
       console.error('Error uploading proof:', error);
-      toast.error(error instanceof Error ? error.message : "Erro ao enviar comprovante");
+      toast.error("Erro ao enviar comprovante");
     } finally {
       setUploadingProof(false);
     }
@@ -80,13 +72,13 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
       <Input
         id="proof"
         type="file"
-        accept="image/*" // Aceitar apenas imagens
+        accept="image/*"
         onChange={handleUploadProof}
         disabled={uploadingProof}
         className="cursor-pointer"
       />
       <p className="text-sm text-muted-foreground">
-        Por favor, envie o comprovante do seu pagamento PIX em formato de imagem (JPG, PNG, GIF ou WebP).
+        Por favor, envie o comprovante do seu pagamento PIX.
       </p>
     </div>
   );
