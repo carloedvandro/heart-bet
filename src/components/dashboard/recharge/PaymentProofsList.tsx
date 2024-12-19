@@ -16,6 +16,7 @@ interface PaymentProof {
 export function PaymentProofsList() {
   const [proofs, setProofs] = useState<PaymentProof[]>([]);
   const [loading, setLoading] = useState(true);
+  const [proofUrls, setProofUrls] = useState<Record<string, string>>({});
 
   useEffect(() => {
     fetchProofs();
@@ -36,31 +37,21 @@ export function PaymentProofsList() {
 
       if (error) throw error;
       setProofs(proofData || []);
+
+      // Fetch URLs for all proofs
+      const urls: Record<string, string> = {};
+      for (const proof of proofData || []) {
+        const { data } = supabase.storage
+          .from('payment_proofs')
+          .getPublicUrl(proof.file_path);
+        urls[proof.id] = data.publicUrl;
+      }
+      setProofUrls(urls);
     } catch (error) {
       console.error('Error fetching proofs:', error);
       toast.error('Erro ao carregar comprovantes');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const getProofUrl = async (filePath: string) => {
-    try {
-      const { data: { publicUrl }, error } = supabase.storage
-        .from('payment_proofs')
-        .getPublicUrl(filePath);
-
-      if (error) {
-        console.error('Error getting public URL:', error);
-        return null;
-      }
-
-      // Log the URL for debugging
-      console.log('Generated public URL:', publicUrl);
-      return publicUrl;
-    } catch (error) {
-      console.error('Error in getProofUrl:', error);
-      return null;
     }
   };
 
@@ -75,40 +66,37 @@ export function PaymentProofsList() {
       ) : (
         <ScrollArea className="h-[400px] rounded-md border p-4">
           <div className="grid gap-4">
-            {proofs.map((proof) => {
-              const imageUrl = getProofUrl(proof.file_path);
-              return (
-                <div
-                  key={proof.id}
-                  className="flex items-center space-x-4 p-2 rounded-lg hover:bg-accent/50 transition-colors"
-                >
-                  <Avatar className="h-16 w-16">
-                    <AvatarImage
-                      src={imageUrl || ''}
-                      alt="Comprovante"
-                      onError={(e) => {
-                        console.error('Error loading image:', e);
-                        e.currentTarget.src = '/placeholder.svg';
-                      }}
-                    />
-                    <AvatarFallback>
-                      <span className="animate-pulse">...</span>
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium">
-                      Comprovante #{proof.id.slice(0, 8)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Enviado em: {format(new Date(proof.created_at), 'dd/MM/yyyy HH:mm')}
-                    </p>
-                    <p className="text-sm">
-                      Status: {proof.status === 'pending' ? 'Pendente' : 'Aprovado'}
-                    </p>
-                  </div>
+            {proofs.map((proof) => (
+              <div
+                key={proof.id}
+                className="flex items-center space-x-4 p-2 rounded-lg hover:bg-accent/50 transition-colors"
+              >
+                <Avatar className="h-16 w-16">
+                  <AvatarImage
+                    src={proofUrls[proof.id] || ''}
+                    alt="Comprovante"
+                    onError={(e) => {
+                      console.error('Error loading image:', e);
+                      e.currentTarget.src = '/placeholder.svg';
+                    }}
+                  />
+                  <AvatarFallback>
+                    <span className="animate-pulse">...</span>
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 space-y-1">
+                  <p className="text-sm font-medium">
+                    Comprovante #{proof.id.slice(0, 8)}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    Enviado em: {format(new Date(proof.created_at), 'dd/MM/yyyy HH:mm')}
+                  </p>
+                  <p className="text-sm">
+                    Status: {proof.status === 'pending' ? 'Pendente' : 'Aprovado'}
+                  </p>
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         </ScrollArea>
       )}
