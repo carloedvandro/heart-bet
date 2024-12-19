@@ -34,7 +34,17 @@ export function PaymentProofsList() {
         throw new Error('Usuário não autenticado');
       }
 
-      // Buscar apenas os comprovantes relacionados às recargas do usuário atual
+      // Primeiro, buscar os IDs das recargas do usuário
+      const { data: rechargeData, error: rechargeError } = await supabase
+        .from('recharges')
+        .select('id')
+        .eq('user_id', user.id);
+
+      if (rechargeError) throw rechargeError;
+
+      const rechargeIds = rechargeData.map(recharge => recharge.id);
+
+      // Agora buscar os comprovantes usando os IDs das recargas
       const { data: proofData, error } = await supabase
         .from('payment_proofs')
         .select(`
@@ -44,12 +54,7 @@ export function PaymentProofsList() {
           status,
           created_at
         `)
-        .in('recharge_id', (
-          supabase
-            .from('recharges')
-            .select('id')
-            .eq('user_id', user.id)
-        ))
+        .in('recharge_id', rechargeIds)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
