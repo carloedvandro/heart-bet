@@ -42,11 +42,10 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
 
       // Upload do arquivo como ArrayBuffer para preservar os dados originais
       const arrayBuffer = await file.arrayBuffer();
-      const uint8Array = new Uint8Array(arrayBuffer);
 
       const { error: uploadError } = await supabase.storage
         .from('payment_proofs')
-        .uploadBinaryData(filePath, uint8Array, {
+        .upload(filePath, arrayBuffer, {
           contentType: file.type,
           upsert: false
         });
