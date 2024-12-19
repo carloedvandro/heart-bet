@@ -44,6 +44,13 @@ export function PaymentProofsList() {
     }
   };
 
+  const getProofUrl = (filePath: string) => {
+    const { data } = supabase.storage
+      .from('payment_proofs')
+      .getPublicUrl(filePath);
+    return data.publicUrl;
+  };
+
   if (loading) return <div>Carregando comprovantes...</div>;
 
   return (
@@ -62,10 +69,12 @@ export function PaymentProofsList() {
               >
                 <Avatar className="h-16 w-16">
                   <AvatarImage
-                    src={supabase.storage
-                      .from('payment_proofs')
-                      .getPublicUrl(proof.file_path).data.publicUrl}
+                    src={getProofUrl(proof.file_path)}
                     alt="Comprovante"
+                    onError={(e) => {
+                      console.error('Error loading image:', e);
+                      e.currentTarget.src = '/placeholder.svg';
+                    }}
                   />
                   <AvatarFallback>CP</AvatarFallback>
                 </Avatar>
