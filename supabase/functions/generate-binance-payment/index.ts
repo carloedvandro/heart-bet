@@ -18,7 +18,8 @@ const handleError = (error: any, status = 500) => {
       headers: { 
         ...corsHeaders, 
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-store'
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache'
       }
     }
   );
@@ -31,33 +32,35 @@ serve(async (req) => {
     headers: Object.fromEntries(req.headers.entries())
   });
 
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { 
+      headers: {
+        ...corsHeaders,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+        'Access-Control-Max-Age': '86400',
+      },
+      status: 204
+    });
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return handleError({ message: 'Method not allowed' }, 405);
+  }
+
   try {
-    // Handle CORS preflight requests
-    if (req.method === 'OPTIONS') {
-      return new Response(null, { 
-        headers: {
-          ...corsHeaders,
-          'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Max-Age': '86400',
-        },
-        status: 204
-      });
-    }
-
-    // Only allow POST requests
-    if (req.method !== 'POST') {
-      return handleError({ message: 'Method not allowed' }, 405);
-    }
-
-    const start = Date.now();
-    console.log('Starting payment generation at:', new Date().toISOString());
-
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          persistSession: false
+        }
+      }
     );
 
-    // Parse request with timeout
+    // Parse request body
     let body;
     try {
       const bodyText = await req.text();
@@ -96,8 +99,7 @@ serve(async (req) => {
       return handleError(paymentError);
     }
 
-    const end = Date.now();
-    console.log(`Payment record created successfully in ${end - start}ms:`, payment);
+    console.log('Payment record created:', payment);
 
     return new Response(
       JSON.stringify(payment),
@@ -105,7 +107,8 @@ serve(async (req) => {
         headers: { 
           ...corsHeaders, 
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-store'
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+          'Pragma': 'no-cache'
         },
         status: 200 
       }
