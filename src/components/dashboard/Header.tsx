@@ -20,6 +20,7 @@ interface HeaderProps {
 export function Header({ profile, onLogout }: HeaderProps) {
   const session = useSession();
   const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [showRechargeDialog, setShowRechargeDialog] = useState(false);
   const displayName = session?.user?.email || 'Usuário';
 
   const { data: financialProfile } = useQuery({
@@ -87,7 +88,14 @@ export function Header({ profile, onLogout }: HeaderProps) {
         <div className="flex items-center gap-4">
           <ThemeToggle />
           <AudioControl />
-          <RechargeDialog />
+          <RechargeDialog 
+            open={showRechargeDialog} 
+            onOpenChange={setShowRechargeDialog}
+            onRechargeCreated={() => {
+              // Optionally handle recharge creation
+              console.log('Recharge created');
+            }}
+          />
           <LogoutButton onLogout={onLogout} />
         </div>
       </div>
