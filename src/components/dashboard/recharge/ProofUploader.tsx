@@ -40,13 +40,15 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
       // Usar o nome original do arquivo
       const filePath = `${recharge.id}-${file.name}`;
 
-      // Upload do arquivo sem transformações
+      // Upload do arquivo como ArrayBuffer para preservar os dados originais
+      const arrayBuffer = await file.arrayBuffer();
+      const uint8Array = new Uint8Array(arrayBuffer);
+
       const { error: uploadError } = await supabase.storage
         .from('payment_proofs')
-        .upload(filePath, file, {
+        .uploadBinaryData(filePath, uint8Array, {
           contentType: file.type,
-          upsert: false,
-          duplex: 'half'  // Evita transformações no arquivo
+          upsert: false
         });
 
       if (uploadError) throw uploadError;
