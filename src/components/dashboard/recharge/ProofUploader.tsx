@@ -37,14 +37,13 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
 
       if (rechargeError) throw rechargeError;
 
-      // Manter a extensão original do arquivo
-      const fileExt = file.name.split('.').pop();
-      const filePath = `${recharge.id}.${fileExt}`;
+      // Usar o nome original do arquivo
+      const filePath = `${recharge.id}-${file.name}`;
 
       const { error: uploadError } = await supabase.storage
         .from('payment_proofs')
         .upload(filePath, file, {
-          contentType: file.type, // Definir o content type correto
+          contentType: file.type,
           upsert: false
         });
 
