@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import { ImageIcon } from "lucide-react";
 
 interface PaymentProof {
   id: string;
@@ -36,6 +37,10 @@ export function PaymentProofsList() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      
+      // Log the proof data for debugging
+      console.log('Fetched proofs:', proofData);
+      
       setProofs(proofData || []);
 
       // Fetch URLs for all proofs
@@ -44,6 +49,10 @@ export function PaymentProofsList() {
         const { data } = supabase.storage
           .from('payment_proofs')
           .getPublicUrl(proof.file_path);
+        
+        // Log the URL for debugging
+        console.log(`URL for proof ${proof.id}:`, data.publicUrl);
+        
         urls[proof.id] = data.publicUrl;
       }
       setProofUrls(urls);
@@ -73,15 +82,16 @@ export function PaymentProofsList() {
               >
                 <Avatar className="h-16 w-16">
                   <AvatarImage
-                    src={proofUrls[proof.id] || ''}
+                    src={proofUrls[proof.id]}
                     alt="Comprovante"
+                    className="object-cover"
                     onError={(e) => {
                       console.error('Error loading image:', e);
-                      e.currentTarget.src = '/placeholder.svg';
+                      e.currentTarget.style.display = 'none';
                     }}
                   />
-                  <AvatarFallback>
-                    <span className="animate-pulse">...</span>
+                  <AvatarFallback className="bg-muted">
+                    <ImageIcon className="h-6 w-6 text-muted-foreground" />
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 space-y-1">
