@@ -7,7 +7,7 @@ import { useSession } from "@supabase/auth-helpers-react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "../ui/button";
-import { CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle, Wallet } from "lucide-react";
 import { useState } from "react";
 import { FinancialProfileDialog } from "../trade/FinancialProfileDialog";
 import { ThemeToggle } from "../theme/ThemeToggle";
@@ -84,6 +84,15 @@ export function Header({ profile, onLogout }: HeaderProps) {
             </div>
           </div>
           <BalanceDisplay profile={profile} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowRechargeDialog(true)}
+            className="flex items-center gap-2 bg-green-50 hover:bg-green-100 text-green-600 hover:text-green-700 border-green-200"
+          >
+            <Wallet className="w-4 h-4" />
+            Recarregar
+          </Button>
         </div>
         <div className="flex items-center gap-4">
           <ThemeToggle />
