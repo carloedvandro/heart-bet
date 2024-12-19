@@ -23,11 +23,14 @@ serve(async (req) => {
 
     // Validate input
     if (!amount || !user_id) {
+      console.error('Missing required parameters:', { amount, user_id });
       return new Response(JSON.stringify({ error: 'Missing required parameters' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 400
       });
     }
+
+    console.log('Creating payment record for:', { user_id, amount });
 
     // Create payment record
     const { data: payment, error: paymentError } = await supabaseClient
@@ -47,6 +50,8 @@ serve(async (req) => {
         status: 500
       });
     }
+
+    console.log('Payment record created successfully:', payment);
 
     // TODO: In a production environment, you would integrate with Binance's API here
     // For now, we'll just return the payment record
