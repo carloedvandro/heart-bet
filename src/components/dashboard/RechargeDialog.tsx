@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
 import { BinancePaymentDialog } from "../payments/BinancePaymentDialog";
-import { Copy } from "lucide-react";
+import { Copy, Upload } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface RechargeDialogProps {
@@ -25,6 +25,8 @@ export function RechargeDialog({
   const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState('');
   const [showBinanceDialog, setShowBinanceDialog] = useState(false);
+  const [uploadingProof, setUploadingProof] = useState(false);
+  const [rechargeId, setRechargeId] = useState<string | null>(null);
   const PIX_KEY = "30.266.458/0001-58";
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -46,16 +48,55 @@ export function RechargeDialog({
 
       if (rechargeError) throw rechargeError;
 
-      toast.success("Recarga criada com sucesso!");
-      onOpenChange(false);
-      onRechargeCreated?.();
-      setAmount('');
+      setRechargeId(recharge.id);
+      toast.success("Recarga criada com sucesso! Por favor, faça o pagamento e envie o comprovante.");
       
     } catch (error) {
       console.error('Error:', error);
       toast.error("Erro ao criar recarga");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUploadProof = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!rechargeId || !e.target.files?.[0]) return;
+    
+    try {
+      setUploadingProof(true);
+      const file = e.target.files[0];
+      
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${rechargeId}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('payment_proofs')
+        .upload(filePath, file, {
+          upsert: true
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { error: proofError } = await supabase
+        .from('payment_proofs')
+        .insert({
+          recharge_id: rechargeId,
+          file_path: filePath,
+        });
+
+      if (proofError) throw proofError;
+
+      toast.success("Comprovante enviado com sucesso!");
+      onRechargeCreated?.();
+      onOpenChange(false);
+      setAmount('');
+      setRechargeId(null);
+      
+    } catch (error) {
+      console.error('Error uploading proof:', error);
+      toast.error("Erro ao enviar comprovante");
+    } finally {
+      setUploadingProof(false);
     }
   };
 
@@ -154,12 +195,31 @@ export function RechargeDialog({
                   </Button>
                 </form>
 
+                {rechargeId && (
+                  <div className="space-y-4 border rounded-lg p-4 bg-muted/50">
+                    <Label htmlFor="proof">Enviar Comprovante</Label>
+                    <Input
+                      id="proof"
+                      type="file"
+                      accept="image/*,.pdf"
+                      onChange={handleUploadProof}
+                      disabled={uploadingProof}
+                      className="cursor-pointer"
+                    />
+                    <p className="text-sm text-muted-foreground">
+                      Por favor, envie o comprovante do seu pagamento PIX para confirmar a recarga.
+                    </p>
+                  </div>
+                )}
+
                 <div className="text-sm text-muted-foreground space-y-2">
                   <p>Instruções:</p>
                   <ol className="list-decimal list-inside space-y-1">
                     <li>Abra o aplicativo do seu banco e acesse a área Pix.</li>
                     <li>Procure o leitor de QR code e escaneie o código acima.</li>
                     <li>Digite o valor desejado e finalize o pagamento.</li>
+                    <li>Após o pagamento, envie o comprovante usando o formulário acima.</li>
+                    <li>Aguarde a confirmação do seu pagamento.</li>
                   </ol>
                 </div>
               </div>
