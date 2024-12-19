@@ -53,19 +53,40 @@ export function PaymentProofsList() {
     try {
       setLoadingProofId(proof.id);
       setLoadingProof(true);
+      setSelectedProofUrl(null); // Reset previous URL
 
+      // First try to get a public URL
       const { data: publicUrlData } = await supabase.storage
         .from('payment_proofs')
-        .createSignedUrl(proof.file_path, 300); // 5 minutes expiry
+        .getPublicUrl(proof.file_path);
 
-      if (!publicUrlData?.signedUrl) {
-        throw new Error('Erro ao gerar URL do comprovante');
+      if (!publicUrlData?.publicUrl) {
+        throw new Error('Erro ao gerar URL pública');
       }
 
-      setSelectedProofUrl(publicUrlData.signedUrl);
+      // Add timestamp to prevent caching
+      const url = new URL(publicUrlData.publicUrl);
+      url.searchParams.append('t', Date.now().toString());
+      
+      setSelectedProofUrl(url.toString());
     } catch (error) {
       console.error('Error getting proof URL:', error);
-      toast.error('Erro ao carregar o comprovante. Tente novamente.');
+      
+      // If public URL fails, try signed URL as fallback
+      try {
+        const { data: signedUrlData } = await supabase.storage
+          .from('payment_proofs')
+          .createSignedUrl(proof.file_path, 600); // 10 minutes expiry
+
+        if (!signedUrlData?.signedUrl) {
+          throw new Error('Erro ao gerar URL assinada');
+        }
+
+        setSelectedProofUrl(signedUrlData.signedUrl);
+      } catch (fallbackError) {
+        console.error('Fallback error:', fallbackError);
+        toast.error('Não foi possível carregar o comprovante. Por favor, tente novamente em alguns instantes.');
+      }
     } finally {
       setLoadingProof(false);
       setLoadingProofId(null);
@@ -73,7 +94,7 @@ export function PaymentProofsList() {
   };
 
   const handleImageError = () => {
-    toast.error('Erro ao carregar imagem. Por favor, tente novamente.');
+    toast.error('Não foi possível carregar a imagem. Por favor, tente visualizar novamente.');
     setSelectedProofUrl(null);
   };
 
