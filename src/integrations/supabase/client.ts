@@ -11,6 +11,7 @@ if (!supabaseUrl || !supabaseKey) {
 const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
   const MAX_RETRIES = 3;
   let attempt = 0;
+  let lastError;
 
   while (attempt < MAX_RETRIES) {
     try {
@@ -27,12 +28,17 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
         customHeaders.forEach((value, key) => headers.set(key, value));
       }
 
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
       const response = await fetch(url, {
         ...init,
-        headers
+        headers,
+        signal: controller.signal
       });
 
-      // Don't retry on rate limit errors
+      clearTimeout(timeout);
+
       if (response.status === 429) {
         const error = new Error('Rate limit exceeded');
         (error as any).status = 429;
@@ -54,25 +60,27 @@ const customFetch = async (url: RequestInfo | URL, init?: RequestInit) => {
 
       return response;
     } catch (error) {
+      lastError = error;
       attempt++;
       console.error(`Fetch attempt ${attempt} failed:`, error);
       
-      // Don't retry rate limit errors
-      if ((error as any).status === 429) {
+      if ((error as any).status === 429 || error.name === 'AbortError') {
         throw error;
       }
       
       if (attempt === MAX_RETRIES) {
+        console.error('All retry attempts failed:', error);
         throw error;
       }
       
+      // Exponential backoff with max of 5 seconds
       await new Promise(resolve => 
         setTimeout(resolve, Math.min(1000 * Math.pow(2, attempt - 1), 5000))
       );
     }
   }
 
-  throw new Error('Max retries reached');
+  throw lastError || new Error('Max retries reached');
 };
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
@@ -87,7 +95,18 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
   }
 });
 
-// Only log auth state changes
-supabase.auth.onAuthStateChange((event) => {
-  console.log('Auth state changed:', event);
-});
+// Add request/response interceptors for better debugging
+supabase.rest.interceptors.response.use(
+  (response) => {
+    console.log('Supabase Response:', {
+      url: response.url,
+      status: response.status,
+      statusText: response.statusText
+    });
+    return response;
+  },
+  (error) => {
+    console.error('Supabase Error:', error);
+    return Promise.reject(error);
+  }
+);
