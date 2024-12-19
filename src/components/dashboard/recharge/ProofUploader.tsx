@@ -14,9 +14,16 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
   const handleUploadProof = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files?.[0]) return;
     
+    const file = e.target.files[0];
+    
+    // Verificar se o arquivo é uma imagem
+    if (!file.type.startsWith('image/')) {
+      toast.error("Por favor, envie apenas arquivos de imagem (JPG, PNG, etc)");
+      return;
+    }
+
     try {
       setUploadingProof(true);
-      const file = e.target.files[0];
       
       const { data: recharge, error: rechargeError } = await supabase
         .from('recharges')
@@ -29,13 +36,20 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
 
       if (rechargeError) throw rechargeError;
       
-      const fileExt = file.name.split('.').pop();
+      const fileExt = file.name.split('.').pop()?.toLowerCase();
+      const validExtensions = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+      
+      if (!fileExt || !validExtensions.includes(fileExt)) {
+        throw new Error('Formato de arquivo inválido. Use JPG, PNG, GIF ou WebP.');
+      }
+
       const filePath = `${recharge.id}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('payment_proofs')
         .upload(filePath, file, {
-          upsert: true
+          upsert: true,
+          contentType: file.type // Definir explicitamente o content-type
         });
 
       if (uploadError) throw uploadError;
@@ -54,7 +68,7 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
       
     } catch (error) {
       console.error('Error uploading proof:', error);
-      toast.error("Erro ao enviar comprovante");
+      toast.error(error instanceof Error ? error.message : "Erro ao enviar comprovante");
     } finally {
       setUploadingProof(false);
     }
@@ -66,13 +80,13 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
       <Input
         id="proof"
         type="file"
-        accept="image/*,.pdf"
+        accept="image/*" // Aceitar apenas imagens
         onChange={handleUploadProof}
         disabled={uploadingProof}
         className="cursor-pointer"
       />
       <p className="text-sm text-muted-foreground">
-        Por favor, envie o comprovante do seu pagamento PIX para confirmar a recarga.
+        Por favor, envie o comprovante do seu pagamento PIX em formato de imagem (JPG, PNG, GIF ou WebP).
       </p>
     </div>
   );
