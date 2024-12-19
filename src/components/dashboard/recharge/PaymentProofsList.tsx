@@ -21,6 +21,7 @@ export function PaymentProofsList() {
   const [selectedProofUrl, setSelectedProofUrl] = useState<string | null>(null);
   const [loadingProof, setLoadingProof] = useState(false);
   const [loadingProofId, setLoadingProofId] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     fetchProofs();
@@ -54,34 +55,47 @@ export function PaymentProofsList() {
       setLoadingProofId(proof.id);
       setLoadingProof(true);
 
-      // First try to get a public URL
-      const { data: publicUrlData } = await supabase.storage
+      // Get the public URL directly
+      const { data } = supabase.storage
         .from('payment_proofs')
         .getPublicUrl(proof.file_path);
 
-      if (publicUrlData?.publicUrl) {
-        setSelectedProofUrl(publicUrlData.publicUrl);
-        return;
-      }
-
-      // Fallback to signed URL if public URL fails
-      const { data: signedUrlData, error } = await supabase.storage
-        .from('payment_proofs')
-        .createSignedUrl(proof.file_path, 60);
-
-      if (error) throw error;
-
-      if (signedUrlData?.signedUrl) {
-        setSelectedProofUrl(signedUrlData.signedUrl);
-      } else {
+      if (!data.publicUrl) {
         throw new Error('URL não gerada');
       }
+
+      // Add timestamp to prevent caching
+      const url = new URL(data.publicUrl);
+      url.searchParams.append('t', Date.now().toString());
+      
+      setSelectedProofUrl(url.toString());
+      setRetryCount(0); // Reset retry count on successful load
     } catch (error) {
       console.error('Error getting proof URL:', error);
       toast.error('Erro ao carregar o comprovante');
     } finally {
       setLoadingProof(false);
       setLoadingProofId(null);
+    }
+  };
+
+  const handleImageError = () => {
+    if (retryCount < 3) { // Try up to 3 times
+      setRetryCount(prev => prev + 1);
+      toast.error('Tentando carregar a imagem novamente...');
+      
+      // Wait a moment before retrying
+      setTimeout(() => {
+        if (selectedProofUrl) {
+          const url = new URL(selectedProofUrl);
+          url.searchParams.set('t', Date.now().toString());
+          setSelectedProofUrl(url.toString());
+        }
+      }, 1000);
+    } else {
+      toast.error('Não foi possível carregar a imagem');
+      setSelectedProofUrl(null);
+      setRetryCount(0);
     }
   };
 
@@ -133,10 +147,7 @@ export function PaymentProofsList() {
                 src={selectedProofUrl}
                 alt="Comprovante de pagamento"
                 className="w-full h-auto"
-                onError={() => {
-                  toast.error('Erro ao carregar imagem');
-                  setSelectedProofUrl(null);
-                }}
+                onError={handleImageError}
               />
             )}
           </ScrollArea>
