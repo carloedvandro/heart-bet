@@ -18,14 +18,12 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
     setUploadingProof(true);
     const file = e.target.files[0];
     
-    // Verificação simples se é uma imagem
     if (!file.type.startsWith('image/')) {
       toast.error("Por favor, envie apenas arquivos de imagem");
       return;
     }
 
     try {
-      // Criar registro de recarga primeiro
       const { data: recharge, error: rechargeError } = await supabase
         .from('recharges')
         .insert({
@@ -37,10 +35,14 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
 
       if (rechargeError) throw rechargeError;
 
-      // Usar o nome original do arquivo
-      const filePath = `${recharge.id}-${file.name}`;
+      // Sanitize filename by removing special characters and spaces
+      const sanitizedFileName = file.name
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-zA-Z0-9.-]/g, '_');
+      
+      const filePath = `${recharge.id}-${sanitizedFileName}`;
 
-      // Upload do arquivo como ArrayBuffer para preservar os dados originais
       const arrayBuffer = await file.arrayBuffer();
 
       const { error: uploadError } = await supabase.storage
@@ -52,7 +54,6 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
 
       if (uploadError) throw uploadError;
 
-      // Criar registro do comprovante
       const { error: proofError } = await supabase
         .from('payment_proofs')
         .insert({
