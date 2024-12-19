@@ -19,7 +19,7 @@ serve(async (req) => {
     );
 
     // Parse the incoming request body
-    const { amount, currency = 'USDT', user_id } = await req.json();
+    const { amount, user_id } = await req.json();
 
     // Validate input
     if (!amount || !user_id) {
@@ -29,52 +29,28 @@ serve(async (req) => {
       });
     }
 
-    // Retrieve Binance API credentials
-    const { data: binanceSettings, error: settingsError } = await supabaseClient
-      .from('binance_settings')
-      .select('*')
-      .eq('is_active', true)
-      .single();
-
-    if (settingsError || !binanceSettings) {
-      console.error('Binance settings error:', settingsError);
-      return new Response(JSON.stringify({ error: 'Binance integration not configured' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500
-      });
-    }
-
-    // TODO: Implement actual Binance API payment generation
-    // This is a placeholder for the actual Binance payment logic
-    const mockPaymentResponse = {
-      order_id: `MOCK_ORDER_${Date.now()}`,
-      payment_id: `MOCK_PAYMENT_${Date.now()}`,
-      status: 'pending'
-    };
-
-    // Insert payment record
-    const { data: paymentRecord, error: insertError } = await supabaseClient
+    // Create payment record
+    const { data: payment, error: paymentError } = await supabaseClient
       .from('binance_payments')
       .insert({
         user_id,
         amount,
-        currency,
-        status: 'pending',
-        binance_order_id: mockPaymentResponse.order_id,
-        binance_payment_id: mockPaymentResponse.payment_id
+        status: 'pending'
       })
       .select()
       .single();
 
-    if (insertError) {
-      console.error('Payment record insert error:', insertError);
+    if (paymentError) {
+      console.error('Payment record creation error:', paymentError);
       return new Response(JSON.stringify({ error: 'Failed to create payment record' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500
       });
     }
 
-    return new Response(JSON.stringify(paymentRecord), {
+    // TODO: In a production environment, you would integrate with Binance's API here
+    // For now, we'll just return the payment record
+    return new Response(JSON.stringify(payment), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200
     });
