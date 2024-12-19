@@ -40,25 +40,19 @@ export function PaymentProofsList() {
 
       if (error) throw error;
       
-      console.log('Fetched proofs:', proofData);
-      
       if (proofData) {
         setProofs(proofData);
         
         // Buscar URLs públicas para todas as provas
         const urls: Record<string, string> = {};
         for (const proof of proofData) {
-          const { data: { publicUrl } } = supabase.storage
+          const { data } = await supabase.storage
             .from('payment_proofs')
-            .getPublicUrl(proof.file_path);
-          
-          console.log('=== Image URL Debug ===');
-          console.log(`Proof ID: ${proof.id}`);
-          console.log(`File Path: ${proof.file_path}`);
-          console.log(`Public URL: ${publicUrl}`);
-          console.log('=====================');
-          
-          urls[proof.id] = publicUrl;
+            .createSignedUrl(proof.file_path, 3600); // URL válida por 1 hora
+            
+          if (data?.signedUrl) {
+            urls[proof.id] = data.signedUrl;
+          }
         }
         setProofUrls(urls);
       }
@@ -95,11 +89,6 @@ export function PaymentProofsList() {
                       src={proofUrls[proof.id]}
                       alt="Comprovante"
                       className="object-cover"
-                      onError={(e) => {
-                        console.error('Error loading image:', e);
-                        console.log('Failed URL:', proofUrls[proof.id]);
-                        e.currentTarget.style.display = 'none';
-                      }}
                     />
                     <AvatarFallback className="bg-muted">
                       <ImageIcon className="h-6 w-6 text-muted-foreground" />

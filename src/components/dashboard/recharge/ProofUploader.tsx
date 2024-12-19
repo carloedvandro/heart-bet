@@ -43,7 +43,10 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
 
       const { error: uploadError } = await supabase.storage
         .from('payment_proofs')
-        .upload(filePath, file);
+        .upload(filePath, file, {
+          contentType: file.type, // Definir o content type correto
+          upsert: false
+        });
 
       if (uploadError) throw uploadError;
 
