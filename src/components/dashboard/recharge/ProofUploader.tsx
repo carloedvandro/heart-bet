@@ -1,19 +1,17 @@
+import { useState } from "react";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useState } from "react";
 
-interface ProofUploaderProps {
-  onProofUploaded: () => void;
-}
-
-export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
+export function ProofUploader() {
   const [uploadingProof, setUploadingProof] = useState(false);
 
   const handleUploadProof = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files?.[0]) return;
-    
+    if (!e.target.files || e.target.files.length === 0) {
+      return;
+    }
+
+    setUploadingProof(true);
     const file = e.target.files[0];
     
     // Verificação simples se é uma imagem
@@ -23,8 +21,7 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
     }
 
     try {
-      setUploadingProof(true);
-      
+      // Criar registro de recarga primeiro
       const { data: recharge, error: rechargeError } = await supabase
         .from('recharges')
         .insert({
@@ -46,6 +43,7 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
 
       if (uploadError) throw uploadError;
 
+      // Criar registro do comprovante
       const { error: proofError } = await supabase
         .from('payment_proofs')
         .insert({
@@ -56,7 +54,6 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
       if (proofError) throw proofError;
 
       toast.success("Comprovante enviado com sucesso!");
-      onProofUploaded();
       
     } catch (error) {
       console.error('Error uploading proof:', error);
@@ -67,8 +64,7 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
   };
 
   return (
-    <div className="space-y-4 border rounded-lg p-4 bg-muted/50">
-      <Label htmlFor="proof">Enviar Comprovante</Label>
+    <div className="space-y-2">
       <Input
         id="proof"
         type="file"
