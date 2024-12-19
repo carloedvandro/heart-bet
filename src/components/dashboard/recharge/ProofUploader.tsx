@@ -22,7 +22,7 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
         .from('recharges')
         .insert({
           user_id: (await supabase.auth.getUser()).data.user?.id,
-          amount: 0, // Set a default amount of 0 instead of null
+          amount: 0.01, // Set a minimal positive amount to satisfy the check constraint
         })
         .select()
         .single();
