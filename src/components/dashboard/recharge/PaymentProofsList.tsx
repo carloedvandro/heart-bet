@@ -20,6 +20,7 @@ export function PaymentProofsList() {
   const [loading, setLoading] = useState(true);
   const [proofUrls, setProofUrls] = useState<Record<string, string>>({});
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     fetchProofs();
@@ -46,12 +47,40 @@ export function PaymentProofsList() {
         // Buscar URLs públicas para todas as provas
         const urls: Record<string, string> = {};
         for (const proof of proofData) {
-          const { data } = await supabase.storage
-            .from('payment_proofs')
-            .createSignedUrl(proof.file_path, 3600); // URL válida por 1 hora
-            
-          if (data?.signedUrl) {
-            urls[proof.id] = data.signedUrl;
+          try {
+            // Primeiro verificar se o arquivo existe
+            const { data: existsData, error: existsError } = await supabase.storage
+              .from('payment_proofs')
+              .list('', {
+                search: proof.file_path
+              });
+
+            if (existsError) {
+              console.error('Error checking file existence:', existsError);
+              continue;
+            }
+
+            // Se o arquivo não existe, pular para o próximo
+            if (!existsData || existsData.length === 0) {
+              console.warn(`File ${proof.file_path} not found in storage`);
+              setFailedImages(prev => new Set([...prev, proof.id]));
+              continue;
+            }
+
+            const { data, error: urlError } = await supabase.storage
+              .from('payment_proofs')
+              .createSignedUrl(proof.file_path, 3600);
+
+            if (urlError) {
+              console.error('Error getting signed URL:', urlError);
+              continue;
+            }
+
+            if (data?.signedUrl) {
+              urls[proof.id] = data.signedUrl;
+            }
+          } catch (err) {
+            console.error(`Error processing proof ${proof.id}:`, err);
           }
         }
         setProofUrls(urls);
@@ -62,6 +91,10 @@ export function PaymentProofsList() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleImageError = (proofId: string) => {
+    setFailedImages(prev => new Set([...prev, proofId]));
   };
 
   if (loading) return <div>Carregando comprovantes...</div>;
@@ -83,16 +116,20 @@ export function PaymentProofsList() {
                 >
                   <Avatar 
                     className="h-16 w-16 cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => setSelectedImage(proofUrls[proof.id])}
+                    onClick={() => !failedImages.has(proof.id) && proofUrls[proof.id] && setSelectedImage(proofUrls[proof.id])}
                   >
-                    <AvatarImage
-                      src={proofUrls[proof.id]}
-                      alt="Comprovante"
-                      className="object-cover"
-                    />
-                    <AvatarFallback className="bg-muted">
-                      <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                    </AvatarFallback>
+                    {!failedImages.has(proof.id) && proofUrls[proof.id] ? (
+                      <AvatarImage
+                        src={proofUrls[proof.id]}
+                        alt="Comprovante"
+                        className="object-cover"
+                        onError={() => handleImageError(proof.id)}
+                      />
+                    ) : (
+                      <AvatarFallback className="bg-muted">
+                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                      </AvatarFallback>
+                    )}
                   </Avatar>
                   <div className="flex-1 space-y-1">
                     <p className="text-sm font-medium">
@@ -104,6 +141,11 @@ export function PaymentProofsList() {
                     <p className="text-sm">
                       Status: {proof.status === 'pending' ? 'Pendente' : 'Aprovado'}
                     </p>
+                    {failedImages.has(proof.id) && (
+                      <p className="text-sm text-red-500">
+                        Imagem indisponível
+                      </p>
+                    )}
                   </div>
                 </div>
               ))}
