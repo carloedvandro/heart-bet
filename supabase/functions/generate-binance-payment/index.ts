@@ -15,19 +15,38 @@ const handleError = (error: any, status = 500) => {
     }),
     {
       status,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      headers: { 
+        ...corsHeaders, 
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store'
+      }
     }
   );
 };
 
 serve(async (req) => {
+  console.log('Received request:', {
+    method: req.method,
+    url: req.url,
+    headers: Object.fromEntries(req.headers.entries())
+  });
+
   try {
     // Handle CORS preflight requests
     if (req.method === 'OPTIONS') {
       return new Response(null, { 
-        headers: corsHeaders,
+        headers: {
+          ...corsHeaders,
+          'Access-Control-Allow-Methods': 'POST, OPTIONS',
+          'Access-Control-Max-Age': '86400',
+        },
         status: 204
       });
+    }
+
+    // Only allow POST requests
+    if (req.method !== 'POST') {
+      return handleError({ message: 'Method not allowed' }, 405);
     }
 
     const start = Date.now();
@@ -39,14 +58,17 @@ serve(async (req) => {
     );
 
     // Parse request with timeout
-    const body = await Promise.race([
-      req.json(),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Request timeout')), 5000)
-      )
-    ]) as { amount: number; user_id: string };
+    let body;
+    try {
+      const bodyText = await req.text();
+      console.log('Raw request body:', bodyText);
+      body = JSON.parse(bodyText);
+    } catch (error) {
+      console.error('Error parsing request body:', error);
+      return handleError({ message: 'Invalid JSON in request body' }, 400);
+    }
 
-    console.log('Request body parsed:', body);
+    console.log('Parsed request body:', body);
     const { amount, user_id } = body;
 
     // Validate input
@@ -58,23 +80,19 @@ serve(async (req) => {
       );
     }
 
-    // Create payment record with timeout
-    const { data: payment, error: paymentError } = await Promise.race([
-      supabaseClient
-        .from('binance_payments')
-        .insert({
-          user_id,
-          amount,
-          status: 'pending'
-        })
-        .select()
-        .single(),
-      new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Database timeout')), 5000)
-      )
-    ]) as any;
+    // Create payment record
+    const { data: payment, error: paymentError } = await supabaseClient
+      .from('binance_payments')
+      .insert({
+        user_id,
+        amount,
+        status: 'pending'
+      })
+      .select()
+      .single();
 
     if (paymentError) {
+      console.error('Database error:', paymentError);
       return handleError(paymentError);
     }
 
@@ -84,12 +102,17 @@ serve(async (req) => {
     return new Response(
       JSON.stringify(payment),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store'
+        },
         status: 200 
       }
     );
 
   } catch (error) {
+    console.error('Unexpected error:', error);
     return handleError(error);
   }
 })
