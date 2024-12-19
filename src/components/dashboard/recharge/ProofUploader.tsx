@@ -3,7 +3,11 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export function ProofUploader() {
+interface ProofUploaderProps {
+  onProofUploaded?: () => void;
+}
+
+export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
   const [uploadingProof, setUploadingProof] = useState(false);
 
   const handleUploadProof = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -54,6 +58,7 @@ export function ProofUploader() {
       if (proofError) throw proofError;
 
       toast.success("Comprovante enviado com sucesso!");
+      onProofUploaded?.();
       
     } catch (error) {
       console.error('Error uploading proof:', error);
