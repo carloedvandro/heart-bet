@@ -52,7 +52,12 @@ export function PaymentProofsList() {
             .from('payment_proofs')
             .getPublicUrl(proof.file_path);
           
-          console.log(`URL for proof ${proof.id}:`, publicUrl);
+          console.log('=== Image URL Debug ===');
+          console.log(`Proof ID: ${proof.id}`);
+          console.log(`File Path: ${proof.file_path}`);
+          console.log(`Public URL: ${publicUrl}`);
+          console.log('=====================');
+          
           urls[proof.id] = publicUrl;
         }
         setProofUrls(urls);
@@ -92,6 +97,7 @@ export function PaymentProofsList() {
                       className="object-cover"
                       onError={(e) => {
                         console.error('Error loading image:', e);
+                        console.log('Failed URL:', proofUrls[proof.id]);
                         e.currentTarget.style.display = 'none';
                       }}
                     />
