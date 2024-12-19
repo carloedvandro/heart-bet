@@ -69,10 +69,10 @@ export function InvestmentTermsDialog({ open, onOpenChange }: InvestmentTermsDia
               <h3 className="text-xl font-semibold text-primary">Rendimentos</h3>
               <ul className="list-disc pl-6 space-y-2">
                 <li className="text-lg">
-                  <span className="font-semibold text-primary">0,5% ao dia</span> para valores mantidos por 60 dias
+                  <span className="font-semibold text-primary">0,5% ao dia</span> para valores mantidos por 30 dias
                 </li>
                 <li className="text-lg">
-                  <span className="font-semibold text-primary">1% ao dia</span> para valores mantidos por 12 meses
+                  <span className="font-semibold text-primary">1% ao dia</span> para valores mantidos por 180 dias
                 </li>
               </ul>
             </section>
@@ -80,16 +80,8 @@ export function InvestmentTermsDialog({ open, onOpenChange }: InvestmentTermsDia
             <section className="space-y-4">
               <h3 className="text-xl font-semibold text-primary">Período de Bloqueio</h3>
               <ul className="list-disc pl-6 space-y-2">
-                <li className="text-lg">Mínimo: <span className="font-semibold">60 dias</span></li>
-                <li className="text-lg">Recomendado: <span className="font-semibold">12 meses</span></li>
-              </ul>
-            </section>
-
-            <section className="space-y-4">
-              <h3 className="text-xl font-semibold text-primary">Condições de Saque</h3>
-              <ul className="list-disc pl-6 space-y-2">
-                <li className="text-lg">Os rendimentos podem ser retirados durante o período de bloqueio.</li>
-                <li className="text-lg">O valor principal só pode ser retirado após o término do período escolhido.</li>
+                <li className="text-lg">Mínimo: <span className="font-semibold">30 dias</span></li>
+                <li className="text-lg">Recomendado: <span className="font-semibold">180 dias</span></li>
               </ul>
             </section>
 

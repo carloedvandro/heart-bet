@@ -66,8 +66,8 @@ export function InvestmentRulesDialog({ open, onOpenChange }: InvestmentRulesDia
               <ul className="list-disc pl-6 space-y-2 text-gray-700">
                 <li>Ao transferir valores para o investimento trade, o saldo ficará bloqueado durante o período escolhido:</li>
                 <ul className="list-none pl-6 space-y-1 mt-2">
-                  <li>• Mínimo de 7 dias.</li>
-                  <li>• 30 dias ou mais para obter rendimento maior.</li>
+                  <li>• 30 dias com rendimento de 0,5% ao dia.</li>
+                  <li>• 180 dias com rendimento de 1% ao dia.</li>
                 </ul>
                 <li>Durante o período de bloqueio, o cliente não poderá transferir ou sacar o valor investido.</li>
                 <li>Após o término do período escolhido, o saldo ficará liberado para transferências ou saques.</li>
