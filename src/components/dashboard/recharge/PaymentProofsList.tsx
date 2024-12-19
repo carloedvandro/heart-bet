@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Eye } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
 
 interface PaymentProof {
   id: string;
@@ -18,6 +19,7 @@ export function PaymentProofsList() {
   const [proofs, setProofs] = useState<PaymentProof[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProofUrl, setSelectedProofUrl] = useState<string | null>(null);
+  const [loadingProof, setLoadingProof] = useState(false);
 
   useEffect(() => {
     fetchProofs();
@@ -40,6 +42,7 @@ export function PaymentProofsList() {
       setProofs(proofData || []);
     } catch (error) {
       console.error('Error fetching proofs:', error);
+      toast.error('Erro ao carregar comprovantes');
     } finally {
       setLoading(false);
     }
@@ -47,15 +50,23 @@ export function PaymentProofsList() {
 
   const viewProof = async (filePath: string) => {
     try {
-      const { data } = await supabase.storage
+      setLoadingProof(true);
+      const { data, error } = await supabase.storage
         .from('payment_proofs')
-        .createSignedUrl(filePath, 60); // URL válida por 60 segundos
+        .createSignedUrl(filePath, 60);
+
+      if (error) throw error;
 
       if (data?.signedUrl) {
         setSelectedProofUrl(data.signedUrl);
+      } else {
+        throw new Error('URL não gerada');
       }
     } catch (error) {
       console.error('Error getting proof URL:', error);
+      toast.error('Erro ao carregar o comprovante');
+    } finally {
+      setLoadingProof(false);
     }
   };
 
@@ -89,9 +100,10 @@ export function PaymentProofsList() {
                 variant="outline"
                 size="sm"
                 onClick={() => viewProof(proof.file_path)}
+                disabled={loadingProof}
               >
                 <Eye className="h-4 w-4 mr-2" />
-                Visualizar
+                {loadingProof ? 'Carregando...' : 'Visualizar'}
               </Button>
             </div>
           ))}
@@ -106,6 +118,10 @@ export function PaymentProofsList() {
                 src={selectedProofUrl}
                 alt="Comprovante de pagamento"
                 className="w-full h-auto"
+                onError={() => {
+                  toast.error('Erro ao carregar imagem');
+                  setSelectedProofUrl(null);
+                }}
               />
             )}
           </ScrollArea>
