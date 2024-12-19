@@ -6,6 +6,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
 import { ImageIcon } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 
 interface PaymentProof {
   id: string;
@@ -14,6 +15,30 @@ interface PaymentProof {
   status: string;
   created_at: string;
 }
+
+const getStatusConfig = (status: string) => {
+  switch (status) {
+    case 'approved':
+      return {
+        label: 'Aprovado',
+        variant: 'success' as const,
+        className: 'bg-green-500/15 text-green-600'
+      };
+    case 'rejected':
+      return {
+        label: 'Rejeitado',
+        variant: 'destructive' as const,
+        className: 'bg-red-500/15 text-red-600'
+      };
+    case 'pending':
+    default:
+      return {
+        label: 'Pendente',
+        variant: 'default' as const,
+        className: 'bg-yellow-500/15 text-yellow-600'
+      };
+  }
+};
 
 export function PaymentProofsList() {
   const [proofs, setProofs] = useState<PaymentProof[]>([]);
@@ -127,46 +152,49 @@ export function PaymentProofsList() {
         ) : (
           <ScrollArea className="h-[400px] rounded-md border p-4">
             <div className="grid gap-4">
-              {proofs.map((proof) => (
-                <div
-                  key={proof.id}
-                  className="flex items-center space-x-4 p-2 rounded-lg hover:bg-accent/50 transition-colors"
-                >
-                  <Avatar 
-                    className="h-16 w-16 cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => !failedImages.has(proof.id) && proofUrls[proof.id] && setSelectedImage(proofUrls[proof.id])}
+              {proofs.map((proof) => {
+                const statusConfig = getStatusConfig(proof.status);
+                return (
+                  <div
+                    key={proof.id}
+                    className="flex items-center space-x-4 p-2 rounded-lg hover:bg-accent/50 transition-colors"
                   >
-                    {!failedImages.has(proof.id) && proofUrls[proof.id] ? (
-                      <AvatarImage
-                        src={proofUrls[proof.id]}
-                        alt="Comprovante"
-                        className="object-cover"
-                        onError={() => handleImageError(proof.id)}
-                      />
-                    ) : (
-                      <AvatarFallback className="bg-muted">
-                        <ImageIcon className="h-6 w-6 text-muted-foreground" />
-                      </AvatarFallback>
-                    )}
-                  </Avatar>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium">
-                      Comprovante #{proof.id.slice(0, 8)}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Enviado em: {format(new Date(proof.created_at), 'dd/MM/yyyy HH:mm')}
-                    </p>
-                    <p className="text-sm">
-                      Status: {proof.status === 'pending' ? 'Pendente' : 'Aprovado'}
-                    </p>
-                    {failedImages.has(proof.id) && (
-                      <p className="text-sm text-red-500">
-                        Imagem indisponível
+                    <Avatar 
+                      className="h-16 w-16 cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => !failedImages.has(proof.id) && proofUrls[proof.id] && setSelectedImage(proofUrls[proof.id])}
+                    >
+                      {!failedImages.has(proof.id) && proofUrls[proof.id] ? (
+                        <AvatarImage
+                          src={proofUrls[proof.id]}
+                          alt="Comprovante"
+                          className="object-cover"
+                          onError={() => handleImageError(proof.id)}
+                        />
+                      ) : (
+                        <AvatarFallback className="bg-muted">
+                          <ImageIcon className="h-6 w-6 text-muted-foreground" />
+                        </AvatarFallback>
+                      )}
+                    </Avatar>
+                    <div className="flex-1 space-y-1">
+                      <p className="text-sm font-medium">
+                        Comprovante #{proof.id.slice(0, 8)}
                       </p>
-                    )}
+                      <p className="text-sm text-muted-foreground">
+                        Enviado em: {format(new Date(proof.created_at), 'dd/MM/yyyy HH:mm')}
+                      </p>
+                      <Badge variant={statusConfig.variant} className={statusConfig.className}>
+                        {statusConfig.label}
+                      </Badge>
+                      {failedImages.has(proof.id) && (
+                        <p className="text-sm text-red-500">
+                          Imagem indisponível
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </ScrollArea>
         )}
