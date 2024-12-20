@@ -28,8 +28,12 @@ export function BetsTableContent({ bets: initialBets }: BetsTableContentProps) {
     const grouped: GroupedBets = {};
     
     betsToGroup.forEach((bet) => {
-      // Usar a data do sorteio (draw_date) em vez da data de criação
-      const dateKey = format(new Date(bet.draw_date), 'dd/MM/yyyy');
+      // Garantir que estamos usando a data correta do sorteio
+      const drawDate = new Date(bet.draw_date);
+      // Ajustar para o fuso horário local
+      drawDate.setMinutes(drawDate.getMinutes() + drawDate.getTimezoneOffset());
+      const dateKey = format(drawDate, 'dd/MM/yyyy');
+      
       if (!grouped[dateKey]) {
         grouped[dateKey] = {};
       }
@@ -39,7 +43,19 @@ export function BetsTableContent({ bets: initialBets }: BetsTableContentProps) {
       grouped[dateKey][bet.draw_period].push(bet);
     });
 
-    setGroupedBets(grouped);
+    // Ordenar as datas em ordem decrescente
+    const sortedGrouped: GroupedBets = {};
+    Object.keys(grouped)
+      .sort((a, b) => {
+        const dateA = new Date(a.split('/').reverse().join('-'));
+        const dateB = new Date(b.split('/').reverse().join('-'));
+        return dateB.getTime() - dateA.getTime();
+      })
+      .forEach(date => {
+        sortedGrouped[date] = grouped[date];
+      });
+
+    setGroupedBets(sortedGrouped);
   };
 
   useEffect(() => {
