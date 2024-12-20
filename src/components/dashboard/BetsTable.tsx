@@ -55,18 +55,16 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       }
 
       // Then fetch paginated data for display
-      const startIndex = currentPage * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage - 1;
+      const startRow = currentPage * itemsPerPage;
       
       console.log("Pagination details:", {
         page: currentPage + 1,
-        startIndex,
-        endIndex,
+        startRow,
         itemsPerPage
       });
       
       const { data, error, count } = await query
-        .range(startIndex, endIndex);
+        .range(startRow, startRow + itemsPerPage - 1);
 
       if (error) {
         console.error("Error fetching bets:", error);
@@ -76,8 +74,8 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       if (data) {
         console.log("Fetched paginated bets:", {
           page: currentPage + 1,
-          startIndex,
-          endIndex,
+          startRow,
+          endRow: startRow + itemsPerPage - 1,
           totalCount: count,
           fetchedCount: data.length,
           items: data
@@ -88,7 +86,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       if (count !== null) {
         console.log("Total items:", count);
         setTotalItems(count);
-        setHasMore(startIndex + itemsPerPage < count);
+        setHasMore(startRow + itemsPerPage < count);
       }
     } catch (error) {
       console.error("Error fetching bets:", error);
