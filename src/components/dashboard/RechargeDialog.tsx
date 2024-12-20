@@ -30,17 +30,12 @@ export function RechargeDialog({
     }
   }, [open]);
 
-  // Função para lidar com o fechamento do diálogo principal
-  const handleMainDialogClose = (isOpen: boolean) => {
-    if (!isOpen) {
-      setShowBinanceDialog(false);
-    }
-    onOpenChange(isOpen);
-  };
-
   return (
     <>
-      <Dialog open={open} onOpenChange={handleMainDialogClose}>
+      <Dialog 
+        open={open} 
+        onOpenChange={onOpenChange}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Nova Recarga</DialogTitle>
@@ -92,33 +87,37 @@ export function RechargeDialog({
         onPaymentCreated={onRechargeCreated}
       />
 
-      <AlertDialog 
-        open={showInstructions} 
-        onOpenChange={setShowInstructions}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Instruções Importantes</AlertDialogTitle>
-            <AlertDialogDescription>
-              <p className="mb-2">Para completar sua recarga, siga estes passos:</p>
-              <div className="space-y-1">
-                <p>1. Faça o pagamento PIX usando o QR Code ou a chave fornecida</p>
-                <p>2. Salve o comprovante de pagamento no seu dispositivo</p>
-                <p>3. Use o botão "Escolher arquivo" para enviar o comprovante</p>
-                <p>4. Aguarde a confirmação do pagamento</p>
-              </div>
-              <p className="text-sm font-medium text-yellow-600 mt-4">
-                ⚠️ Importante: Sua recarga só será efetivada após o envio do comprovante!
-              </p>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogAction>
-              Entendi
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      {open && (
+        <AlertDialog 
+          open={showInstructions} 
+          onOpenChange={(isOpen) => {
+            setShowInstructions(isOpen);
+          }}
+        >
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Instruções Importantes</AlertDialogTitle>
+              <AlertDialogDescription>
+                <p className="mb-2">Para completar sua recarga, siga estes passos:</p>
+                <div className="space-y-1">
+                  <p>1. Faça o pagamento PIX usando o QR Code ou a chave fornecida</p>
+                  <p>2. Salve o comprovante de pagamento no seu dispositivo</p>
+                  <p>3. Use o botão "Escolher arquivo" para enviar o comprovante</p>
+                  <p>4. Aguarde a confirmação do pagamento</p>
+                </div>
+                <p className="text-sm font-medium text-yellow-600 mt-4">
+                  ⚠️ Importante: Sua recarga só será efetivada após o envio do comprovante!
+                </p>
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogAction>
+                Entendi
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      )}
     </>
   );
 }
