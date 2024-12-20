@@ -15,7 +15,7 @@ interface BetsTableProps {
 
 export function BetsTable({ refreshTrigger }: BetsTableProps) {
   const [bets, setBets] = useState<Bet[]>([]);
-  const [allBets, setAllBets] = useState<Bet[]>([]); 
+  const [allBets, setAllBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(0);
@@ -31,6 +31,12 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
         return;
       }
 
+      console.log("Fetching bets with params:", {
+        currentPage,
+        itemsPerPage,
+        date: date ? format(date, "yyyy-MM-dd") : "all"
+      });
+
       let query = supabase
         .from("bets")
         .select("*", { count: 'exact' })
@@ -44,17 +50,17 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       // First fetch all bets for PDF generation
       const { data: allData } = await query;
       if (allData) {
+        console.log("Fetched all bets:", allData.length);
         setAllBets(allData);
       }
 
       // Then fetch paginated data for display
-      const startRow = currentPage * itemsPerPage;
-      const endRow = startRow + itemsPerPage - 1;
-      
-      console.log(`Fetching rows ${startRow} to ${endRow}`);
+      const offset = currentPage * itemsPerPage;
+      console.log(`Fetching page ${currentPage} with offset ${offset}`);
       
       const { data, error, count } = await query
-        .range(startRow, endRow);
+        .limit(itemsPerPage)
+        .offset(offset);
 
       if (error) {
         console.error("Error fetching bets:", error);
@@ -62,14 +68,21 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       }
       
       if (data) {
-        console.log("Fetched bets:", data.length, "items for page", currentPage);
+        console.log("Fetched paginated bets:", {
+          page: currentPage,
+          offset,
+          itemsCount: data.length,
+          items: data
+        });
         setBets(data);
       }
 
       if (count !== null) {
         console.log("Total items:", count);
         setTotalItems(count);
-        setHasMore((currentPage + 1) * itemsPerPage < count);
+        const remainingItems = count - ((currentPage + 1) * itemsPerPage);
+        console.log("Remaining items:", remainingItems);
+        setHasMore(remainingItems > 0);
       }
     } catch (error) {
       console.error("Error fetching bets:", error);
