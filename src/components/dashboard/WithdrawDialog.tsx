@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { WithdrawalHistory } from "./WithdrawalHistory";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "../ui/alert-dialog";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface WithdrawDialogProps {
   open: boolean;
@@ -17,6 +18,7 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
   const [loading, setLoading] = useState(false);
   const [amount, setAmount] = useState('');
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const session = useSession();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +34,11 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
   };
 
   const confirmWithdrawal = async () => {
+    if (!session?.user?.id) {
+      toast.error("Você precisa estar logado para solicitar um saque");
+      return;
+    }
+
     try {
       setLoading(true);
       const numericAmount = Number(amount);
@@ -41,6 +48,7 @@ export function WithdrawDialog({ open, onOpenChange }: WithdrawDialogProps) {
       const { error } = await supabase
         .from('withdrawal_requests')
         .insert({
+          user_id: session.user.id,
           amount: numericAmount,
           fee_amount: feeAmount,
           net_amount: netAmount
