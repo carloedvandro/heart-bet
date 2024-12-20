@@ -27,6 +27,10 @@ export function RechargeDialog({
   useEffect(() => {
     if (open) {
       setShowInstructions(true);
+    } else {
+      // Limpa o estado quando o diálogo principal é fechado
+      setShowInstructions(false);
+      setShowBinanceDialog(false);
     }
   }, [open]);
 
@@ -36,7 +40,16 @@ export function RechargeDialog({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog 
+        open={open} 
+        onOpenChange={(newOpen) => {
+          onOpenChange(newOpen);
+          if (!newOpen) {
+            setShowInstructions(false);
+            setShowBinanceDialog(false);
+          }
+        }}
+      >
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Nova Recarga</DialogTitle>
@@ -95,14 +108,14 @@ export function RechargeDialog({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Instruções Importantes</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <p>Para completar sua recarga, siga estes passos:</p>
-              <ol className="list-decimal list-inside space-y-1">
-                <li>Faça o pagamento PIX usando o QR Code ou a chave fornecida</li>
-                <li>Salve o comprovante de pagamento no seu dispositivo</li>
-                <li>Use o botão "Escolher arquivo" para enviar o comprovante</li>
-                <li>Aguarde a confirmação do pagamento</li>
-              </ol>
+            <AlertDialogDescription>
+              <p className="mb-2">Para completar sua recarga, siga estes passos:</p>
+              <div className="space-y-1">
+                <p>1. Faça o pagamento PIX usando o QR Code ou a chave fornecida</p>
+                <p>2. Salve o comprovante de pagamento no seu dispositivo</p>
+                <p>3. Use o botão "Escolher arquivo" para enviar o comprovante</p>
+                <p>4. Aguarde a confirmação do pagamento</p>
+              </div>
               <p className="text-sm font-medium text-yellow-600 mt-4">
                 ⚠️ Importante: Sua recarga só será efetivada após o envio do comprovante!
               </p>
