@@ -42,7 +42,7 @@ export function RechargeDialog({
           onOpenChange(true);
         }
       }}>
-        <DialogContent className="max-w-xl bg-gradient-to-br from-purple-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <DialogContent className="max-w-xl bg-gradient-to-br from-purple-50 to-white dark:from-gray-900 dark:to-gray-800 pt-4">
           <DialogHeader className="relative">
             <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               Nova Recarga
