@@ -1,20 +1,8 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { BinancePaymentDialog } from "../payments/BinancePaymentDialog";
-import { PaymentMethodButtons } from "./recharge/PaymentMethodButtons";
-import { PixInstructions } from "./recharge/PixInstructions";
-import { ProofUploader } from "./recharge/ProofUploader";
-import { PaymentProofsList } from "./recharge/PaymentProofsList";
 import { useState } from "react";
-import {
-  AlertDialog,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { Button } from "@/components/ui/button";
+import { RechargeContent } from "./recharge/RechargeContent";
+import { CloseConfirmationDialog } from "./recharge/CloseConfirmationDialog";
 
 interface RechargeDialogProps {
   open: boolean;
@@ -58,76 +46,24 @@ export function RechargeDialog({
               Nova Recarga
             </DialogTitle>
           </DialogHeader>
-          <ScrollArea className="max-h-[80vh]">
-            <div className="space-y-8 pr-4">
-              <PaymentMethodButtons
-                onBinanceClick={() => setShowBinanceDialog(true)}
-                onOtherMethodsClick={() => onOpenChange(false)}
-              />
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-purple-200 dark:border-purple-800" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-gradient-to-r from-purple-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 text-purple-600 dark:text-purple-300 font-medium">
-                    Ou pague via PIX
-                  </span>
-                </div>
-              </div>
-
-              <PixInstructions pixKey={PIX_KEY} />
-              
-              <ProofUploader onProofUploaded={() => {
-                onRechargeCreated?.();
-                onOpenChange(false);
-              }} />
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-purple-200 dark:border-purple-800" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-gradient-to-r from-purple-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 text-purple-600 dark:text-purple-300 font-medium">
-                    Seus comprovantes
-                  </span>
-                </div>
-              </div>
-
-              <PaymentProofsList />
-            </div>
-          </ScrollArea>
+          
+          <RechargeContent
+            pixKey={PIX_KEY}
+            onBinanceClick={() => setShowBinanceDialog(true)}
+            onOtherMethodsClick={() => onOpenChange(false)}
+            onProofUploaded={() => {
+              onRechargeCreated?.();
+              onOpenChange(false);
+            }}
+          />
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={showCloseAlert} onOpenChange={setShowCloseAlert}>
-        <AlertDialogContent className="bg-white dark:bg-gray-900">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-              Lembrete Importante
-            </AlertDialogTitle>
-            <AlertDialogDescription className="text-gray-600 dark:text-gray-300">
-              Não se esqueça de enviar o comprovante do seu pagamento PIX. Sem o comprovante, não será possível completar sua recarga.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowCloseAlert(false)}
-              className="border-purple-200 hover:border-purple-300 hover:bg-purple-50 dark:border-purple-800 dark:hover:border-purple-700"
-            >
-              Continuar enviando
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleConfirmClose}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              Sair mesmo assim
-            </Button>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <CloseConfirmationDialog
+        open={showCloseAlert}
+        onOpenChange={setShowCloseAlert}
+        onConfirm={handleConfirmClose}
+      />
 
       <BinancePaymentDialog
         open={showBinanceDialog}
