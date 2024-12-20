@@ -6,6 +6,8 @@ import { PixInstructions } from "./recharge/PixInstructions";
 import { ProofUploader } from "./recharge/ProofUploader";
 import { PaymentProofsList } from "./recharge/PaymentProofsList";
 import { useState } from "react";
+import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogTitle, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
+import { AlertCircle } from "lucide-react";
 
 interface RechargeDialogProps {
   open: boolean;
@@ -19,11 +21,27 @@ export function RechargeDialog({
   onRechargeCreated 
 }: RechargeDialogProps) {
   const [showBinanceDialog, setShowBinanceDialog] = useState(false);
+  const [showCloseAlert, setShowCloseAlert] = useState(false);
   const PIX_KEY = "30.266.458/0001-58";
+
+  const handleCloseAttempt = () => {
+    setShowCloseAlert(true);
+  };
+
+  const handleConfirmClose = () => {
+    setShowCloseAlert(false);
+    onOpenChange(false);
+  };
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={(isOpen) => {
+        if (!isOpen) {
+          handleCloseAttempt();
+        } else {
+          onOpenChange(true);
+        }
+      }}>
         <DialogContent className="max-w-xl bg-gradient-to-br from-purple-50 to-white dark:from-gray-900 dark:to-gray-800">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
@@ -77,6 +95,33 @@ export function RechargeDialog({
         onOpenChange={setShowBinanceDialog}
         onPaymentCreated={onRechargeCreated}
       />
+
+      <AlertDialog open={showCloseAlert} onOpenChange={setShowCloseAlert}>
+        <AlertDialogContent className="bg-white dark:bg-gray-900 border border-purple-200 dark:border-purple-800">
+          <div className="flex items-center gap-3">
+            <AlertCircle className="h-6 w-6 text-yellow-500" />
+            <AlertDialogTitle className="text-lg font-semibold">
+              Atenção!
+            </AlertDialogTitle>
+          </div>
+          
+          <AlertDialogDescription className="text-base mt-4">
+            Lembre-se que é necessário enviar o comprovante do seu pagamento PIX para que sua recarga seja processada. Deseja realmente sair?
+          </AlertDialogDescription>
+          
+          <div className="flex justify-end gap-3 mt-6">
+            <AlertDialogCancel className="bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700">
+              Continuar enviando
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleConfirmClose}
+              className="bg-purple-600 hover:bg-purple-700 text-white"
+            >
+              Sair mesmo assim
+            </AlertDialogAction>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
