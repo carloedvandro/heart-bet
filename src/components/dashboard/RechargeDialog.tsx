@@ -43,10 +43,14 @@ export function RechargeDialog({
         }
       }}>
         <DialogContent className="max-w-xl bg-gradient-to-br from-purple-50 to-white dark:from-gray-900 dark:to-gray-800 pt-[22px]">
-          <DialogHeader className="relative">
-            <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <DialogHeader className="relative flex flex-col items-center">
+            <DialogTitle className="text-4xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
               Nova Recarga
             </DialogTitle>
+            <Dialog.Close className="absolute right-0 top-[100%] rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+              <X className="h-4 w-4" />
+              <span className="sr-only">Close</span>
+            </Dialog.Close>
           </DialogHeader>
           <ScrollArea className="max-h-[80vh]">
             <div className="space-y-8 pr-4">
