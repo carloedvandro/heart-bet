@@ -40,22 +40,24 @@ export function RechargeDialog({
           }
         }}
       >
-        <DialogContent className="max-w-xl bg-gradient-to-br from-purple-50 to-white dark:from-gray-900 dark:to-gray-800">
+        <DialogContent className="max-w-xl bg-gradient-to-br from-purple-50 to-white dark:from-gray-900 dark:to-gray-800 max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-3xl md:text-4xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               Nova Recarga
             </DialogTitle>
           </DialogHeader>
           
-          <RechargeContent
-            pixKey={PIX_KEY}
-            onBinanceClick={() => setShowBinanceDialog(true)}
-            onOtherMethodsClick={() => onOpenChange(false)}
-            onProofUploaded={() => {
-              onRechargeCreated?.();
-              onOpenChange(false);
-            }}
-          />
+          <div className="overflow-y-auto">
+            <RechargeContent
+              pixKey={PIX_KEY}
+              onBinanceClick={() => setShowBinanceDialog(true)}
+              onOtherMethodsClick={() => onOpenChange(false)}
+              onProofUploaded={() => {
+                onRechargeCreated?.();
+                onOpenChange(false);
+              }}
+            />
+          </div>
         </DialogContent>
       </Dialog>
 
