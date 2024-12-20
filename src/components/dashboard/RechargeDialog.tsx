@@ -24,12 +24,12 @@ export function RechargeDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl p-6">
           <DialogHeader>
-            <DialogTitle>Nova Recarga</DialogTitle>
+            <DialogTitle className="text-2xl font-bold text-center mb-4">Nova Recarga</DialogTitle>
           </DialogHeader>
           <ScrollArea className="max-h-[80vh]">
-            <div className="space-y-6 pr-4">
+            <div className="space-y-8 pr-4">
               <PaymentMethodButtons
                 onBinanceClick={() => setShowBinanceDialog(true)}
                 onOtherMethodsClick={() => onOpenChange(false)}
@@ -40,24 +40,25 @@ export function RechargeDialog({
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
+                  <span className="bg-background px-4 text-muted-foreground font-semibold">
                     Ou pague via PIX
                   </span>
                 </div>
               </div>
 
               <PixInstructions pixKey={PIX_KEY} />
+              
               <ProofUploader onProofUploaded={() => {
                 onRechargeCreated?.();
                 onOpenChange(false);
               }} />
 
-              <div className="relative">
+              <div className="relative mt-8">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
+                  <span className="bg-background px-4 text-muted-foreground font-semibold">
                     Seus comprovantes
                   </span>
                 </div>
