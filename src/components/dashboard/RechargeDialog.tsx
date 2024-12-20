@@ -23,12 +23,14 @@ export function RechargeDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Nova Recarga</DialogTitle>
+        <DialogContent className="max-w-2xl p-0 gap-0">
+          <DialogHeader className="p-6 pb-0">
+            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Nova Recarga
+            </DialogTitle>
           </DialogHeader>
           <ScrollArea className="max-h-[80vh]">
-            <div className="space-y-6 pr-4">
+            <div className="p-6 space-y-8">
               <PixInstructions pixKey={PIX_KEY} />
               <ProofUploader 
                 onProofUploaded={() => {
@@ -38,10 +40,10 @@ export function RechargeDialog({
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
+                  <span className="w-full border-t border-purple-100" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
+                  <span className="bg-background px-2 text-purple-600 font-medium">
                     Seus comprovantes
                   </span>
                 </div>
