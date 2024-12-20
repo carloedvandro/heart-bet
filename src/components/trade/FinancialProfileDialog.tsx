@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
 import { FinancialProfileForm, FormData } from "./financial-profile/FinancialProfileForm";
 import { useQueryClient } from "@tanstack/react-query";
+import { Button } from "@/components/ui/button";
 
 interface FinancialProfileDialogProps {
   open: boolean;
@@ -41,6 +42,30 @@ export function FinancialProfileDialog({ open, onOpenChange, existingProfile }: 
       setFormData(initialFormData);
     }
   }, [existingProfile]);
+
+  const handlePasswordReset = async () => {
+    try {
+      if (!session?.user?.email) {
+        toast.error("Email não encontrado");
+        return;
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(session.user.email, {
+        redirectTo: window.location.origin + '/reset-password'
+      });
+
+      if (error) {
+        console.error('Password reset error:', error);
+        toast.error("Erro ao enviar email de redefinição de senha");
+        return;
+      }
+
+      toast.success("Email de redefinição de senha enviado! Verifique sua caixa de entrada.");
+    } catch (error) {
+      console.error('Password reset error:', error);
+      toast.error("Erro ao solicitar redefinição de senha");
+    }
+  };
 
   const handleSubmit = async () => {
     if (!session?.user.id) {
@@ -117,6 +142,20 @@ export function FinancialProfileDialog({ open, onOpenChange, existingProfile }: 
             {isEditMode ? 'Editar Cadastro Financeiro' : 'Cadastro Financeiro'}
           </DialogTitle>
         </DialogHeader>
+        
+        {isEditMode && (
+          <div className="mb-6">
+            <Button 
+              variant="outline" 
+              onClick={handlePasswordReset}
+              className="w-full"
+              type="button"
+            >
+              Alterar Senha
+            </Button>
+          </div>
+        )}
+
         <FinancialProfileForm
           formData={formData}
           onChange={setFormData}
