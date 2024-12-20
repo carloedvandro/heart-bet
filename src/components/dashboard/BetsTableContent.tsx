@@ -28,6 +28,7 @@ export function BetsTableContent({ bets: initialBets }: BetsTableContentProps) {
     const grouped: GroupedBets = {};
     
     betsToGroup.forEach((bet) => {
+      // Usar a data do sorteio (draw_date) em vez da data de criação
       const dateKey = format(new Date(bet.draw_date), 'dd/MM/yyyy');
       if (!grouped[dateKey]) {
         grouped[dateKey] = {};
