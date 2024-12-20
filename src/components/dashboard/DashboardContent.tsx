@@ -3,11 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import HeartGrid from "@/components/HeartGrid";
 import { BetsTable } from "./BetsTable";
 import { TradeCard } from "../trade/TradeCard";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogAction } from "@/components/ui/alert-dialog";
-import { RechargeDialog } from "./RechargeDialog";
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Wallet } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 interface DashboardContentProps {
   profile: Profile | null;
@@ -20,27 +18,13 @@ export const DashboardContent = ({
   refreshTrigger, 
   onBetPlaced 
 }: DashboardContentProps) => {
-  const [showConfirmation, setShowConfirmation] = useState(false);
-  const [showRechargeDialog, setShowRechargeDialog] = useState(false);
-
-  // Função para abrir o diálogo de confirmação
-  const handleRechargeClick = () => {
-    setShowConfirmation(true);
-  };
-
-  // Função para fechar o diálogo de confirmação e abrir o de recarga
-  const handleConfirmation = () => {
-    setShowConfirmation(false);
-    setTimeout(() => {
-      setShowRechargeDialog(true);
-    }, 100);
-  };
+  const navigate = useNavigate();
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 relative z-10">
       <div className="flex justify-end">
         <Button
-          onClick={handleRechargeClick}
+          onClick={() => navigate("/recharge")}
           className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
         >
           <Wallet className="mr-2 h-4 w-4" />
@@ -71,31 +55,6 @@ export const DashboardContent = ({
           <BetsTable refreshTrigger={refreshTrigger} />
         </CardContent>
       </Card>
-
-      <AlertDialog 
-        open={showConfirmation} 
-        onOpenChange={setShowConfirmation}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Realizar Recarga</AlertDialogTitle>
-            <AlertDialogDescription>
-              Você será redirecionado para a tela de recarga onde poderá enviar seu comprovante PIX.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <div className="flex justify-end space-x-2">
-            <AlertDialogAction onClick={handleConfirmation}>
-              Entendi
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <RechargeDialog 
-        open={showRechargeDialog}
-        onOpenChange={setShowRechargeDialog}
-        onRechargeCreated={() => setShowRechargeDialog(false)}
-      />
     </div>
   );
 };
