@@ -287,6 +287,50 @@ export type Database = {
         }
         Relationships: []
       }
+      lottery_results: {
+        Row: {
+          animal: string | null
+          created_at: string
+          created_by: string
+          draw_date: string
+          draw_period: Database["public"]["Enums"]["draw_period"] | null
+          game_number: string | null
+          id: string
+          number: string | null
+          position: number | null
+        }
+        Insert: {
+          animal?: string | null
+          created_at?: string
+          created_by: string
+          draw_date: string
+          draw_period?: Database["public"]["Enums"]["draw_period"] | null
+          game_number?: string | null
+          id?: string
+          number?: string | null
+          position?: number | null
+        }
+        Update: {
+          animal?: string | null
+          created_at?: string
+          created_by?: string
+          draw_date?: string
+          draw_period?: Database["public"]["Enums"]["draw_period"] | null
+          game_number?: string | null
+          id?: string
+          number?: string | null
+          position?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lottery_results_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_proofs: {
         Row: {
           created_at: string
