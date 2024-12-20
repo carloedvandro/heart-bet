@@ -22,10 +22,7 @@ export function RechargeDialog({
 
   return (
     <>
-      <Dialog 
-        open={open} 
-        onOpenChange={onOpenChange}
-      >
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Nova Recarga</DialogTitle>
@@ -56,7 +53,16 @@ export function RechargeDialog({
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
+      <AlertDialog 
+        open={showAlert} 
+        onOpenChange={(open) => {
+          setShowAlert(open);
+          if (!open) {
+            onRechargeCreated?.();
+            onOpenChange(false);
+          }
+        }}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Comprovante Enviado!</AlertDialogTitle>
@@ -66,13 +72,7 @@ export function RechargeDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex justify-end space-x-2">
-            <AlertDialogAction
-              onClick={() => {
-                setShowAlert(false);
-                onRechargeCreated?.();
-                onOpenChange(false);
-              }}
-            >
+            <AlertDialogAction onClick={() => setShowAlert(false)}>
               Entendi
             </AlertDialogAction>
           </div>
