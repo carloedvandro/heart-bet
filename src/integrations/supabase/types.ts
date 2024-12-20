@@ -15,7 +15,7 @@ export type Database = {
           bet_type: Database["public"]["Enums"]["bet_type"]
           created_at: string
           draw_date: string
-          draw_period: Database["public"]["Enums"]["bet_type"]
+          draw_period: Database["public"]["Enums"]["draw_period"]
           formatted_numbers: string
           id: string
           position: number
@@ -25,7 +25,7 @@ export type Database = {
           bet_type: Database["public"]["Enums"]["bet_type"]
           created_at?: string
           draw_date: string
-          draw_period: Database["public"]["Enums"]["bet_type"]
+          draw_period: Database["public"]["Enums"]["draw_period"]
           formatted_numbers: string
           id?: string
           position: number
@@ -35,7 +35,7 @@ export type Database = {
           bet_type?: Database["public"]["Enums"]["bet_type"]
           created_at?: string
           draw_date?: string
-          draw_period?: Database["public"]["Enums"]["bet_type"]
+          draw_period?: Database["public"]["Enums"]["draw_period"]
           formatted_numbers?: string
           id?: string
           position?: number
@@ -44,7 +44,7 @@ export type Database = {
           {
             foreignKeyName: "active_bets_formatted_bet_id_fkey"
             columns: ["bet_id"]
-            isOneToOne: true
+            isOneToOne: false
             referencedRelation: "bets"
             referencedColumns: ["id"]
           },
