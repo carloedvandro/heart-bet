@@ -14,18 +14,23 @@ export function ViewResultsDialog() {
   const [isOpen, setIsOpen] = useState(false);
 
   const { data: results, isLoading } = useQuery({
-    queryKey: ['lottery_results', date],
+    queryKey: ['lottery_results', format(date, 'yyyy-MM-dd')],
     queryFn: async () => {
+      console.log('Fetching results for date:', format(date, 'yyyy-MM-dd'));
       const { data, error } = await supabase
         .from('lottery_results')
         .select('*')
         .eq('draw_date', format(date, 'yyyy-MM-dd'))
-        .order('draw_period', { ascending: true });
+        .order('draw_period', { ascending: true })
+        .order('position', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching results:', error);
+        throw error;
+      }
+      console.log('Results:', data);
       return data;
     },
-    enabled: isOpen,
   });
 
   const periods = ['morning', 'afternoon', 'night', 'late_night'];
@@ -61,6 +66,10 @@ export function ViewResultsDialog() {
           <div className="space-y-4">
             {isLoading ? (
               <div className="text-center py-4">Carregando resultados...</div>
+            ) : results?.length === 0 ? (
+              <div className="text-center py-4 text-muted-foreground">
+                Nenhum resultado encontrado para esta data
+              </div>
             ) : (
               periods.map((period) => {
                 const periodResults = results?.filter(r => r.draw_period === period);
@@ -71,9 +80,9 @@ export function ViewResultsDialog() {
                   <Card key={period} className="p-4">
                     <h3 className="font-semibold mb-2">{periodLabels[period as keyof typeof periodLabels]}</h3>
                     <div className="grid grid-cols-5 gap-4">
-                      {periodResults.map((result, index) => (
+                      {periodResults.map((result) => (
                         <div key={result.id} className="text-center">
-                          <div className="font-medium">{index + 1}º</div>
+                          <div className="font-medium">{result.position}º</div>
                           <div className="text-2xl font-bold">{result.number}</div>
                           <div className="text-sm text-muted-foreground">
                             {result.game_number} - {result.animal}
