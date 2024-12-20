@@ -13,24 +13,18 @@ export function ViewResultsDialog() {
   const { data: results = [], isLoading } = useQuery({
     queryKey: ["lottery-results", selectedDate],
     queryFn: async () => {
-      console.log('Fetching results for date:', selectedDate);
-      
       const { data, error } = await supabase
         .from("lottery_results")
         .select("*")
         .eq("draw_date", format(selectedDate, "yyyy-MM-dd"));
 
       if (error) {
-        console.error('Error fetching results:', error);
+        console.error("Error fetching results:", error);
         throw error;
       }
 
-      console.log('Raw results from database:', data);
       return data || [];
     },
-    enabled: isOpen,
-    refetchOnMount: true,
-    retry: 2,
   });
 
   // Debug logs
@@ -48,24 +42,44 @@ export function ViewResultsDialog() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Ver Resultados</Button>
+        <Button 
+          variant="outline"
+          aria-label="Abrir diálogo de resultados da loteria"
+        >
+          Ver Resultados
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Resultados da Loteria</DialogTitle>
+          <p className="text-sm text-muted-foreground">
+            {format(selectedDate, "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+          </p>
         </DialogHeader>
         {isLoading ? (
-          <p>Carregando...</p>
+          <div role="status" aria-label="Carregando resultados">
+            Carregando...
+          </div>
         ) : (
-          <div>
+          <div className="space-y-4">
             {periods.map(period => (
               <div key={period} className="mb-4">
-                <h2 className="text-lg font-semibold mb-2">{periodLabels[period]}</h2>
-                <ul className="space-y-1">
+                <h2 className="text-lg font-semibold mb-2" id={`period-${period}`}>
+                  {periodLabels[period]}
+                </h2>
+                <ul 
+                  className="space-y-1"
+                  aria-labelledby={`period-${period}`}
+                  role="list"
+                >
                   {results
                     .filter(result => result.draw_period === period)
                     .map(result => (
-                      <li key={result.id} className="text-sm">
+                      <li 
+                        key={result.id} 
+                        className="text-sm"
+                        role="listitem"
+                      >
                         {result.number || 'N/A'}
                       </li>
                     ))}
