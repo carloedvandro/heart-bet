@@ -19,10 +19,6 @@ export function CloseConfirmationDialog({
   onOpenChange,
   onConfirm,
 }: CloseConfirmationDialogProps) {
-  const handleContinue = () => {
-    onOpenChange(false);
-  };
-
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="bg-white dark:bg-gray-900">
@@ -37,7 +33,7 @@ export function CloseConfirmationDialog({
         <AlertDialogFooter>
           <Button
             variant="outline"
-            onClick={handleContinue}
+            onClick={() => onOpenChange(false)}
             className="border-purple-200 hover:border-purple-300 hover:bg-purple-50 dark:border-purple-800 dark:hover:border-purple-700"
           >
             Continuar enviando
