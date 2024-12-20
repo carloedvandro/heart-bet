@@ -7,7 +7,7 @@ import { ProofUploader } from "./recharge/ProofUploader";
 import { PaymentProofsList } from "./recharge/PaymentProofsList";
 import { useState } from "react";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogTitle, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
-import { AlertCircle, X } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 interface RechargeDialogProps {
   open: boolean;
@@ -42,23 +42,14 @@ export function RechargeDialog({
           onOpenChange(true);
         }
       }}>
-        <DialogContent className="max-w-xl bg-gradient-to-br from-purple-50 to-white dark:from-gray-900 dark:to-gray-800 relative">
-          <button
-            onClick={handleCloseAttempt}
-            className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
-          >
-            <X className="h-6 w-6 text-purple-600 dark:text-purple-400" />
-            <span className="sr-only">Close</span>
-          </button>
-
+        <DialogContent className="max-w-xl bg-gradient-to-br from-purple-50 to-white dark:from-gray-900 dark:to-gray-800">
           <DialogHeader>
             <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               Nova Recarga
             </DialogTitle>
           </DialogHeader>
-          
-          <ScrollArea className="max-h-[80vh] px-1">
-            <div className="space-y-8 pr-3">
+          <ScrollArea className="max-h-[80vh]">
+            <div className="space-y-8 pr-4">
               <PaymentMethodButtons
                 onBinanceClick={() => setShowBinanceDialog(true)}
                 onOtherMethodsClick={() => onOpenChange(false)}
