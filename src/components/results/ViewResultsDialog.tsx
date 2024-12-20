@@ -14,23 +14,18 @@ export function ViewResultsDialog() {
   const [isOpen, setIsOpen] = useState(false);
 
   const formattedDate = format(date, 'yyyy-MM-dd');
-  console.log('Current formatted date:', formattedDate);
 
   const { data: results, isLoading } = useQuery({
     queryKey: ['lottery_results', formattedDate],
     queryFn: async () => {
-      console.log('Starting query for date:', formattedDate);
+      console.log('Fetching results for date:', formattedDate);
       
-      const query = supabase
+      const { data, error } = await supabase
         .from('lottery_results')
         .select('*')
         .eq('draw_date', formattedDate)
         .order('draw_period', { ascending: true })
         .order('position', { ascending: true });
-
-      console.log('Query built:', query.toSQL());
-
-      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching results:', error);
