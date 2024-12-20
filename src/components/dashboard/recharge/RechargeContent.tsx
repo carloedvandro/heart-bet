@@ -39,7 +39,7 @@ export function RechargeContent({
       <Alert variant="destructive" className="bg-red-50 border-red-200">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription className="text-center font-medium">
-          O pagamento via PIX está temporariamente indisponível para ajustes no sistema. Por favor, utilize outro método de pagamento ou tente novamente mais tarde.
+          O sistema de pagamento PIX está temporariamente em manutenção. Por favor, tente novamente mais tarde.
         </AlertDescription>
       </Alert>
 
