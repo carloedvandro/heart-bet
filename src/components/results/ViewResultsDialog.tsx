@@ -1,20 +1,15 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useState } from "react";
 
-interface ViewResultsDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  selectedDate: Date;
-}
+export function ViewResultsDialog() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [selectedDate] = useState(new Date());
 
-export function ViewResultsDialog({
-  isOpen,
-  onOpenChange,
-  selectedDate,
-}: ViewResultsDialogProps) {
   const { data: results = [], isLoading } = useQuery({
     queryKey: ["lottery-results", selectedDate],
     queryFn: async () => {
@@ -39,21 +34,22 @@ export function ViewResultsDialog({
   });
 
   // Debug logs
-  console.log('All periods available:', ['morning', 'afternoon', 'night', 'late_night']);
+  console.log('All periods available:', ['morning', 'afternoon', 'night']);
   console.log('Períodos disponíveis nos resultados:', results?.map(r => r.draw_period));
-  console.log('Resultados específicos para late_night:', results?.filter(r => r.draw_period === 'late_night'));
   console.log('Todos os resultados:', results);
 
-  const periods = ['morning', 'afternoon', 'night', 'late_night'];
+  const periods = ['morning', 'afternoon', 'night'] as const;
   const periodLabels = {
     morning: "Manhã",
     afternoon: "Tarde",
     night: "Noite",
-    late_night: "Corujinha",
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline">Ver Resultados</Button>
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Resultados da Loteria</DialogTitle>
@@ -63,13 +59,15 @@ export function ViewResultsDialog({
         ) : (
           <div>
             {periods.map(period => (
-              <div key={period}>
-                <h2>{periodLabels[period]}</h2>
-                <ul>
+              <div key={period} className="mb-4">
+                <h2 className="text-lg font-semibold mb-2">{periodLabels[period]}</h2>
+                <ul className="space-y-1">
                   {results
                     .filter(result => result.draw_period === period)
                     .map(result => (
-                      <li key={result.id}>{result.result}</li>
+                      <li key={result.id} className="text-sm">
+                        {result.number || 'N/A'}
+                      </li>
                     ))}
                 </ul>
               </div>
