@@ -1,7 +1,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { BinancePaymentDialog } from "../payments/BinancePaymentDialog";
+import { BinancePaymentDialog } from "../../payments/BinancePaymentDialog";
 import { useState } from "react";
-import { RechargeContent } from "./recharge/RechargeContent";
+import { RechargeContent } from "./RechargeContent";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
