@@ -39,7 +39,7 @@ export function RechargeContent({
       <Alert variant="destructive" className="bg-red-50 border-red-200">
         <AlertTriangle className="h-4 w-4" />
         <AlertDescription className="text-center font-medium">
-          Nosso sistema de pagamentos está temporariamente em manutenção. Por favor, não realize nenhum pagamento neste momento. Tente novamente mais tarde.
+          Nosso sistema de pagamentos está temporariamente em manutenção. Por favor, não realize nenhum pagamento via PIX ou qualquer outro método neste momento. Tente novamente mais tarde.
         </AlertDescription>
       </Alert>
 
