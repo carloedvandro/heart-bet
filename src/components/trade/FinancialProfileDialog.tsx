@@ -52,13 +52,11 @@ export function FinancialProfileDialog({ open, onOpenChange, existingProfile }: 
       setLoading(true);
       
       if (isEditMode) {
-        // Update existing profile
+        // Update existing profile - agora incluindo o CPF na atualização
         const { error } = await supabase
           .from('financial_profiles')
           .update({
-            ...formData,
-            // Excluir o CPF do objeto para não tentar atualizá-lo
-            cpf: undefined
+            ...formData
           })
           .eq('id', session.user.id);
 
