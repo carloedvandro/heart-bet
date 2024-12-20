@@ -2,7 +2,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { BinancePaymentDialog } from "../payments/BinancePaymentDialog";
 import { useState } from "react";
 import { RechargeContent } from "./recharge/RechargeContent";
-import { CloseConfirmationDialog } from "./recharge/CloseConfirmationDialog";
+import { toast } from "sonner";
 
 interface RechargeDialogProps {
   open: boolean;
@@ -16,15 +16,15 @@ export function RechargeDialog({
   onRechargeCreated 
 }: RechargeDialogProps) {
   const [showBinanceDialog, setShowBinanceDialog] = useState(false);
-  const [showCloseAlert, setShowCloseAlert] = useState(false);
   const PIX_KEY = "30.266.458/0001-58";
 
-  const handleCloseAttempt = () => {
-    setShowCloseAlert(true);
-  };
-
-  const handleConfirmClose = () => {
-    setShowCloseAlert(false);
+  const handleClose = () => {
+    toast.info(
+      "Não se esqueça de enviar o comprovante do seu pagamento PIX. Sem o comprovante, não será possível completar sua recarga.",
+      {
+        duration: 5000,
+      }
+    );
     onOpenChange(false);
   };
 
@@ -34,7 +34,7 @@ export function RechargeDialog({
         open={open} 
         onOpenChange={(newOpen) => {
           if (!newOpen) {
-            handleCloseAttempt();
+            handleClose();
           } else {
             onOpenChange(true);
           }
@@ -60,12 +60,6 @@ export function RechargeDialog({
           </div>
         </DialogContent>
       </Dialog>
-
-      <CloseConfirmationDialog
-        open={showCloseAlert}
-        onOpenChange={setShowCloseAlert}
-        onConfirm={handleConfirmClose}
-      />
 
       <BinancePaymentDialog
         open={showBinanceDialog}
