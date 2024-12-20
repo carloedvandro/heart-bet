@@ -16,27 +16,27 @@ export const DashboardContent = ({
   onBetPlaced 
 }: DashboardContentProps) => {
   return (
-    <div className="max-w-7xl mx-auto space-y-8 p-4 relative z-10">
-      <Card className="transform transition-all duration-300 hover:scale-[1.01] bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-none shadow-xl hover:shadow-2xl rounded-xl overflow-hidden">
-        <CardHeader className="space-y-2 pb-6 border-b border-purple-100/20">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+    <div className="max-w-7xl mx-auto space-y-6 relative z-10">
+      <Card className="opacity-85 bg-white/80 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/90 transition-all duration-300">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Nova Aposta
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent>
           <HeartGrid onBetPlaced={onBetPlaced} />
         </CardContent>
       </Card>
 
       <TradeCard />
 
-      <Card className="transform transition-all duration-300 hover:scale-[1.01] bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-none shadow-xl hover:shadow-2xl rounded-xl overflow-hidden">
-        <CardHeader className="space-y-2 pb-6 border-b border-purple-100/20">
-          <CardTitle className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+      <Card className="opacity-85 bg-white/80 backdrop-blur-md border border-white/20 shadow-xl hover:bg-white/90 transition-all duration-300">
+        <CardHeader className="space-y-1">
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Suas Apostas
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6">
+        <CardContent>
           <BetsTable refreshTrigger={refreshTrigger} />
         </CardContent>
       </Card>

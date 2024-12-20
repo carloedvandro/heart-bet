@@ -24,14 +24,12 @@ export function RechargeDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-3xl p-0 gap-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 overflow-hidden">
-          <DialogHeader className="p-6 pb-4 bg-gradient-to-r from-purple-600/10 to-pink-600/10">
-            <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              Nova Recarga
-            </DialogTitle>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Nova Recarga</DialogTitle>
           </DialogHeader>
           <ScrollArea className="max-h-[80vh]">
-            <div className="p-6 space-y-8">
+            <div className="space-y-6 pr-4">
               <PaymentMethodButtons
                 onBinanceClick={() => setShowBinanceDialog(true)}
                 onOtherMethodsClick={() => onOpenChange(false)}
@@ -39,28 +37,27 @@ export function RechargeDialog({
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-purple-200/30" />
+                  <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 px-4 text-purple-600 font-semibold">
+                  <span className="bg-background px-2 text-muted-foreground">
                     Ou pague via PIX
                   </span>
                 </div>
               </div>
 
               <PixInstructions pixKey={PIX_KEY} />
-              
               <ProofUploader onProofUploaded={() => {
                 onRechargeCreated?.();
                 onOpenChange(false);
               }} />
 
-              <div className="relative mt-8">
+              <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-purple-200/30" />
+                  <span className="w-full border-t" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 px-4 text-purple-600 font-semibold">
+                  <span className="bg-background px-2 text-muted-foreground">
                     Seus comprovantes
                   </span>
                 </div>
