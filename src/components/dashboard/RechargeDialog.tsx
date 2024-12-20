@@ -5,7 +5,8 @@ import { PaymentMethodButtons } from "./recharge/PaymentMethodButtons";
 import { PixInstructions } from "./recharge/PixInstructions";
 import { ProofUploader } from "./recharge/ProofUploader";
 import { PaymentProofsList } from "./recharge/PaymentProofsList";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "@/components/ui/alert-dialog";
 
 interface RechargeDialogProps {
   open: boolean;
@@ -19,7 +20,15 @@ export function RechargeDialog({
   onRechargeCreated 
 }: RechargeDialogProps) {
   const [showBinanceDialog, setShowBinanceDialog] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
   const PIX_KEY = "30.266.458/0001-58";
+
+  // Show instructions when dialog opens
+  useEffect(() => {
+    if (open) {
+      setShowInstructions(true);
+    }
+  }, [open]);
 
   return (
     <>
@@ -74,6 +83,29 @@ export function RechargeDialog({
         onOpenChange={setShowBinanceDialog}
         onPaymentCreated={onRechargeCreated}
       />
+
+      <AlertDialog open={showInstructions} onOpenChange={setShowInstructions}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Instruções Importantes</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>Para completar sua recarga, siga estes passos:</p>
+              <ol className="list-decimal list-inside space-y-1">
+                <li>Faça o pagamento PIX usando o QR Code ou a chave fornecida</li>
+                <li>Salve o comprovante de pagamento no seu dispositivo</li>
+                <li>Use o botão "Escolher arquivo" para enviar o comprovante</li>
+                <li>Aguarde a confirmação do pagamento</li>
+              </ol>
+              <p className="text-sm font-medium text-yellow-600 mt-4">
+                ⚠️ Importante: Sua recarga só será efetivada após o envio do comprovante!
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogAction>Entendi</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
