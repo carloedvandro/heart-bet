@@ -23,19 +23,30 @@ export function RechargeDialog({
   const [showInstructions, setShowInstructions] = useState(false);
   const PIX_KEY = "30.266.458/0001-58";
 
-  // Show instructions when dialog opens
+  // Mostrar instruções apenas quando o diálogo principal é aberto pela primeira vez
   useEffect(() => {
     if (open) {
       setShowInstructions(true);
-    } else {
-      setShowInstructions(false);
-      setShowBinanceDialog(false);
     }
   }, [open]);
 
+  // Função separada para lidar com o fechamento do diálogo principal
+  const handleMainDialogClose = (isOpen: boolean) => {
+    if (!isOpen) {
+      setShowBinanceDialog(false);
+      setShowInstructions(false);
+    }
+    onOpenChange(isOpen);
+  };
+
+  // Função separada para lidar com o fechamento das instruções
+  const handleInstructionsClose = () => {
+    setShowInstructions(false);
+  };
+
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
+      <Dialog open={open} onOpenChange={handleMainDialogClose}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Nova Recarga</DialogTitle>
@@ -88,8 +99,8 @@ export function RechargeDialog({
       />
 
       <AlertDialog 
-        open={showInstructions} 
-        onOpenChange={setShowInstructions}
+        open={showInstructions}
+        onOpenChange={handleInstructionsClose}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -108,7 +119,7 @@ export function RechargeDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={() => setShowInstructions(false)}>
+            <AlertDialogAction onClick={handleInstructionsClose}>
               Entendi
             </AlertDialogAction>
           </AlertDialogFooter>
