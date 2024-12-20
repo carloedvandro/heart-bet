@@ -50,21 +50,34 @@ export function FinancialProfileDialog({ open, onOpenChange, existingProfile }: 
 
     try {
       setLoading(true);
+      console.log('Submitting form data:', formData); // Debug log
       
       if (isEditMode) {
-        // Update existing profile - agora incluindo o CPF na atualização
         const { error } = await supabase
           .from('financial_profiles')
           .update({
-            ...formData
+            full_name: formData.full_name,
+            cpf: formData.cpf,
+            phone: formData.phone,
+            pix_type: formData.pix_type,
+            pix_key: formData.pix_key,
+            street: formData.street,
+            number: formData.number,
+            neighborhood: formData.neighborhood,
+            city: formData.city,
+            state: formData.state,
+            zip_code: formData.zip_code,
+            birth_date: formData.birth_date
           })
           .eq('id', session.user.id);
 
-        if (error) throw error;
+        if (error) {
+          console.error('Update error:', error); // Debug log
+          throw error;
+        }
         
         toast.success("Perfil financeiro atualizado com sucesso!");
       } else {
-        // Create new profile
         const { error } = await supabase
           .from('financial_profiles')
           .insert({
@@ -83,7 +96,6 @@ export function FinancialProfileDialog({ open, onOpenChange, existingProfile }: 
         toast.success("Perfil financeiro cadastrado com sucesso!");
       }
 
-      // Invalidate the financial profile query to force a refetch
       queryClient.invalidateQueries({ queryKey: ['financial-profile'] });
       onOpenChange(false);
       if (!isEditMode) {
