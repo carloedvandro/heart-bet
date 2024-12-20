@@ -59,7 +59,6 @@ export function RechargeDialog({
           setShowAlert(open);
           if (!open) {
             onRechargeCreated?.();
-            onOpenChange(false);
           }
         }}
       >
