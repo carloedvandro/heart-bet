@@ -55,12 +55,13 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       }
 
       // Then fetch paginated data for display
-      const offset = currentPage * itemsPerPage;
-      console.log(`Fetching page ${currentPage} with offset ${offset}`);
+      const from = currentPage * itemsPerPage;
+      const to = from + itemsPerPage - 1;
+      
+      console.log(`Fetching page ${currentPage} from ${from} to ${to}`);
       
       const { data, error, count } = await query
-        .limit(itemsPerPage)
-        .offset(offset);
+        .range(from, to);
 
       if (error) {
         console.error("Error fetching bets:", error);
@@ -70,7 +71,8 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       if (data) {
         console.log("Fetched paginated bets:", {
           page: currentPage,
-          offset,
+          from,
+          to,
           itemsCount: data.length,
           items: data
         });
