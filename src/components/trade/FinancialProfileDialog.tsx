@@ -5,7 +5,6 @@ import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
 import { FinancialProfileForm, FormData } from "./financial-profile/FinancialProfileForm";
 import { useQueryClient } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
 
 interface FinancialProfileDialogProps {
   open: boolean;
@@ -43,30 +42,6 @@ export function FinancialProfileDialog({ open, onOpenChange, existingProfile }: 
     }
   }, [existingProfile]);
 
-  const handlePasswordReset = async () => {
-    try {
-      if (!session?.user?.email) {
-        toast.error("Email não encontrado");
-        return;
-      }
-
-      const { error } = await supabase.auth.resetPasswordForEmail(session.user.email, {
-        redirectTo: window.location.origin + '/reset-password'
-      });
-
-      if (error) {
-        console.error('Password reset error:', error);
-        toast.error("Erro ao enviar email de redefinição de senha");
-        return;
-      }
-
-      toast.success("Email de redefinição de senha enviado! Verifique sua caixa de entrada.");
-    } catch (error) {
-      console.error('Password reset error:', error);
-      toast.error("Erro ao solicitar redefinição de senha");
-    }
-  };
-
   const handleSubmit = async () => {
     if (!session?.user.id) {
       toast.error("Você precisa estar logado para continuar");
@@ -75,34 +50,23 @@ export function FinancialProfileDialog({ open, onOpenChange, existingProfile }: 
 
     try {
       setLoading(true);
-      console.log('Submitting form data:', formData); // Debug log
       
       if (isEditMode) {
+        // Update existing profile
         const { error } = await supabase
           .from('financial_profiles')
           .update({
-            full_name: formData.full_name,
-            cpf: formData.cpf,
-            phone: formData.phone,
-            pix_type: formData.pix_type,
-            pix_key: formData.pix_key,
-            street: formData.street,
-            number: formData.number,
-            neighborhood: formData.neighborhood,
-            city: formData.city,
-            state: formData.state,
-            zip_code: formData.zip_code,
-            birth_date: formData.birth_date
+            ...formData,
+            // Excluir o CPF do objeto para não tentar atualizá-lo
+            cpf: undefined
           })
           .eq('id', session.user.id);
 
-        if (error) {
-          console.error('Update error:', error); // Debug log
-          throw error;
-        }
+        if (error) throw error;
         
         toast.success("Perfil financeiro atualizado com sucesso!");
       } else {
+        // Create new profile
         const { error } = await supabase
           .from('financial_profiles')
           .insert({
@@ -121,6 +85,7 @@ export function FinancialProfileDialog({ open, onOpenChange, existingProfile }: 
         toast.success("Perfil financeiro cadastrado com sucesso!");
       }
 
+      // Invalidate the financial profile query to force a refetch
       queryClient.invalidateQueries({ queryKey: ['financial-profile'] });
       onOpenChange(false);
       if (!isEditMode) {
@@ -142,20 +107,6 @@ export function FinancialProfileDialog({ open, onOpenChange, existingProfile }: 
             {isEditMode ? 'Editar Cadastro Financeiro' : 'Cadastro Financeiro'}
           </DialogTitle>
         </DialogHeader>
-        
-        {isEditMode && (
-          <div className="mb-6">
-            <Button 
-              variant="outline" 
-              onClick={handlePasswordReset}
-              className="w-full"
-              type="button"
-            >
-              Alterar Senha
-            </Button>
-          </div>
-        )}
-
         <FinancialProfileForm
           formData={formData}
           onChange={setFormData}

@@ -578,42 +578,6 @@ export type Database = {
           },
         ]
       }
-      withdrawal_requests: {
-        Row: {
-          amount: number
-          created_at: string | null
-          fee_amount: number
-          id: string
-          net_amount: number
-          processed_at: string | null
-          requested_at: string | null
-          status: string
-          user_id: string
-        }
-        Insert: {
-          amount: number
-          created_at?: string | null
-          fee_amount: number
-          id?: string
-          net_amount: number
-          processed_at?: string | null
-          requested_at?: string | null
-          status?: string
-          user_id: string
-        }
-        Update: {
-          amount?: number
-          created_at?: string | null
-          fee_amount?: number
-          id?: string
-          net_amount?: number
-          processed_at?: string | null
-          requested_at?: string | null
-          status?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       [_ in never]: never
@@ -627,10 +591,6 @@ export type Database = {
         Args: {
           investment_id: string
         }
-        Returns: undefined
-      }
-      clean_old_draws: {
-        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       clean_user_investments: {
