@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BinancePaymentDialog } from "../payments/BinancePaymentDialog";
 import { PaymentMethodButtons } from "./recharge/PaymentMethodButtons";
@@ -7,7 +7,7 @@ import { ProofUploader } from "./recharge/ProofUploader";
 import { PaymentProofsList } from "./recharge/PaymentProofsList";
 import { useState } from "react";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogTitle, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
 
 interface RechargeDialogProps {
   open: boolean;
@@ -47,10 +47,10 @@ export function RechargeDialog({
             <DialogTitle className="text-4xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent mb-4">
               Nova Recarga
             </DialogTitle>
-            <Dialog.Close className="absolute right-0 top-[100%] rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+            <DialogClose className="absolute right-0 top-[100%] rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
               <X className="h-4 w-4" />
               <span className="sr-only">Close</span>
-            </Dialog.Close>
+            </DialogClose>
           </DialogHeader>
           <ScrollArea className="max-h-[80vh]">
             <div className="space-y-8 pr-4">
