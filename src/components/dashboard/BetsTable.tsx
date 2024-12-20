@@ -51,10 +51,18 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       const { data, error, count } = await query
         .range(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage - 1);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching bets:", error);
+        throw error;
+      }
       
-      setBets(data || []);
-      if (count) {
+      if (data) {
+        console.log("Fetched bets:", data.length, "items for page", currentPage);
+        setBets(data);
+      }
+
+      if (count !== null) {
+        console.log("Total items:", count);
         setTotalItems(count);
         setHasMore(count > (currentPage + 1) * itemsPerPage);
       }
@@ -67,17 +75,20 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
   }, [session?.user?.id, date, currentPage]);
 
   useEffect(() => {
+    console.log("Fetching bets for page:", currentPage);
     fetchBets();
   }, [fetchBets, refreshTrigger]);
 
   const handleNextPage = () => {
     if (hasMore) {
+      console.log("Moving to next page:", currentPage + 1);
       setCurrentPage(prev => prev + 1);
     }
   };
 
   const handlePreviousPage = () => {
     if (currentPage > 0) {
+      console.log("Moving to previous page:", currentPage - 1);
       setCurrentPage(prev => prev - 1);
     }
   };
@@ -92,7 +103,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       <BetsTableActions 
         date={date}
         setDate={setDate}
-        bets={allBets} // Pass all bets instead of paginated bets
+        bets={allBets}
       />
 
       {bets.length === 0 ? (
