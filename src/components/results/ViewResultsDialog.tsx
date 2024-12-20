@@ -44,18 +44,18 @@ export function ViewResultsDialog() {
     retry: 2,
   });
 
-  // Debug logs
-  console.log('All periods available:', ['morning', 'afternoon', 'night', 'late_night']);
-  console.log('Períodos disponíveis nos resultados:', results?.map(r => r.draw_period));
-  console.log('Todos os resultados:', results);
-
   const periods = ['morning', 'afternoon', 'night', 'late_night'];
-  const periodLabels = {
+  const periodLabels: Record<string, string> = {
     morning: 'Manhã',
     afternoon: 'Tarde',
     night: 'Noite',
     late_night: 'Corujinha'
   };
+
+  // Debug logs
+  console.log('All periods available:', periods);
+  console.log('Períodos disponíveis nos resultados:', results?.map(r => r.draw_period));
+  console.log('Todos os resultados:', results);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -112,7 +112,7 @@ export function ViewResultsDialog() {
                 return (
                   <Card key={period} className="p-4 shadow-sm hover:shadow-md transition-shadow">
                     <h3 className="font-semibold mb-3 text-lg text-center md:text-left">
-                      {periodLabels[period as keyof typeof periodLabels]}
+                      {periodLabels[period]}
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-4">
                       {periodResults.map((result) => (
