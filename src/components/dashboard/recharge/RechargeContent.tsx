@@ -23,6 +23,8 @@ export function RechargeContent({
         onOtherMethodsClick={onOtherMethodsClick}
       />
 
+      <ProofUploader onProofUploaded={onProofUploaded} />
+
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
           <span className="w-full border-t border-purple-200 dark:border-purple-800" />
@@ -35,8 +37,6 @@ export function RechargeContent({
       </div>
 
       <PixInstructions pixKey={pixKey} />
-      
-      <ProofUploader onProofUploaded={onProofUploaded} />
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">

@@ -103,7 +103,7 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
         >
           <Upload className="mr-2 h-5 w-5 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
           <span className="font-medium">
-            {selectedFile ? selectedFile.name : "Escolher arquivo"}
+            {selectedFile ? selectedFile.name : "Envie teu comprovante"}
           </span>
         </Button>
       </div>
