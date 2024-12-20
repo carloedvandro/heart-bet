@@ -3,6 +3,7 @@ import { BinancePaymentDialog } from "../payments/BinancePaymentDialog";
 import { useState } from "react";
 import { RechargeContent } from "./recharge/RechargeContent";
 import { toast } from "sonner";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface RechargeDialogProps {
   open: boolean;
@@ -47,6 +48,12 @@ export function RechargeDialog({
             </DialogTitle>
           </DialogHeader>
           
+          <Alert className="animate-gradient-x bg-gradient-to-r from-purple-100 via-pink-100 to-purple-100 border-purple-300 mb-4">
+            <AlertDescription className="text-center text-purple-800 font-semibold">
+              Não se esqueça de enviar o comprovante do seu pagamento PIX!
+            </AlertDescription>
+          </Alert>
+
           <div className="overflow-y-auto">
             <RechargeContent
               pixKey={PIX_KEY}
