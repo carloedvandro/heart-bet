@@ -1,7 +1,8 @@
 import { PaymentMethodButtons } from "./PaymentMethodButtons";
-import { PixInstructions } from "./PixInstructions";
 import { ProofUploader } from "./ProofUploader";
 import { PaymentProofsList } from "./PaymentProofsList";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 interface RechargeContentProps {
   pixKey: string;
@@ -11,7 +12,6 @@ interface RechargeContentProps {
 }
 
 export function RechargeContent({
-  pixKey,
   onBinanceClick,
   onOtherMethodsClick,
   onProofUploaded,
@@ -31,12 +31,17 @@ export function RechargeContent({
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-gradient-to-r from-purple-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 px-4 text-purple-600 dark:text-purple-300 font-medium">
-            Ou pague via PIX
+            Pagamento via PIX
           </span>
         </div>
       </div>
 
-      <PixInstructions pixKey={pixKey} />
+      <Alert variant="destructive" className="bg-red-50 border-red-200">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription className="text-center font-medium">
+          O pagamento via PIX está temporariamente indisponível para ajustes no sistema. Por favor, utilize outro método de pagamento ou tente novamente mais tarde.
+        </AlertDescription>
+      </Alert>
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
