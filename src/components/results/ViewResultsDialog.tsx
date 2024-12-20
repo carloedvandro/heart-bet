@@ -8,14 +8,16 @@ import { ptBR } from "date-fns/locale";
 import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function ViewResultsDialog() {
   const [date, setDate] = useState<Date>(new Date());
   const [isOpen, setIsOpen] = useState(false);
 
   const formattedDate = format(date, 'yyyy-MM-dd');
+  const displayDate = format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
 
-  const { data: results, isLoading } = useQuery({
+  const { data: results, isLoading, error } = useQuery({
     queryKey: ['lottery_results', formattedDate],
     queryFn: async () => {
       console.log('Fetching results for date:', formattedDate);
@@ -35,8 +37,9 @@ export function ViewResultsDialog() {
       console.log('Results received:', data);
       return data || [];
     },
-    enabled: isOpen, // Only fetch when dialog is open
+    enabled: isOpen,
     staleTime: 1000 * 60 * 5, // Cache for 5 minutes
+    retry: 2,
   });
 
   const periods = ['morning', 'afternoon', 'night', 'late_night'];
@@ -57,26 +60,35 @@ export function ViewResultsDialog() {
       </DialogTrigger>
       <DialogContent className="max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Resultados do Dia</DialogTitle>
+          <DialogTitle>Resultados do Dia {displayDate}</DialogTitle>
         </DialogHeader>
         
         <div className="grid gap-6 md:grid-cols-[200px,1fr]">
           <Calendar
             mode="single"
             selected={date}
-            onSelect={(date) => {
-              if (date) {
-                console.log('Date selected:', format(date, 'yyyy-MM-dd'));
-                setDate(date);
+            onSelect={(newDate) => {
+              if (newDate) {
+                console.log('Date selected:', format(newDate, 'yyyy-MM-dd'));
+                setDate(newDate);
               }
             }}
-            className="rounded-md border"
+            className="rounded-md border shadow"
             locale={ptBR}
+            disabled={(date) => date > new Date()}
           />
 
           <div className="space-y-4">
-            {isLoading ? (
-              <div className="text-center py-4">Carregando resultados...</div>
+            {error ? (
+              <div className="text-center py-4 text-red-500">
+                Erro ao carregar resultados. Tente novamente.
+              </div>
+            ) : isLoading ? (
+              <div className="space-y-4">
+                {periods.map((period) => (
+                  <Skeleton key={period} className="h-32 w-full" />
+                ))}
+              </div>
             ) : !results || results.length === 0 ? (
               <div className="text-center py-4 text-muted-foreground">
                 Nenhum resultado encontrado para esta data
@@ -88,13 +100,22 @@ export function ViewResultsDialog() {
                 if (!periodResults?.length) return null;
 
                 return (
-                  <Card key={period} className="p-4">
-                    <h3 className="font-semibold mb-2">{periodLabels[period as keyof typeof periodLabels]}</h3>
+                  <Card key={period} className="p-4 shadow-sm hover:shadow-md transition-shadow">
+                    <h3 className="font-semibold mb-3 text-lg">
+                      {periodLabels[period as keyof typeof periodLabels]}
+                    </h3>
                     <div className="grid grid-cols-5 gap-4">
                       {periodResults.map((result) => (
-                        <div key={result.id} className="text-center">
-                          <div className="font-medium">{result.position}º</div>
-                          <div className="text-2xl font-bold">{result.number}</div>
+                        <div 
+                          key={result.id} 
+                          className="text-center p-2 rounded-lg bg-muted/50"
+                        >
+                          <div className="font-medium text-sm text-muted-foreground">
+                            {result.position}º
+                          </div>
+                          <div className="text-2xl font-bold my-1">
+                            {result.number}
+                          </div>
                           <div className="text-sm text-muted-foreground">
                             {result.game_number} - {result.animal}
                           </div>
