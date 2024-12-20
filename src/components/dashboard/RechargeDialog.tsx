@@ -4,6 +4,7 @@ import { PixInstructions } from "./recharge/PixInstructions";
 import { ProofUploader } from "./recharge/ProofUploader";
 import { PaymentProofsList } from "./recharge/PaymentProofsList";
 import { useState } from "react";
+import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
 
 interface RechargeDialogProps {
   open: boolean;
@@ -17,6 +18,7 @@ export function RechargeDialog({
   onRechargeCreated 
 }: RechargeDialogProps) {
   const PIX_KEY = "30.266.458/0001-58";
+  const [showAlert, setShowAlert] = useState(false);
 
   return (
     <Dialog 
@@ -30,10 +32,11 @@ export function RechargeDialog({
         <ScrollArea className="max-h-[80vh]">
           <div className="space-y-6 pr-4">
             <PixInstructions pixKey={PIX_KEY} />
-            <ProofUploader onProofUploaded={() => {
-              onRechargeCreated?.();
-              onOpenChange(false);
-            }} />
+            <ProofUploader 
+              onProofUploaded={() => {
+                setShowAlert(true);
+              }} 
+            />
 
             <div className="relative">
               <div className="absolute inset-0 flex items-center">
@@ -49,6 +52,29 @@ export function RechargeDialog({
             <PaymentProofsList />
           </div>
         </ScrollArea>
+
+        <AlertDialog open={showAlert} onOpenChange={setShowAlert}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Comprovante Enviado!</AlertDialogTitle>
+              <AlertDialogDescription>
+                Seu comprovante foi enviado com sucesso e será analisado em breve.
+                O valor será creditado em sua conta assim que confirmado.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <div className="flex justify-end space-x-2">
+              <AlertDialogAction
+                onClick={() => {
+                  setShowAlert(false);
+                  onRechargeCreated?.();
+                  onOpenChange(false);
+                }}
+              >
+                Entendi
+              </AlertDialogAction>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
       </DialogContent>
     </Dialog>
   );
