@@ -23,24 +23,24 @@ export const DashboardContent = ({
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [showRechargeDialog, setShowRechargeDialog] = useState(false);
 
-  const handleRechargeFlow = () => {
+  // Função para abrir o diálogo de confirmação
+  const handleRechargeClick = () => {
     setShowConfirmation(true);
   };
 
-  const handleConfirmationClose = () => {
+  // Função para fechar o diálogo de confirmação e abrir o de recarga
+  const handleConfirmation = () => {
     setShowConfirmation(false);
-    setShowRechargeDialog(true);
-  };
-
-  const handleRechargeClose = () => {
-    setShowRechargeDialog(false);
+    setTimeout(() => {
+      setShowRechargeDialog(true);
+    }, 100);
   };
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 relative z-10">
       <div className="flex justify-end">
         <Button
-          onClick={handleRechargeFlow}
+          onClick={handleRechargeClick}
           className="bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:from-purple-700 hover:to-pink-700"
         >
           <Wallet className="mr-2 h-4 w-4" />
@@ -84,7 +84,7 @@ export const DashboardContent = ({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex justify-end space-x-2">
-            <AlertDialogAction onClick={handleConfirmationClose}>
+            <AlertDialogAction onClick={handleConfirmation}>
               Entendi
             </AlertDialogAction>
           </div>
@@ -93,8 +93,8 @@ export const DashboardContent = ({
 
       <RechargeDialog 
         open={showRechargeDialog}
-        onOpenChange={handleRechargeClose}
-        onRechargeCreated={handleRechargeClose}
+        onOpenChange={setShowRechargeDialog}
+        onRechargeCreated={() => setShowRechargeDialog(false)}
       />
     </div>
   );

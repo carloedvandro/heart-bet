@@ -20,6 +20,11 @@ export function RechargeDialog({
   const PIX_KEY = "30.266.458/0001-58";
   const [showAlert, setShowAlert] = useState(false);
 
+  const handleAlertClose = () => {
+    setShowAlert(false);
+    onRechargeCreated?.();
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
@@ -33,9 +38,7 @@ export function RechargeDialog({
             <div className="p-6 space-y-8">
               <PixInstructions pixKey={PIX_KEY} />
               <ProofUploader 
-                onProofUploaded={() => {
-                  setShowAlert(true);
-                }} 
+                onProofUploaded={() => setShowAlert(true)} 
               />
 
               <div className="relative">
@@ -57,12 +60,7 @@ export function RechargeDialog({
 
       <AlertDialog 
         open={showAlert} 
-        onOpenChange={(open) => {
-          setShowAlert(open);
-          if (!open) {
-            onRechargeCreated?.();
-          }
-        }}
+        onOpenChange={setShowAlert}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -73,7 +71,7 @@ export function RechargeDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <div className="flex justify-end space-x-2">
-            <AlertDialogAction onClick={() => setShowAlert(false)}>
+            <AlertDialogAction onClick={handleAlertClose}>
               Entendi
             </AlertDialogAction>
           </div>
