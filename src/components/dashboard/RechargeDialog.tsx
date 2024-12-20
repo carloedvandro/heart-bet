@@ -27,9 +27,6 @@ export function RechargeDialog({
   useEffect(() => {
     if (open) {
       setShowInstructions(true);
-    } else {
-      // Reset instructions state when dialog closes
-      setShowInstructions(false);
     }
   }, [open]);
 
@@ -91,7 +88,10 @@ export function RechargeDialog({
         onPaymentCreated={onRechargeCreated}
       />
 
-      <AlertDialog open={showInstructions} onOpenChange={handleCloseInstructions}>
+      <AlertDialog 
+        open={showInstructions} 
+        onOpenChange={handleCloseInstructions}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Instruções Importantes</AlertDialogTitle>
@@ -109,7 +109,9 @@ export function RechargeDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={handleCloseInstructions}>Entendi</AlertDialogAction>
+            <AlertDialogAction onClick={handleCloseInstructions}>
+              Entendi
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
