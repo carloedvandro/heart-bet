@@ -56,9 +56,9 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
 
       // Then fetch paginated data for display
       const from = currentPage * itemsPerPage;
-      const to = from + itemsPerPage - 1;
+      const to = from + (itemsPerPage - 1);
       
-      console.log(`Fetching page ${currentPage} from ${from} to ${to}`);
+      console.log(`Fetching page ${currentPage + 1}, range ${from} to ${to}`);
       
       const { data, error, count } = await query
         .range(from, to);
@@ -67,13 +67,14 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
         console.error("Error fetching bets:", error);
         throw error;
       }
-      
+
       if (data) {
         console.log("Fetched paginated bets:", {
-          page: currentPage,
+          page: currentPage + 1,
           from,
           to,
-          itemsCount: data.length,
+          totalCount: count,
+          fetchedCount: data.length,
           items: data
         });
         setBets(data);
@@ -82,9 +83,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       if (count !== null) {
         console.log("Total items:", count);
         setTotalItems(count);
-        const remainingItems = count - ((currentPage + 1) * itemsPerPage);
-        console.log("Remaining items:", remainingItems);
-        setHasMore(remainingItems > 0);
+        setHasMore((currentPage + 1) * itemsPerPage < count);
       }
     } catch (error) {
       console.error("Error fetching bets:", error);
@@ -95,20 +94,20 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
   }, [session?.user?.id, date, currentPage]);
 
   useEffect(() => {
-    console.log("Fetching bets for page:", currentPage);
+    console.log("Fetching bets for page:", currentPage + 1);
     fetchBets();
   }, [fetchBets, refreshTrigger]);
 
   const handleNextPage = () => {
     if (hasMore) {
-      console.log("Moving to next page:", currentPage + 1);
+      console.log("Moving to next page:", currentPage + 2);
       setCurrentPage(prev => prev + 1);
     }
   };
 
   const handlePreviousPage = () => {
     if (currentPage > 0) {
-      console.log("Moving to previous page:", currentPage - 1);
+      console.log("Moving to previous page:", currentPage);
       setCurrentPage(prev => prev - 1);
     }
   };
