@@ -24,12 +24,14 @@ export function RechargeDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-2xl p-6">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center mb-4">Nova Recarga</DialogTitle>
+        <DialogContent className="max-w-3xl p-0 gap-0 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 overflow-hidden">
+          <DialogHeader className="p-6 pb-4 bg-gradient-to-r from-purple-600/10 to-pink-600/10">
+            <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+              Nova Recarga
+            </DialogTitle>
           </DialogHeader>
           <ScrollArea className="max-h-[80vh]">
-            <div className="space-y-8 pr-4">
+            <div className="p-6 space-y-8">
               <PaymentMethodButtons
                 onBinanceClick={() => setShowBinanceDialog(true)}
                 onOtherMethodsClick={() => onOpenChange(false)}
@@ -37,10 +39,10 @@ export function RechargeDialog({
 
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
+                  <span className="w-full border-t border-purple-200/30" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-4 text-muted-foreground font-semibold">
+                  <span className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 px-4 text-purple-600 font-semibold">
                     Ou pague via PIX
                   </span>
                 </div>
@@ -55,10 +57,10 @@ export function RechargeDialog({
 
               <div className="relative mt-8">
                 <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
+                  <span className="w-full border-t border-purple-200/30" />
                 </div>
                 <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-4 text-muted-foreground font-semibold">
+                  <span className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 px-4 text-purple-600 font-semibold">
                     Seus comprovantes
                   </span>
                 </div>

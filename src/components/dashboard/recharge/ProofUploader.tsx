@@ -75,16 +75,16 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
   };
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3">
       <Input
         id="proof"
         type="file"
         accept="image/*"
         onChange={handleUploadProof}
         disabled={uploadingProof}
-        className="cursor-pointer"
+        className="cursor-pointer bg-white/50 border-purple-200 file:bg-purple-500 file:text-white file:border-0 file:rounded-lg file:px-4 file:py-2 file:mr-4 hover:file:bg-purple-600 transition-colors"
       />
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm text-purple-600">
         Por favor, envie o comprovante do seu pagamento PIX.
       </p>
     </div>
