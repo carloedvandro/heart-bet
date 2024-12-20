@@ -53,7 +53,7 @@ export const POSITION_FACTORS: Record<Position, number> = {
 
 export const DRAW_PERIODS = {
   morning: "Manhã (até 11h)",
-  afternoon: "Tarde (até 15h)",
+  afternoon: "Tarde (até 14h)",
   evening: "Noite (até 19h)",
   night: "Corujinha (até 22h)",
 } as const;
