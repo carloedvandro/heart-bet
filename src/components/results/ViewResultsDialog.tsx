@@ -36,7 +36,7 @@ export function ViewResultsDialog() {
         throw error;
       }
 
-      console.log('Results received:', data);
+      console.log('Raw results from database:', data);
       return data || [];
     },
     enabled: isOpen,
@@ -44,8 +44,10 @@ export function ViewResultsDialog() {
     retry: 2,
   });
 
-  // Adicionando console.log para debug dos períodos
+  // Debug logs
+  console.log('All periods available:', ['morning', 'afternoon', 'night', 'late_night']);
   console.log('Períodos disponíveis nos resultados:', results?.map(r => r.draw_period));
+  console.log('Todos os resultados:', results);
 
   const periods = ['morning', 'afternoon', 'night', 'late_night'];
   const periodLabels = {
