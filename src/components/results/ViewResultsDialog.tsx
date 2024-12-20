@@ -44,6 +44,9 @@ export function ViewResultsDialog() {
     retry: 2,
   });
 
+  // Adicionando console.log para debug dos períodos
+  console.log('Períodos disponíveis nos resultados:', results?.map(r => r.draw_period));
+
   const periods = ['morning', 'afternoon', 'night', 'late_night'];
   const periodLabels = {
     morning: 'Manhã',
@@ -100,6 +103,7 @@ export function ViewResultsDialog() {
             ) : (
               periods.map((period) => {
                 const periodResults = results.filter(r => r.draw_period === period);
+                console.log(`Resultados para ${period}:`, periodResults);
                 
                 if (!periodResults?.length) return null;
 
