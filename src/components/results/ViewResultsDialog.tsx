@@ -13,22 +13,31 @@ export function ViewResultsDialog() {
   const [date, setDate] = useState<Date>(new Date());
   const [isOpen, setIsOpen] = useState(false);
 
+  const formattedDate = format(date, 'yyyy-MM-dd');
+  console.log('Current formatted date:', formattedDate);
+
   const { data: results, isLoading } = useQuery({
-    queryKey: ['lottery_results', format(date, 'yyyy-MM-dd')],
+    queryKey: ['lottery_results', formattedDate],
     queryFn: async () => {
-      console.log('Fetching results for date:', format(date, 'yyyy-MM-dd'));
-      const { data, error } = await supabase
+      console.log('Starting query for date:', formattedDate);
+      
+      const query = supabase
         .from('lottery_results')
         .select('*')
-        .eq('draw_date', format(date, 'yyyy-MM-dd'))
+        .eq('draw_date', formattedDate)
         .order('draw_period', { ascending: true })
         .order('position', { ascending: true });
+
+      console.log('Query built:', query.toSQL());
+
+      const { data, error } = await query;
 
       if (error) {
         console.error('Error fetching results:', error);
         throw error;
       }
-      console.log('Results:', data);
+
+      console.log('Results received:', data);
       return data;
     },
   });
@@ -58,7 +67,12 @@ export function ViewResultsDialog() {
           <Calendar
             mode="single"
             selected={date}
-            onSelect={(date) => date && setDate(date)}
+            onSelect={(date) => {
+              if (date) {
+                console.log('Date selected:', format(date, 'yyyy-MM-dd'));
+                setDate(date);
+              }
+            }}
             className="rounded-md border"
             locale={ptBR}
           />
@@ -66,13 +80,13 @@ export function ViewResultsDialog() {
           <div className="space-y-4">
             {isLoading ? (
               <div className="text-center py-4">Carregando resultados...</div>
-            ) : results?.length === 0 ? (
+            ) : !results || results.length === 0 ? (
               <div className="text-center py-4 text-muted-foreground">
                 Nenhum resultado encontrado para esta data
               </div>
             ) : (
               periods.map((period) => {
-                const periodResults = results?.filter(r => r.draw_period === period);
+                const periodResults = results.filter(r => r.draw_period === period);
                 
                 if (!periodResults?.length) return null;
 
