@@ -32,6 +32,8 @@ export function RechargeDialog({
 
   const handleCloseInstructions = () => {
     setShowInstructions(false);
+    // Força a reabertura do diálogo principal
+    onOpenChange(true);
   };
 
   return (
