@@ -1,5 +1,7 @@
 import { Session } from "@supabase/supabase-js";
 import { BetType } from "@/types/betting";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
 
 interface SubmitButtonProps {
   session: Session | null;
@@ -10,7 +12,7 @@ interface SubmitButtonProps {
   onSubmit: () => void;
 }
 
-const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmitting, onSubmit }: SubmitButtonProps) => {
+const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmitting }: SubmitButtonProps) => {
   const isValid = () => {
     console.log("🔍 Validando estado do botão:", {
       betType,
@@ -55,21 +57,29 @@ const SubmitButton = ({ session, selectedHearts, mainHeart, betType, isSubmittin
       }
     }
     
-    return "Confirmar Aposta";
+    return "Sistema em Manutenção";
   };
 
   return (
-    <button
-      onClick={onSubmit}
-      disabled={!isValid()}
-      className="mt-8 px-8 py-3 bg-gradient-to-r from-heart-pink to-heart-purple
-               text-white rounded-full shadow-lg hover:shadow-xl
-               transition-all duration-300 transform hover:scale-105
-               disabled:opacity-50 disabled:cursor-not-allowed
-               disabled:hover:scale-100 disabled:hover:shadow-lg"
-    >
-      {getButtonText()}
-    </button>
+    <div className="space-y-4">
+      <Alert variant="destructive" className="bg-red-50 border-red-200">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription className="text-center font-medium">
+          Sistema temporariamente em manutenção para melhorias. Por favor, aguarde alguns instantes.
+        </AlertDescription>
+      </Alert>
+
+      <button
+        disabled={true}
+        className="mt-8 px-8 py-3 bg-gradient-to-r from-gray-400 to-gray-500
+                 text-white rounded-full shadow-lg
+                 transition-all duration-300
+                 disabled:opacity-50 disabled:cursor-not-allowed
+                 w-full text-center"
+      >
+        {getButtonText()}
+      </button>
+    </div>
   );
 };
 
