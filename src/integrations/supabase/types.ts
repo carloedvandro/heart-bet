@@ -9,6 +9,47 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      active_bets_formatted: {
+        Row: {
+          bet_id: string
+          bet_type: Database["public"]["Enums"]["bet_type"]
+          created_at: string
+          draw_date: string
+          draw_period: Database["public"]["Enums"]["bet_type"]
+          formatted_numbers: string
+          id: string
+          position: number
+        }
+        Insert: {
+          bet_id: string
+          bet_type: Database["public"]["Enums"]["bet_type"]
+          created_at?: string
+          draw_date: string
+          draw_period: Database["public"]["Enums"]["bet_type"]
+          formatted_numbers: string
+          id?: string
+          position: number
+        }
+        Update: {
+          bet_id?: string
+          bet_type?: Database["public"]["Enums"]["bet_type"]
+          created_at?: string
+          draw_date?: string
+          draw_period?: Database["public"]["Enums"]["bet_type"]
+          formatted_numbers?: string
+          id?: string
+          position?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "active_bets_formatted_bet_id_fkey"
+            columns: ["bet_id"]
+            isOneToOne: true
+            referencedRelation: "bets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       balance_history: {
         Row: {
           admin_id: string
@@ -689,6 +730,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      format_bet_numbers: {
+        Args: {
+          numbers: string[]
+          bet_type: Database["public"]["Enums"]["bet_type"]
+        }
+        Returns: string
+      }
       get_all_bets_today: {
         Args: {
           today_date: string
@@ -723,6 +771,10 @@ export type Database = {
           user_id: string
         }
         Returns: boolean
+      }
+      populate_active_bets_formatted: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       release_investment_funds: {
         Args: {
