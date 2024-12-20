@@ -5,8 +5,7 @@ import { PaymentMethodButtons } from "./recharge/PaymentMethodButtons";
 import { PixInstructions } from "./recharge/PixInstructions";
 import { ProofUploader } from "./recharge/ProofUploader";
 import { PaymentProofsList } from "./recharge/PaymentProofsList";
-import { useState, useEffect } from "react";
-import { AlertDialog, AlertDialogContent, AlertDialogHeader, AlertDialogTitle, AlertDialogDescription, AlertDialogFooter, AlertDialogAction } from "@/components/ui/alert-dialog";
+import { useState } from "react";
 
 interface RechargeDialogProps {
   open: boolean;
@@ -20,15 +19,7 @@ export function RechargeDialog({
   onRechargeCreated 
 }: RechargeDialogProps) {
   const [showBinanceDialog, setShowBinanceDialog] = useState(false);
-  const [showInstructions, setShowInstructions] = useState(false);
   const PIX_KEY = "30.266.458/0001-58";
-
-  // Mostrar instruções apenas quando o diálogo principal é aberto pela primeira vez
-  useEffect(() => {
-    if (open) {
-      setShowInstructions(true);
-    }
-  }, [open]);
 
   return (
     <>
@@ -86,38 +77,6 @@ export function RechargeDialog({
         onOpenChange={setShowBinanceDialog}
         onPaymentCreated={onRechargeCreated}
       />
-
-      {open && (
-        <AlertDialog 
-          open={showInstructions} 
-          onOpenChange={(isOpen) => {
-            setShowInstructions(isOpen);
-          }}
-        >
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Instruções Importantes</AlertDialogTitle>
-              <AlertDialogDescription>
-                <p className="mb-2">Para completar sua recarga, siga estes passos:</p>
-                <div className="space-y-1">
-                  <p>1. Faça o pagamento PIX usando o QR Code ou a chave fornecida</p>
-                  <p>2. Salve o comprovante de pagamento no seu dispositivo</p>
-                  <p>3. Use o botão "Escolher arquivo" para enviar o comprovante</p>
-                  <p>4. Aguarde a confirmação do pagamento</p>
-                </div>
-                <p className="text-sm font-medium text-yellow-600 mt-4">
-                  ⚠️ Importante: Sua recarga só será efetivada após o envio do comprovante!
-                </p>
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogAction>
-                Entendi
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-      )}
     </>
   );
 }
