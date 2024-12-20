@@ -15,7 +15,7 @@ interface BetsTableProps {
 
 export function BetsTable({ refreshTrigger }: BetsTableProps) {
   const [bets, setBets] = useState<Bet[]>([]);
-  const [allBets, setAllBets] = useState<Bet[]>([]); // New state for storing all bets
+  const [allBets, setAllBets] = useState<Bet[]>([]); 
   const [loading, setLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(0);
@@ -48,8 +48,13 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       }
 
       // Then fetch paginated data for display
+      const startRow = currentPage * itemsPerPage;
+      const endRow = startRow + itemsPerPage - 1;
+      
+      console.log(`Fetching rows ${startRow} to ${endRow}`);
+      
       const { data, error, count } = await query
-        .range(currentPage * itemsPerPage, (currentPage + 1) * itemsPerPage - 1);
+        .range(startRow, endRow);
 
       if (error) {
         console.error("Error fetching bets:", error);
@@ -64,7 +69,7 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
       if (count !== null) {
         console.log("Total items:", count);
         setTotalItems(count);
-        setHasMore(count > (currentPage + 1) * itemsPerPage);
+        setHasMore((currentPage + 1) * itemsPerPage < count);
       }
     } catch (error) {
       console.error("Error fetching bets:", error);
