@@ -9,10 +9,12 @@ import { Card } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export function ViewResultsDialog() {
   const [date, setDate] = useState<Date>(new Date());
   const [isOpen, setIsOpen] = useState(false);
+  const isMobile = useIsMobile();
 
   const formattedDate = format(date, 'yyyy-MM-dd');
   const displayDate = format(date, "dd 'de' MMMM 'de' yyyy", { locale: ptBR });
@@ -58,12 +60,14 @@ export function ViewResultsDialog() {
           Resultados
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-[95vw] w-full md:max-w-3xl h-[90vh] md:h-auto overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Resultados do Dia {displayDate}</DialogTitle>
+          <DialogTitle className="text-lg md:text-xl text-center">
+            Resultados do Dia {displayDate}
+          </DialogTitle>
         </DialogHeader>
         
-        <div className="grid gap-6 md:grid-cols-[200px,1fr]">
+        <div className={`grid gap-6 ${isMobile ? '' : 'md:grid-cols-[200px,1fr]'}`}>
           <Calendar
             mode="single"
             selected={date}
@@ -73,7 +77,7 @@ export function ViewResultsDialog() {
                 setDate(newDate);
               }
             }}
-            className="rounded-md border shadow"
+            className="rounded-md border shadow mx-auto"
             locale={ptBR}
             disabled={(date) => date > new Date()}
           />
@@ -101,10 +105,10 @@ export function ViewResultsDialog() {
 
                 return (
                   <Card key={period} className="p-4 shadow-sm hover:shadow-md transition-shadow">
-                    <h3 className="font-semibold mb-3 text-lg">
+                    <h3 className="font-semibold mb-3 text-lg text-center md:text-left">
                       {periodLabels[period as keyof typeof periodLabels]}
                     </h3>
-                    <div className="grid grid-cols-5 gap-4">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-4">
                       {periodResults.map((result) => (
                         <div 
                           key={result.id} 
@@ -113,10 +117,10 @@ export function ViewResultsDialog() {
                           <div className="font-medium text-sm text-muted-foreground">
                             {result.position}º
                           </div>
-                          <div className="text-2xl font-bold my-1">
+                          <div className="text-xl md:text-2xl font-bold my-1">
                             {result.number}
                           </div>
-                          <div className="text-sm text-muted-foreground">
+                          <div className="text-xs md:text-sm text-muted-foreground">
                             {result.game_number} - {result.animal}
                           </div>
                         </div>
