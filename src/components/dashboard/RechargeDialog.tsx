@@ -43,7 +43,6 @@ export function RechargeDialog({
         }
       }}>
         <DialogContent className="max-w-xl bg-gradient-to-br from-purple-50 to-white dark:from-gray-900 dark:to-gray-800 relative">
-          {/* Close button with improved visibility */}
           <button
             onClick={handleCloseAttempt}
             className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground"
