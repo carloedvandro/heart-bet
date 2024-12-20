@@ -33,8 +33,10 @@ export function ViewResultsDialog() {
       }
 
       console.log('Results received:', data);
-      return data;
+      return data || [];
     },
+    enabled: isOpen, // Only fetch when dialog is open
+    staleTime: 1000 * 60 * 5, // Cache for 5 minutes
   });
 
   const periods = ['morning', 'afternoon', 'night', 'late_night'];
