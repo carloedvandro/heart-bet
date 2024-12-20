@@ -1,4 +1,4 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { BinancePaymentDialog } from "../payments/BinancePaymentDialog";
 import { PaymentMethodButtons } from "./recharge/PaymentMethodButtons";
@@ -7,7 +7,7 @@ import { ProofUploader } from "./recharge/ProofUploader";
 import { PaymentProofsList } from "./recharge/PaymentProofsList";
 import { useState } from "react";
 import { AlertDialog, AlertDialogContent, AlertDialogDescription, AlertDialogTitle, AlertDialogCancel, AlertDialogAction } from "@/components/ui/alert-dialog";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
 
 interface RechargeDialogProps {
   open: boolean;
@@ -47,6 +47,9 @@ export function RechargeDialog({
             <DialogTitle className="text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
               Nova Recarga
             </DialogTitle>
+            <DialogClose className="absolute right-0 pt-8">
+              <X className="h-4 w-4" />
+            </DialogClose>
           </DialogHeader>
           <ScrollArea className="max-h-[80vh]">
             <div className="space-y-8 pr-4">
