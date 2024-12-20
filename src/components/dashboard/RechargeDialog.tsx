@@ -28,28 +28,14 @@ export function RechargeDialog({
     if (open) {
       setShowInstructions(true);
     } else {
-      // Limpa o estado quando o diálogo principal é fechado
       setShowInstructions(false);
       setShowBinanceDialog(false);
     }
   }, [open]);
 
-  const handleCloseInstructions = () => {
-    setShowInstructions(false);
-  };
-
   return (
     <>
-      <Dialog 
-        open={open} 
-        onOpenChange={(newOpen) => {
-          onOpenChange(newOpen);
-          if (!newOpen) {
-            setShowInstructions(false);
-            setShowBinanceDialog(false);
-          }
-        }}
-      >
+      <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Nova Recarga</DialogTitle>
@@ -103,7 +89,7 @@ export function RechargeDialog({
 
       <AlertDialog 
         open={showInstructions} 
-        onOpenChange={handleCloseInstructions}
+        onOpenChange={setShowInstructions}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -122,7 +108,7 @@ export function RechargeDialog({
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogAction onClick={handleCloseInstructions}>
+            <AlertDialogAction onClick={() => setShowInstructions(false)}>
               Entendi
             </AlertDialogAction>
           </AlertDialogFooter>
