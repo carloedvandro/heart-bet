@@ -629,6 +629,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      clean_old_draws: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       clean_user_investments: {
         Args: {
           user_email: string
