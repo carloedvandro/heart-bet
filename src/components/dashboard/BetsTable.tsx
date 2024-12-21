@@ -81,12 +81,13 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
           items: data
         });
         setBets(data);
-      }
-
-      if (count !== null) {
-        console.log("Total items:", count);
-        setTotalItems(count);
-        setHasMore(startRow + itemsPerPage < count);
+        
+        if (count !== null) {
+          console.log("Total items:", count);
+          setTotalItems(count);
+          // Atualiza hasMore baseado no número total de itens e página atual
+          setHasMore((currentPage + 1) * itemsPerPage < count);
+        }
       }
     } catch (error) {
       console.error("Error fetching bets:", error);
@@ -96,10 +97,11 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
     }
   }, [session?.user?.id, date, currentPage]);
 
+  // Atualiza os dados quando a página muda
   useEffect(() => {
-    console.log("Fetching bets for page:", currentPage + 1);
+    console.log("Current page changed to:", currentPage + 1);
     fetchBets();
-  }, [fetchBets, refreshTrigger]);
+  }, [fetchBets, currentPage, refreshTrigger]);
 
   const handleNextPage = () => {
     if (hasMore) {
