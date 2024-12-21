@@ -13,10 +13,11 @@ serve(async (req) => {
   console.log('=== Request received ===')
   console.log('Method:', req.method)
   console.log('Headers:', Object.fromEntries(req.headers.entries()))
+  console.log('URL:', req.url)
 
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('Handling CORS preflight request')
+    console.log('✅ Handling CORS preflight request')
     return new Response(null, { 
       status: 204,
       headers: corsHeaders 
@@ -26,12 +27,21 @@ serve(async (req) => {
   try {
     if (!ASAAS_API_KEY) {
       console.error('❌ ASAAS_API_KEY is not configured')
-      throw new Error('API configuration error')
+      throw new Error('API configuration error: Missing ASAAS_API_KEY')
     }
 
     // Parse request body
-    const { amount } = await req.json()
-    console.log('Received amount:', amount)
+    let requestBody;
+    try {
+      requestBody = await req.json()
+      console.log('📦 Received request body:', requestBody)
+    } catch (error) {
+      console.error('❌ Failed to parse request body:', error)
+      throw new Error('Invalid request body')
+    }
+
+    const { amount } = requestBody
+    console.log('💰 Amount:', amount)
 
     if (!amount || amount <= 0) {
       console.error('❌ Invalid amount provided:', amount)
@@ -47,24 +57,35 @@ serve(async (req) => {
       dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       description: 'Recarga no sistema'
     }
-    console.log('Request payload:', payload)
+    console.log('📤 Request payload:', payload)
 
-    const response = await fetch(`${ASAAS_API_URL}/payments`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'access_token': ASAAS_API_KEY,
-      },
-      body: JSON.stringify(payload),
-    })
-
-    const data = await response.json()
-    console.log('✅ Asaas API response:', data)
-
-    if (!response.ok) {
-      console.error('❌ Error from Asaas API:', data)
-      throw new Error(data.message || 'Payment creation failed')
+    let asaasResponse;
+    try {
+      asaasResponse = await fetch(`${ASAAS_API_URL}/payments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'access_token': ASAAS_API_KEY,
+        },
+        body: JSON.stringify(payload),
+      })
+    } catch (error) {
+      console.error('❌ Network error calling Asaas API:', error)
+      throw new Error('Failed to connect to Asaas API')
     }
+
+    if (!asaasResponse.ok) {
+      const errorText = await asaasResponse.text()
+      console.error('❌ Error response from Asaas:', {
+        status: asaasResponse.status,
+        statusText: asaasResponse.statusText,
+        body: errorText
+      })
+      throw new Error(`Asaas API error: ${asaasResponse.status} ${asaasResponse.statusText}`)
+    }
+
+    const data = await asaasResponse.json()
+    console.log('✅ Asaas API response:', data)
 
     if (!data.invoiceUrl) {
       console.error('❌ No invoice URL in response:', data)
@@ -73,7 +94,6 @@ serve(async (req) => {
 
     console.log('✅ Successfully generated payment link')
     
-    // Return the payment URL with CORS headers
     return new Response(
       JSON.stringify({
         paymentUrl: data.invoiceUrl,
@@ -96,7 +116,7 @@ serve(async (req) => {
         details: error.stack,
       }),
       {
-        status: 500,
+        status: error.message.includes('API configuration') ? 500 : 400,
         headers: { 
           ...corsHeaders,
           'Content-Type': 'application/json',
