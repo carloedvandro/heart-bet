@@ -10,6 +10,7 @@ const corsHeaders = {
 const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3'
 const ASAAS_API_KEY = Deno.env.get('ASAAS_API_KEY')
 const ASAAS_TIMEOUT = 10000 // 10 seconds timeout for Asaas API calls
+const DEFAULT_CUSTOMER_ID = 'cus_000012345678' // Updated to valid sandbox customer ID
 
 serve(async (req) => {
   console.log('🚀 Function started')
@@ -51,10 +52,10 @@ serve(async (req) => {
       throw new Error('Invalid amount provided')
     }
 
-    // Prepare payment request
+    // Prepare payment request with valid customer ID
     console.log('📡 Preparing Asaas API request...')
     const payload = {
-      customer: 'cus_000005113863',
+      customer: DEFAULT_CUSTOMER_ID,
       billingType: 'PIX',
       value: amount,
       dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -79,23 +80,33 @@ serve(async (req) => {
       })
 
       clearTimeout(timeoutId)
+
+      // Log detailed error information if Asaas request fails
+      if (!asaasResponse.ok) {
+        const errorText = await asaasResponse.text()
+        console.error('❌ Error response from Asaas:', {
+          status: asaasResponse.status,
+          statusText: asaasResponse.statusText,
+          body: errorText
+        })
+        
+        // Parse error response for better error handling
+        try {
+          const errorJson = JSON.parse(errorText)
+          if (errorJson.errors?.[0]?.code === 'invalid_customer') {
+            throw new Error('Invalid customer configuration in Asaas integration')
+          }
+          throw new Error(`Asaas API error: ${errorJson.errors?.[0]?.description || 'Unknown error'}`)
+        } catch (parseError) {
+          throw new Error(`Asaas API error: ${asaasResponse.status} ${asaasResponse.statusText}`)
+        }
+      }
     } catch (error) {
       console.error('❌ Network error calling Asaas API:', error)
       if (error.name === 'AbortError') {
         throw new Error('Asaas API timeout - request took too long')
       }
-      throw new Error('Failed to connect to Asaas API')
-    }
-
-    // Handle Asaas API errors
-    if (!asaasResponse.ok) {
-      const errorText = await asaasResponse.text()
-      console.error('❌ Error response from Asaas:', {
-        status: asaasResponse.status,
-        statusText: asaasResponse.statusText,
-        body: errorText
-      })
-      throw new Error(`Asaas API error: ${asaasResponse.status} ${asaasResponse.statusText}`)
+      throw error
     }
 
     // Parse and validate Asaas response
