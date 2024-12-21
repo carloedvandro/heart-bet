@@ -64,8 +64,6 @@ export function FinancialProfileForm({ formData, onChange, onSubmit, loading, is
           onChange={handleChange}
           required
           maxLength={11}
-          disabled={isEditMode}
-          className={isEditMode ? "bg-gray-100" : ""}
         />
       </div>
 
