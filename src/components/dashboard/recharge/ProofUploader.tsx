@@ -4,12 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface ProofUploaderProps {
   onProofUploaded?: () => void;
 }
 
 export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
+  const session = useSession();
   const [uploadingProof, setUploadingProof] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -31,13 +33,18 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
       return;
     }
 
+    if (!session?.user?.id) {
+      toast.error("Usuário não autenticado");
+      return;
+    }
+
     setUploadingProof(true);
 
     try {
       const { data: recharge, error: rechargeError } = await supabase
         .from('recharges')
         .insert({
-          user_id: (await supabase.auth.getUser()).data.user?.id,
+          user_id: session.user.id,
           amount: 0.01,
         })
         .select()
@@ -71,6 +78,30 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
         });
 
       if (proofError) throw proofError;
+
+      // Gerar link de pagamento com userId
+      const response = await fetch(
+        'https://mwdaxgwuztccxfgbusuj.supabase.co/functions/v1/generate-asaas-payment-link', 
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ 
+            userId: session.user.id, 
+            amount: 0.01 
+          })
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Erro ao gerar link de pagamento:', errorData);
+        throw new Error('Falha ao gerar link de pagamento');
+      }
+
+      const data = await response.json();
+      console.log('Link de pagamento:', data.paymentUrl);
 
       toast.success("Comprovante enviado com sucesso!");
       onProofUploaded?.();
