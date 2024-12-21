@@ -3,8 +3,6 @@ import { ProofUploader } from "./ProofUploader";
 import { PaymentProofsList } from "./PaymentProofsList";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertTriangle } from "lucide-react";
-import { AsaasPaymentDialog } from "@/components/payments/AsaasPaymentDialog";
-import { useState } from "react";
 
 interface RechargeContentProps {
   pixKey: string;
@@ -18,13 +16,10 @@ export function RechargeContent({
   onOtherMethodsClick,
   onProofUploaded,
 }: RechargeContentProps) {
-  const [showAsaasDialog, setShowAsaasDialog] = useState(false);
-
   return (
     <div className="space-y-8 pr-4">
       <PaymentMethodButtons
         onBinanceClick={onBinanceClick}
-        onAsaasClick={() => setShowAsaasDialog(true)}
         onOtherMethodsClick={onOtherMethodsClick}
       />
 
@@ -60,12 +55,6 @@ export function RechargeContent({
       </div>
 
       <PaymentProofsList />
-
-      <AsaasPaymentDialog
-        open={showAsaasDialog}
-        onOpenChange={setShowAsaasDialog}
-        onPaymentCreated={onProofUploaded}
-      />
     </div>
   );
 }

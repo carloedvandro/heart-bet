@@ -1,17 +1,43 @@
 import { Button } from "@/components/ui/button";
 import { Wallet2, CreditCard, QrCode } from "lucide-react";
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface PaymentMethodButtonsProps {
   onBinanceClick: () => void;
-  onAsaasClick: () => void;
   onOtherMethodsClick: () => void;
 }
 
 export function PaymentMethodButtons({ 
   onBinanceClick, 
-  onAsaasClick,
   onOtherMethodsClick 
 }: PaymentMethodButtonsProps) {
+  const [loading, setLoading] = useState(false);
+
+  const handleAsaasClick = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
+        body: { amount: 50 } // Valor mínimo fixo, usuário poderá alterar na página do Asaas
+      });
+
+      if (error) throw error;
+
+      if (data?.paymentUrl) {
+        // Abre em uma nova aba
+        window.open(data.paymentUrl, '_blank');
+      } else {
+        throw new Error('URL de pagamento não gerada');
+      }
+    } catch (error) {
+      console.error('Error generating payment link:', error);
+      toast.error("Erro ao gerar link de pagamento");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="grid grid-cols-3 gap-4">
       <Button 
@@ -26,10 +52,13 @@ export function PaymentMethodButtons({
       <Button 
         variant="outline" 
         className="w-full h-10 md:h-14 bg-gradient-to-r from-green-50 to-emerald-50 hover:from-green-100 hover:to-emerald-100 border-green-200 hover:border-green-300 transition-all duration-300 dark:from-green-900/30 dark:to-emerald-900/30 dark:hover:from-green-900/50 dark:hover:to-emerald-900/50 dark:border-green-700 group text-xs md:text-sm"
-        onClick={onAsaasClick}
+        onClick={handleAsaasClick}
+        disabled={loading}
       >
         <QrCode className="mr-1 md:mr-2 h-4 md:h-5 w-4 md:w-5 text-green-600 dark:text-green-400 group-hover:scale-110 transition-transform" />
-        <span className="font-medium">PIX Asaas</span>
+        <span className="font-medium">
+          {loading ? 'Carregando...' : 'PIX Asaas'}
+        </span>
       </Button>
 
       <Button 
