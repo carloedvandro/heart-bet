@@ -75,7 +75,7 @@ serve(async (req) => {
 
     console.log('✅ Successfully generated payment link')
     
-    // Return the payment URL
+    // Return the payment URL with CORS headers
     return new Response(
       JSON.stringify({
         paymentUrl: data.invoiceUrl,
