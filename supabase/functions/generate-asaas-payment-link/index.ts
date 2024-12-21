@@ -60,7 +60,7 @@ serve(async (req) => {
     console.log('🔍 Looking up customer for user:', userId);
     const customerPayload = {
       name: `User ${userId}`,
-      cpfCnpj: "00000000000", // Default CPF for testing
+      cpfCnpj: "12345678909", // Valid CPF format for testing
       email: `user-${userId}@example.com`,
     };
 
