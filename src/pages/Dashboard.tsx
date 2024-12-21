@@ -11,7 +11,7 @@ import { DashboardContent } from "@/components/dashboard/DashboardContent";
 type Profile = Database['public']['Tables']['profiles']['Row'];
 type RechargeRow = Database['public']['Tables']['recharges']['Row'];
 
-// Componente de coração flutuante
+// Floating heart component with enhanced animation
 const FloatingHeart = ({ index }: { index: number }) => {
   const randomDelay = `${index * 0.5}s`;
   const randomDuration = `${6 + Math.random() * 4}s`;
@@ -21,7 +21,7 @@ const FloatingHeart = ({ index }: { index: number }) => {
   
   return (
     <div
-      className="absolute text-heart-red animate-float opacity-30"
+      className="absolute text-heart-red animate-float opacity-20 hover:opacity-40 transition-opacity"
       style={{
         left: randomLeft,
         animationDelay: randomDelay,
@@ -156,42 +156,48 @@ export default function Dashboard() {
 
   return (
     <div 
-      className={`min-h-screen p-4 md:p-6 relative overflow-x-hidden ${
-        theme === 'dark' ? 'bg-gray-900' : 'bg-cover bg-center'
+      className={`min-h-screen relative overflow-x-hidden ${
+        theme === 'dark' ? 'bg-gray-900' : 'bg-cover bg-center bg-fixed'
       }`}
       style={theme === 'light' ? {
         backgroundImage: 'url("/lovable-uploads/5a0e0336-aecf-49bc-961c-013d9aee3443.png")',
       } : undefined}
     >
-      {/* Floating hearts in dark mode */}
+      {/* Floating hearts in dark mode with improved performance */}
       {theme === 'dark' && (
         <div className="fixed inset-0 pointer-events-none overflow-hidden">
-          {[...Array(20)].map((_, index) => (
+          {[...Array(15)].map((_, index) => (
             <FloatingHeart key={index} index={index} />
           ))}
         </div>
       )}
       
-      {/* Animated gradient overlay */}
+      {/* Enhanced gradient overlay with smoother animation */}
       <div 
-        className={`absolute inset-0 ${
+        className={`fixed inset-0 ${
           theme === 'light' 
-            ? 'bg-gradient-to-br from-purple-500/10 to-pink-500/10' 
-            : 'bg-gradient-to-br from-red-900/5 to-red-800/5'
+            ? 'bg-gradient-to-br from-purple-500/5 via-pink-500/10 to-purple-500/5' 
+            : 'bg-gradient-to-br from-red-900/5 via-pink-900/10 to-red-800/5'
         } animate-gradient-x`}
         style={{
           backdropFilter: theme === 'light' ? 'blur(1px)' : 'none',
         }}
       />
       
-      {/* Content wrapper with glass effect */}
-      <div className="relative z-10">
+      {/* Main content with improved scrolling */}
+      <div className="relative z-10 min-h-screen flex flex-col">
         <Header profile={profile} onLogout={handleLogout} />
-        <DashboardContent 
-          profile={profile}
-          refreshTrigger={refreshTrigger}
-          onBetPlaced={() => setRefreshTrigger(prev => prev + 1)}
-        />
+        
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-6 md:px-6 lg:px-8">
+          <div className="max-w-[1920px] mx-auto">
+            <DashboardContent 
+              profile={profile}
+              refreshTrigger={refreshTrigger}
+              onBetPlaced={() => setRefreshTrigger(prev => prev + 1)}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
