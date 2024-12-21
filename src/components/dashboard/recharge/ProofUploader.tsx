@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";  // Re-add the import for Input
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Upload } from "lucide-react";
@@ -91,34 +91,25 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
 
       if (proofError) throw proofError;
 
-      // Generate payment link with proper logging
+      // Generate payment link with proper logging and payload
       console.log("Gerando link de pagamento para:", {
         userId: session.user.id,
         amount: 0.01
       });
 
-      const response = await fetch(
-        'https://mwdaxgwuztccxfgbusuj.supabase.co/functions/v1/generate-asaas-payment-link', 
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ 
-            userId: session.user.id, 
-            amount: 0.01 
-          })
+      const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
+        body: { 
+          userId: session.user.id, 
+          amount: 0.01 
         }
-      );
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Erro ao gerar link de pagamento:', errorData);
+      if (error) {
+        console.error('Erro ao gerar link de pagamento:', error);
         throw new Error('Falha ao gerar link de pagamento');
       }
 
-      const data = await response.json();
-      console.log('Link de pagamento gerado:', data.paymentUrl);
+      console.log('Link de pagamento gerado:', data?.paymentUrl);
 
       toast.success("Comprovante enviado com sucesso!");
       onProofUploaded?.();
