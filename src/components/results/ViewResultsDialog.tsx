@@ -60,14 +60,14 @@ export function ViewResultsDialog() {
           Resultados
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[95vw] w-full md:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-[95vw] w-full md:max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg md:text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <DialogTitle className="text-lg md:text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent sticky top-0 bg-white/80 backdrop-blur-sm py-2">
             Resultados do Dia {displayDate}
           </DialogTitle>
         </DialogHeader>
         
-        <div className={`flex-1 min-h-0 ${isMobile ? 'flex flex-col gap-6' : 'grid grid-cols-[auto,1fr] gap-6'}`}>
+        <div className={`mt-4 ${isMobile ? 'flex flex-col gap-6' : 'grid grid-cols-[auto,1fr] gap-6'}`}>
           <div className="flex-shrink-0">
             <Calendar
               mode="single"
@@ -84,7 +84,7 @@ export function ViewResultsDialog() {
             />
           </div>
 
-          <div className="overflow-y-auto pr-2 space-y-4 min-h-0">
+          <div className="space-y-4">
             {error ? (
               <div className="text-center py-4 text-red-500">
                 Erro ao carregar resultados. Tente novamente.
