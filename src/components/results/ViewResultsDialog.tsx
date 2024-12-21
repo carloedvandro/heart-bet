@@ -45,18 +45,19 @@ export function ViewResultsDialog() {
   });
 
   // Define all possible periods in the correct order
-  const periods = ['morning', 'afternoon', 'evening', 'late_night'];
+  const periods = ['morning', 'afternoon', 'evening', 'night'];
   
   // Map period codes to display names
   const periodLabels: Record<string, string> = {
     morning: 'Manhã',
     afternoon: 'Tarde',
     evening: 'Noite',
-    late_night: 'Corujinha'
+    night: 'Corujinha'
   };
 
   // Debug logs
   console.log('Available periods:', periods);
+  console.log('Raw results:', results);
   console.log('Results by period:', results?.reduce((acc: any, r: any) => {
     if (!acc[r.draw_period]) acc[r.draw_period] = [];
     acc[r.draw_period].push(r);
