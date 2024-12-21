@@ -32,36 +32,51 @@ serve(async (req) => {
       throw new Error('API configuration error: Missing ASAAS_API_KEY')
     }
 
-    let requestBody;
-    try {
-      requestBody = await req.json()
-      console.log('📦 Received request body:', requestBody)
-    } catch (error) {
-      console.error('❌ Failed to parse request body:', error)
-      throw new Error('Invalid request body')
+    // Clone the request to read it multiple times if needed
+    const clonedReq = req.clone();
+    const contentLength = req.headers.get('content-length');
+    const rawBody = await clonedReq.text();
+    
+    console.log('📦 Request details:', {
+      contentLength,
+      hasBody: Boolean(rawBody),
+      rawBody: rawBody || 'empty'
+    });
+
+    if (!rawBody) {
+      throw new Error('Request body is empty. Please provide userId and amount.');
     }
 
-    const { userId, amount } = requestBody
-    console.log('💰 Amount:', amount)
-    console.log('👤 User ID:', userId)
+    let requestBody;
+    try {
+      requestBody = JSON.parse(rawBody);
+      console.log('📦 Parsed request body:', requestBody);
+    } catch (error) {
+      console.error('❌ Failed to parse request body:', error);
+      throw new Error('Invalid JSON in request body');
+    }
+
+    const { userId, amount } = requestBody;
+    console.log('💰 Amount:', amount);
+    console.log('👤 User ID:', userId);
 
     if (!amount || amount <= 0) {
-      console.error('❌ Invalid amount provided:', amount)
-      throw new Error('Invalid amount provided')
+      console.error('❌ Invalid amount provided:', amount);
+      throw new Error('Invalid amount provided');
     }
 
     if (!userId) {
-      console.error('❌ No userId provided')
-      throw new Error('userId is required')
+      console.error('❌ No userId provided');
+      throw new Error('userId is required');
     }
 
     // Extract JWT token from Authorization header
-    const authHeader = req.headers.get('Authorization')
+    const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      throw new Error('Missing Authorization header')
+      throw new Error('Missing Authorization header');
     }
 
-    console.log('📡 Preparing Asaas API request...')
+    console.log('📡 Preparing Asaas API request...');
     const payload = {
       customer: GENERIC_CUSTOMER_ID,
       billingType: 'PIX',
@@ -69,13 +84,13 @@ serve(async (req) => {
       dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       description: 'Recarga no sistema',
       externalReference: userId
-    }
-    console.log('📤 Request payload:', payload)
+    };
+    console.log('📤 Request payload:', payload);
 
     let asaasResponse;
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), ASAAS_TIMEOUT)
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), ASAAS_TIMEOUT);
 
       asaasResponse = await fetch(`${ASAAS_API_URL}/payments`, {
         method: 'POST',
@@ -85,51 +100,51 @@ serve(async (req) => {
         },
         body: JSON.stringify(payload),
         signal: controller.signal
-      })
+      });
 
-      clearTimeout(timeoutId)
+      clearTimeout(timeoutId);
 
       if (!asaasResponse.ok) {
-        const errorText = await asaasResponse.text()
+        const errorText = await asaasResponse.text();
         console.error('❌ Error response from Asaas:', {
           status: asaasResponse.status,
           statusText: asaasResponse.statusText,
           body: errorText
-        })
+        });
         
         try {
-          const errorJson = JSON.parse(errorText)
+          const errorJson = JSON.parse(errorText);
           if (errorJson.errors?.[0]?.code === 'invalid_customer') {
-            throw new Error('Invalid generic customer configuration')
+            throw new Error('Invalid generic customer configuration');
           }
-          throw new Error(`Asaas API error: ${errorJson.errors?.[0]?.description || 'Unknown error'}`)
+          throw new Error(`Asaas API error: ${errorJson.errors?.[0]?.description || 'Unknown error'}`);
         } catch (parseError) {
-          throw new Error(`Asaas API error: ${asaasResponse.status} ${asaasResponse.statusText}`)
+          throw new Error(`Asaas API error: ${asaasResponse.status} ${asaasResponse.statusText}`);
         }
       }
     } catch (error) {
-      console.error('❌ Network error calling Asaas API:', error)
+      console.error('❌ Network error calling Asaas API:', error);
       if (error.name === 'AbortError') {
-        throw new Error('Asaas API timeout - request took too long')
+        throw new Error('Asaas API timeout - request took too long');
       }
-      throw error
+      throw error;
     }
 
     let data;
     try {
-      data = await asaasResponse.json()
-      console.log('✅ Asaas API response:', data)
+      data = await asaasResponse.json();
+      console.log('✅ Asaas API response:', data);
     } catch (error) {
-      console.error('❌ Failed to parse Asaas response:', error)
-      throw new Error('Invalid response from Asaas API')
+      console.error('❌ Failed to parse Asaas response:', error);
+      throw new Error('Invalid response from Asaas API');
     }
 
     if (!data.invoiceUrl) {
-      console.error('❌ No invoice URL in response:', data)
-      throw new Error('Invalid payment response')
+      console.error('❌ No invoice URL in response:', data);
+      throw new Error('Invalid payment response');
     }
 
-    console.log('✅ Successfully generated payment link')
+    console.log('✅ Successfully generated payment link');
     
     return new Response(
       JSON.stringify({
@@ -142,10 +157,10 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
       },
-    )
+    );
   } catch (error) {
-    console.error('❌ Function error:', error)
-    console.error('Error stack:', error.stack)
+    console.error('❌ Function error:', error);
+    console.error('Error stack:', error.stack);
     
     return new Response(
       JSON.stringify({
@@ -159,6 +174,6 @@ serve(async (req) => {
           'Content-Type': 'application/json',
         },
       },
-    )
+    );
   }
 })
