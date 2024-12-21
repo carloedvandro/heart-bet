@@ -5,14 +5,9 @@ const ASAAS_API_KEY = Deno.env.get('ASAAS_API_KEY')
 const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3'
 
 serve(async (req) => {
-  // This is critical for handling CORS preflight requests
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { 
-      headers: {
-        ...corsHeaders,
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      }
-    })
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
@@ -31,6 +26,7 @@ serve(async (req) => {
       throw new Error('Invalid amount provided')
     }
 
+    // Generate payment link using Asaas API
     console.log('Making request to Asaas API')
     const response = await fetch(`${ASAAS_API_URL}/payments`, {
       method: 'POST',
@@ -39,10 +35,11 @@ serve(async (req) => {
         'access_token': ASAAS_API_KEY,
       },
       body: JSON.stringify({
-        customer: 'cus_000005113863',
+        customer: 'cus_000005113863', // Using sandbox customer ID
         billingType: 'PIX',
         value: amount,
-        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Tomorrow
+        description: 'Recarga no sistema',
       }),
     })
 
@@ -54,7 +51,7 @@ serve(async (req) => {
       throw new Error(data.message || 'Payment creation failed')
     }
 
-    console.log('Successfully generated payment link')
+    // Return the payment URL
     return new Response(
       JSON.stringify({
         paymentUrl: `https://sandbox.asaas.com/i/${data.id}`,
