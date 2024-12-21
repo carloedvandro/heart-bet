@@ -26,7 +26,6 @@ export function PaymentMethodButtons({
     try {
       setLoading(true);
       
-      // Create and log the request body
       const requestBody = {
         userId: session.user.id,
         amount: 50
@@ -39,36 +38,6 @@ export function PaymentMethodButtons({
         accessToken: !!session?.access_token
       });
 
-      // First try using direct fetch
-      try {
-        console.log('Attempting direct fetch with body:', requestBody);
-        const response = await fetch(
-          'https://mwdaxgwuztccxfgbusuj.supabase.co/functions/v1/generate-asaas-payment-link',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.access_token}`
-            },
-            body: JSON.stringify(requestBody)
-          }
-        );
-
-        console.log('Direct fetch response status:', response.status);
-        const responseData = await response.json();
-        console.log('Direct fetch response:', responseData);
-
-        if (responseData.paymentUrl) {
-          window.open(responseData.paymentUrl, '_blank');
-          return;
-        }
-      } catch (fetchError) {
-        console.error('Direct fetch failed, trying supabase.functions.invoke...', fetchError);
-      }
-
-      // Fallback to supabase.functions.invoke
-      console.log('Invoking Supabase function with body:', requestBody);
-      
       const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
         body: requestBody
       });
@@ -76,7 +45,7 @@ export function PaymentMethodButtons({
       console.log('Supabase function response:', { data, error });
 
       if (error) {
-        console.error('Supabase function error:', error);
+        console.error('Error generating payment link:', error);
         throw new Error(error.message || 'Erro ao gerar link de pagamento');
       }
 

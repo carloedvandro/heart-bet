@@ -16,10 +16,8 @@ serve(async (req) => {
   console.log('🚀 Function started')
   console.log('Method:', req.method)
   console.log('Headers:', Object.fromEntries(req.headers.entries()))
-  console.log('URL:', req.url)
 
   if (req.method === 'OPTIONS') {
-    console.log('✅ Handling CORS preflight request')
     return new Response(null, { 
       status: 204,
       headers: corsHeaders 
@@ -28,23 +26,14 @@ serve(async (req) => {
 
   try {
     if (!ASAAS_API_KEY) {
-      console.error('❌ ASAAS_API_KEY is not configured')
       throw new Error('API configuration error: Missing ASAAS_API_KEY')
     }
 
-    // Clone the request to read it multiple times if needed
-    const clonedReq = req.clone();
-    const contentLength = req.headers.get('content-length');
-    const rawBody = await clonedReq.text();
-    
-    console.log('📦 Request details:', {
-      contentLength,
-      hasBody: Boolean(rawBody),
-      rawBody: rawBody || 'empty'
-    });
+    const rawBody = await req.text();
+    console.log('📦 Raw request body:', rawBody);
 
     if (!rawBody) {
-      throw new Error('Request body is empty. Please provide userId and amount.');
+      throw new Error('Request body is empty');
     }
 
     let requestBody;
@@ -61,19 +50,11 @@ serve(async (req) => {
     console.log('👤 User ID:', userId);
 
     if (!amount || amount <= 0) {
-      console.error('❌ Invalid amount provided:', amount);
       throw new Error('Invalid amount provided');
     }
 
     if (!userId) {
-      console.error('❌ No userId provided');
       throw new Error('userId is required');
-    }
-
-    // Extract JWT token from Authorization header
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) {
-      throw new Error('Missing Authorization header');
     }
 
     console.log('📡 Preparing Asaas API request...');
@@ -82,10 +63,10 @@ serve(async (req) => {
       billingType: 'PIX',
       value: amount,
       dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      description: 'Recarga no sistema',
+      description: `Recarga no sistema - User ID: ${userId}`,
       externalReference: userId
     };
-    console.log('📤 Request payload:', payload);
+    console.log('📤 Request payload to Asaas:', payload);
 
     let asaasResponse;
     try {
@@ -103,61 +84,51 @@ serve(async (req) => {
       });
 
       clearTimeout(timeoutId);
+      
+      const responseText = await asaasResponse.text();
+      console.log('📥 Raw Asaas response:', responseText);
 
       if (!asaasResponse.ok) {
-        const errorText = await asaasResponse.text();
         console.error('❌ Error response from Asaas:', {
           status: asaasResponse.status,
           statusText: asaasResponse.statusText,
-          body: errorText
+          body: responseText
         });
         
         try {
-          const errorJson = JSON.parse(errorText);
-          if (errorJson.errors?.[0]?.code === 'invalid_customer') {
-            throw new Error('Invalid generic customer configuration');
-          }
+          const errorJson = JSON.parse(responseText);
           throw new Error(`Asaas API error: ${errorJson.errors?.[0]?.description || 'Unknown error'}`);
         } catch (parseError) {
-          throw new Error(`Asaas API error: ${asaasResponse.status} ${asaasResponse.statusText}`);
+          throw new Error(`Asaas API error: ${responseText || `${asaasResponse.status} ${asaasResponse.statusText}`}`);
         }
       }
+
+      const data = JSON.parse(responseText);
+      console.log('✅ Parsed Asaas response:', data);
+
+      if (!data.invoiceUrl) {
+        throw new Error('Invalid payment response: missing invoiceUrl');
+      }
+
+      return new Response(
+        JSON.stringify({ paymentUrl: data.invoiceUrl }),
+        {
+          status: 200,
+          headers: { 
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        },
+      );
+
     } catch (error) {
-      console.error('❌ Network error calling Asaas API:', error);
+      console.error('❌ Error during Asaas API call:', error);
       if (error.name === 'AbortError') {
         throw new Error('Asaas API timeout - request took too long');
       }
       throw error;
     }
 
-    let data;
-    try {
-      data = await asaasResponse.json();
-      console.log('✅ Asaas API response:', data);
-    } catch (error) {
-      console.error('❌ Failed to parse Asaas response:', error);
-      throw new Error('Invalid response from Asaas API');
-    }
-
-    if (!data.invoiceUrl) {
-      console.error('❌ No invoice URL in response:', data);
-      throw new Error('Invalid payment response');
-    }
-
-    console.log('✅ Successfully generated payment link');
-    
-    return new Response(
-      JSON.stringify({
-        paymentUrl: data.invoiceUrl,
-      }),
-      {
-        status: 200,
-        headers: { 
-          ...corsHeaders,
-          'Content-Type': 'application/json',
-        },
-      },
-    );
   } catch (error) {
     console.error('❌ Function error:', error);
     console.error('Error stack:', error.stack);
