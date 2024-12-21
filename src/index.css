@@ -116,11 +116,11 @@
 
   /* Calendar dark mode improvements with higher contrast */
   [data-theme='dark'] .rdp {
-    @apply bg-gray-900 rounded-lg p-2;
+    @apply bg-gray-950 rounded-lg p-2 border border-gray-800;
   }
 
   [data-theme='dark'] .rdp-day {
-    @apply text-gray-100 font-medium hover:bg-purple-600/50;
+    @apply text-white font-medium hover:bg-purple-600;
   }
 
   [data-theme='dark'] .rdp-day_selected {
@@ -128,22 +128,22 @@
   }
 
   [data-theme='dark'] .rdp-day_today {
-    @apply bg-purple-800 text-white font-bold;
+    @apply bg-purple-700 text-white font-bold ring-2 ring-purple-400;
   }
 
   [data-theme='dark'] .rdp-day_disabled {
-    @apply text-gray-600 hover:bg-transparent cursor-not-allowed;
+    @apply text-gray-500 hover:bg-transparent cursor-not-allowed;
   }
 
   [data-theme='dark'] .rdp-head_cell {
-    @apply text-gray-100 font-bold;
+    @apply text-white font-bold;
   }
 
   [data-theme='dark'] .rdp-nav_button {
-    @apply text-gray-100 hover:bg-purple-600/50;
+    @apply text-white hover:bg-purple-600;
   }
 
   [data-theme='dark'] .rdp-caption_label {
-    @apply text-gray-100 font-bold;
+    @apply text-white font-bold;
   }
 }
