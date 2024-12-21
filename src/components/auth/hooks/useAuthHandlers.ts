@@ -9,12 +9,10 @@ export function useAuthHandlers() {
   const [resetAttempts, setResetAttempts] = useState(0);
   const [lastResetAttempt, setLastResetAttempt] = useState(0);
 
-  // Aumentando o limite de tentativas para 5 e reduzindo o período de espera para 30 segundos
   const MAX_ATTEMPTS = 5;
-  const COOLDOWN_PERIOD = 30 * 1000; // 30 seconds in milliseconds
+  const COOLDOWN_PERIOD = 30 * 1000;
 
   const handleSignIn = async (email: string, password: string) => {
-    // Validate input first
     if (!email || !password) {
       toast.error("Por favor, preencha email e senha");
       return false;
@@ -22,8 +20,6 @@ export function useAuthHandlers() {
 
     try {
       setIsLoading(true);
-      
-      // Log the attempt for debugging
       console.log(`Attempting sign-in for email: ${email}`);
 
       const { data, error } = await supabase.auth.signInWithPassword({
@@ -38,7 +34,6 @@ export function useAuthHandlers() {
           status: error.status
         });
         
-        // More specific error handling
         switch (error.message) {
           case "Invalid login credentials":
             toast.error("Email ou senha incorretos. Verifique suas credenciais.");
@@ -49,11 +44,9 @@ export function useAuthHandlers() {
           default:
             toast.error("Erro ao fazer login. Tente novamente.");
         }
-        
         return false;
       }
 
-      // Successful login
       toast.success("Login realizado com sucesso!");
       return true;
     } catch (error) {
@@ -78,9 +71,15 @@ export function useAuthHandlers() {
       setIsLoading(true);
       console.log("Attempting signup for email:", email);
       
+      // Get the current origin without any trailing slashes or port numbers
+      const redirectTo = window.location.origin.replace(/:\/$/, '');
+      
       const { error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          emailRedirectTo: `${redirectTo}/auth/callback`
+        }
       });
 
       setSignUpAttempts(prev => prev + 1);
@@ -89,7 +88,6 @@ export function useAuthHandlers() {
       if (error) {
         console.error("Signup error:", error);
         
-        // Handle email rate limit error specifically
         if (error.message?.includes("email rate limit exceeded") || 
             error.message?.includes("over_email_send_rate_limit") ||
             error.status === 429) {
@@ -106,7 +104,6 @@ export function useAuthHandlers() {
     } catch (error: any) {
       console.error("Erro no cadastro:", error);
       
-      // Additional check for rate limit in catch block
       if (error?.status === 429 || 
           error?.message?.includes("email rate limit exceeded") ||
           error?.message?.includes("over_email_send_rate_limit")) {
@@ -140,8 +137,11 @@ export function useAuthHandlers() {
 
       console.log("Tentando resetar senha para o email:", email);
 
+      // Get the current origin without any trailing slashes or port numbers
+      const redirectTo = window.location.origin.replace(/:\/$/, '');
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/reset-password'
+        redirectTo: `${redirectTo}/reset-password`
       });
 
       setResetAttempts(prev => prev + 1);
