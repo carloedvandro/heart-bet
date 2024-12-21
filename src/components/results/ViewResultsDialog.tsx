@@ -78,7 +78,7 @@ export function ViewResultsDialog() {
                   setDate(newDate);
                 }
               }}
-              className="rounded-md border shadow mx-auto bg-white"
+              className="rounded-md border shadow mx-auto dark:bg-gray-950 dark:border-gray-800"
               locale={ptBR}
               disabled={(date) => date > new Date()}
             />
@@ -105,23 +105,23 @@ export function ViewResultsDialog() {
                 if (!periodResults?.length) return null;
 
                 return (
-                  <Card key={period} className="p-4 shadow-sm hover:shadow-md transition-shadow bg-white/50 backdrop-blur-sm">
-                    <h3 className="font-semibold mb-3 text-lg text-center md:text-left text-purple-800">
+                  <Card key={period} className="p-4 shadow-sm hover:shadow-md transition-shadow bg-white/50 backdrop-blur-sm dark:bg-gray-950/50">
+                    <h3 className="font-semibold mb-3 text-lg text-center md:text-left text-purple-800 dark:text-purple-200">
                       {periodLabels[period]}
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 md:gap-4">
                       {periodResults.map((result) => (
                         <div 
                           key={result.id} 
-                          className="text-center p-2 rounded-lg bg-white shadow-sm hover:shadow-md transition-all"
+                          className="text-center p-2 rounded-lg bg-white shadow-sm hover:shadow-md transition-all dark:bg-gray-900"
                         >
-                          <div className="font-medium text-sm text-purple-600">
+                          <div className="font-medium text-sm text-purple-600 dark:text-purple-300">
                             {result.position}º
                           </div>
                           <div className="text-xl md:text-2xl font-bold my-1 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                             {result.number}
                           </div>
-                          <div className="text-xs text-gray-600">
+                          <div className="text-xs text-gray-600 dark:text-gray-300">
                             {result.game_number} - {result.animal}
                           </div>
                         </div>
