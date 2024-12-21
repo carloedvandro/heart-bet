@@ -4,13 +4,13 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, prefer, x-supabase-client',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Max-Age': '86400', // Cache preflight response for 24 hours
+  'Access-Control-Max-Age': '86400',
 }
 
 const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3'
 const ASAAS_API_KEY = Deno.env.get('ASAAS_API_KEY')
-const ASAAS_TIMEOUT = 10000 // 10 seconds timeout
-const GENERIC_CUSTOMER_ID = 'cus_000012345678' // Generic customer ID for all transactions
+const ASAAS_TIMEOUT = 10000
+const GENERIC_CUSTOMER_ID = 'cus_000012345678'
 
 serve(async (req) => {
   console.log('🚀 Function started')
@@ -18,7 +18,6 @@ serve(async (req) => {
   console.log('Headers:', Object.fromEntries(req.headers.entries()))
   console.log('URL:', req.url)
 
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     console.log('✅ Handling CORS preflight request')
     return new Response(null, { 
@@ -28,13 +27,11 @@ serve(async (req) => {
   }
 
   try {
-    // Validate API key configuration
     if (!ASAAS_API_KEY) {
       console.error('❌ ASAAS_API_KEY is not configured')
       throw new Error('API configuration error: Missing ASAAS_API_KEY')
     }
 
-    // Parse and validate request body
     let requestBody;
     try {
       requestBody = await req.json()
@@ -58,7 +55,12 @@ serve(async (req) => {
       throw new Error('userId is required')
     }
 
-    // Prepare payment request with generic customer
+    // Extract JWT token from Authorization header
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      throw new Error('Missing Authorization header')
+    }
+
     console.log('📡 Preparing Asaas API request...')
     const payload = {
       customer: GENERIC_CUSTOMER_ID,
@@ -66,11 +68,10 @@ serve(async (req) => {
       value: amount,
       dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       description: 'Recarga no sistema',
-      externalReference: userId.toString() // Convert userId to string for consistency
+      externalReference: userId
     }
     console.log('📤 Request payload:', payload)
 
-    // Call Asaas API with timeout
     let asaasResponse;
     try {
       const controller = new AbortController()
@@ -88,7 +89,6 @@ serve(async (req) => {
 
       clearTimeout(timeoutId)
 
-      // Log detailed error information if Asaas request fails
       if (!asaasResponse.ok) {
         const errorText = await asaasResponse.text()
         console.error('❌ Error response from Asaas:', {
@@ -97,7 +97,6 @@ serve(async (req) => {
           body: errorText
         })
         
-        // Parse error response for better error handling
         try {
           const errorJson = JSON.parse(errorText)
           if (errorJson.errors?.[0]?.code === 'invalid_customer') {
@@ -116,7 +115,6 @@ serve(async (req) => {
       throw error
     }
 
-    // Parse and validate Asaas response
     let data;
     try {
       data = await asaasResponse.json()

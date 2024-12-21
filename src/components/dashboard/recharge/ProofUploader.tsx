@@ -16,7 +16,6 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   useEffect(() => {
-    // Log session state on mount and when session changes
     console.log("Current session state:", {
       hasSession: !!session,
       userId: session?.user?.id
@@ -101,6 +100,10 @@ export function ProofUploader({ onProofUploaded }: ProofUploaderProps) {
         body: { 
           userId: session.user.id, 
           amount: 0.01 
+        },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
         }
       });
 
