@@ -22,9 +22,6 @@ export function PaymentMethodButtons({
       
       const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
         body: { amount: 50 },
-        headers: {
-          'Content-Type': 'application/json',
-        }
       });
 
       if (error) {

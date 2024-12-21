@@ -1,5 +1,10 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
-import { corsHeaders } from '../_shared/cors.ts'
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+}
 
 const ASAAS_API_KEY = Deno.env.get('ASAAS_API_KEY')
 const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3'
@@ -11,8 +16,6 @@ serve(async (req) => {
   }
 
   try {
-    console.log('Starting payment link generation process')
-    
     if (!ASAAS_API_KEY) {
       console.error('ASAAS_API_KEY is not configured')
       throw new Error('API configuration error')
@@ -54,7 +57,7 @@ serve(async (req) => {
     // Return the payment URL
     return new Response(
       JSON.stringify({
-        paymentUrl: `https://sandbox.asaas.com/i/${data.id}`,
+        paymentUrl: data.invoiceUrl || `https://sandbox.asaas.com/i/${data.id}`,
       }),
       {
         headers: { 
