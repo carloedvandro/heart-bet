@@ -3,28 +3,42 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
 }
 
 serve(async (req) => {
+  // Log incoming request for debugging
+  console.log('Function invoked:', {
+    method: req.method,
+    url: req.url,
+    headers: Object.fromEntries(req.headers.entries())
+  });
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 200
+    });
   }
 
   if (req.method !== 'POST') {
+    console.error('Method not allowed:', req.method);
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 405 
+        status: 405
       }
     );
   }
 
   try {
     const { amount } = await req.json();
-    
+    console.log('Processing payment request for amount:', amount);
+
     if (!amount || isNaN(amount)) {
+      console.error('Invalid amount provided:', amount);
       return new Response(
         JSON.stringify({ error: 'Amount is required and must be a number' }),
         { 
@@ -36,12 +50,12 @@ serve(async (req) => {
 
     const asaasApiKey = Deno.env.get('ASAAS_API_KEY');
     if (!asaasApiKey) {
+      console.error('Missing Asaas API key in environment variables');
       throw new Error('Configuration error: Missing ASAAS_API_KEY');
     }
 
-    console.log('Creating payment in Asaas...', { amount });
-    
-    const paymentResponse = await fetch('https://api.asaas.com/v3/payments', {
+    console.log('Creating payment in Asaas...');
+    const paymentResponse = await fetch('https://sandbox.asaas.com/api/v3/payments', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -69,7 +83,8 @@ serve(async (req) => {
     const paymentData = await paymentResponse.json();
     console.log('Payment created successfully:', paymentData);
 
-    const pixResponse = await fetch(`https://api.asaas.com/v3/payments/${paymentData.id}/pixQrCode`, {
+    console.log('Generating PIX QR Code...');
+    const pixResponse = await fetch(`https://sandbox.asaas.com/api/v3/payments/${paymentData.id}/pixQrCode`, {
       headers: {
         'Content-Type': 'application/json',
         'access_token': asaasApiKey
@@ -102,7 +117,10 @@ serve(async (req) => {
         }
       }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json'
+        }
       }
     );
 
