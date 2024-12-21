@@ -5,27 +5,33 @@ const ASAAS_API_KEY = Deno.env.get('ASAAS_API_KEY')
 const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3'
 
 serve(async (req) => {
-  // Handle CORS preflight requests
+  // This is critical for handling CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { 
+      headers: {
+        ...corsHeaders,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      }
+    })
   }
 
   try {
-    console.log('Received request to generate Asaas payment link')
+    console.log('Starting payment link generation process')
     
+    if (!ASAAS_API_KEY) {
+      console.error('ASAAS_API_KEY is not configured')
+      throw new Error('API configuration error')
+    }
+
     // Parse request body
     const { amount } = await req.json()
-    console.log('Requested amount:', amount)
+    console.log('Received amount:', amount)
 
     if (!amount || amount <= 0) {
-      throw new Error('Invalid amount')
+      throw new Error('Invalid amount provided')
     }
 
-    if (!ASAAS_API_KEY) {
-      throw new Error('ASAAS_API_KEY not configured')
-    }
-
-    console.log('Creating payment in Asaas...')
+    console.log('Making request to Asaas API')
     const response = await fetch(`${ASAAS_API_URL}/payments`, {
       method: 'POST',
       headers: {
@@ -36,7 +42,7 @@ serve(async (req) => {
         customer: 'cus_000005113863',
         billingType: 'PIX',
         value: amount,
-        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 24h from now
+        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       }),
     })
 
@@ -44,29 +50,35 @@ serve(async (req) => {
     console.log('Asaas API response:', data)
 
     if (!response.ok) {
-      console.error('Asaas API error:', data)
-      throw new Error(data.message || 'Failed to create payment')
+      console.error('Error from Asaas API:', data)
+      throw new Error(data.message || 'Payment creation failed')
     }
 
-    // Return the payment URL
+    console.log('Successfully generated payment link')
     return new Response(
       JSON.stringify({
         paymentUrl: `https://sandbox.asaas.com/i/${data.id}`,
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
       },
     )
   } catch (error) {
-    console.error('Error generating payment link:', error)
+    console.error('Function error:', error)
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error.message,
-        details: error.stack 
+        details: error.stack,
       }),
       {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json',
+        },
       },
     )
   }

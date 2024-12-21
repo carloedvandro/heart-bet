@@ -18,27 +18,31 @@ export function PaymentMethodButtons({
   const handleAsaasClick = async () => {
     try {
       setLoading(true);
-      console.log('Generating Asaas payment link...');
+      console.log('Initiating Asaas payment link generation...');
       
       const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
-        body: { amount: 50 } // Valor mínimo fixo, usuário poderá alterar na página do Asaas
+        body: { amount: 50 },
+        headers: {
+          'Content-Type': 'application/json',
+        }
       });
 
       if (error) {
-        console.error('Error generating payment link:', error);
-        throw error;
+        console.error('Supabase function error:', error);
+        throw new Error('Erro ao gerar link de pagamento');
       }
 
       console.log('Payment link response:', data);
 
-      if (data?.paymentUrl) {
-        window.open(data.paymentUrl, '_blank');
-      } else {
-        throw new Error('URL de pagamento não gerada');
+      if (!data?.paymentUrl) {
+        throw new Error('Link de pagamento inválido');
       }
+
+      // Open payment URL in new tab
+      window.open(data.paymentUrl, '_blank');
     } catch (error) {
-      console.error('Error generating payment link:', error);
-      toast.error("Erro ao gerar link de pagamento. Por favor, tente novamente mais tarde.");
+      console.error('Payment link generation error:', error);
+      toast.error(error instanceof Error ? error.message : "Erro ao gerar link de pagamento. Por favor, tente novamente mais tarde.");
     } finally {
       setLoading(false);
     }
