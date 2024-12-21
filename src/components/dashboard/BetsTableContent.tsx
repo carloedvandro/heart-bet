@@ -6,16 +6,13 @@ import { BetTableRow } from "./BetTableRow";
 import BetReceipt from "../BetReceipt";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 
 interface BetsTableContentProps {
   bets: Bet[];
 }
 
 interface GroupedBets {
-  [key: string]: {
-    [key: string]: Bet[];
-  };
+  [key: string]: Bet[];
 }
 
 export function BetsTableContent({ bets: initialBets }: BetsTableContentProps) {
@@ -23,27 +20,21 @@ export function BetsTableContent({ bets: initialBets }: BetsTableContentProps) {
   const [bets, setBets] = useState<Bet[]>(initialBets);
   const [groupedBets, setGroupedBets] = useState<GroupedBets>({});
 
-  // Função para agrupar apostas por data e período
+  // Função para agrupar apostas por data
   const groupBets = (betsToGroup: Bet[]) => {
     const grouped: GroupedBets = {};
     
     betsToGroup.forEach((bet) => {
-      // Garantir que estamos usando a data correta do sorteio
       const drawDate = new Date(bet.draw_date);
-      // Ajustar para o fuso horário local
       drawDate.setMinutes(drawDate.getMinutes() + drawDate.getTimezoneOffset());
       const dateKey = format(drawDate, 'dd/MM/yyyy');
       
       if (!grouped[dateKey]) {
-        grouped[dateKey] = {};
+        grouped[dateKey] = [];
       }
-      if (!grouped[dateKey][bet.draw_period]) {
-        grouped[dateKey][bet.draw_period] = [];
-      }
-      grouped[dateKey][bet.draw_period].push(bet);
+      grouped[dateKey].push(bet);
     });
 
-    // Ordenar as datas em ordem decrescente
     const sortedGrouped: GroupedBets = {};
     Object.keys(grouped)
       .sort((a, b) => {
@@ -62,7 +53,6 @@ export function BetsTableContent({ bets: initialBets }: BetsTableContentProps) {
     groupBets(bets);
   }, [bets]);
 
-  // Configurar canal de tempo real para atualizações
   useEffect(() => {
     const channel = supabase
       .channel('active-bets-changes')
@@ -76,7 +66,6 @@ export function BetsTableContent({ bets: initialBets }: BetsTableContentProps) {
         async (payload) => {
           console.log('Realtime update received:', payload);
           
-          // Atualizar lista de apostas
           const { data: updatedBets, error } = await supabase
             .from('bets')
             .select('*')
@@ -101,46 +90,37 @@ export function BetsTableContent({ bets: initialBets }: BetsTableContentProps) {
 
   return (
     <>
-      {Object.entries(groupedBets).map(([date, periods]) => (
+      {Object.entries(groupedBets).map(([date, dateBets]) => (
         <div key={date} className="mb-8">
           <h3 className="text-lg font-semibold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             {date}
           </h3>
-          {Object.entries(periods).map(([period, periodBets]) => (
-            <div key={period} className="mb-6">
-              <h4 className="text-md font-medium mb-2 text-gray-700">
-                {period === 'morning' ? 'Manhã' :
-                 period === 'afternoon' ? 'Tarde' :
-                 period === 'evening' ? 'Noite' : 'Corujinha'}
-              </h4>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Comprovante</TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Período</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>Posição</TableHead>
-                    <TableHead>Sequência</TableHead>
-                    <TableHead>Valor</TableHead>
-                    <TableHead>Prêmio Potencial</TableHead>
-                    <TableHead>Resultado</TableHead>
-                    <TableHead>Prêmio</TableHead>
-                    <TableHead>Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {periodBets.map((bet) => (
-                    <BetTableRow
-                      key={bet.id}
-                      bet={bet}
-                      onViewReceipt={(bet) => setSelectedBet(bet)}
-                    />
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ))}
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Comprovante</TableHead>
+                <TableHead>Data</TableHead>
+                <TableHead>Período</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Posição</TableHead>
+                <TableHead>Sequência</TableHead>
+                <TableHead>Valor</TableHead>
+                <TableHead>Prêmio Potencial</TableHead>
+                <TableHead>Resultado</TableHead>
+                <TableHead>Prêmio</TableHead>
+                <TableHead>Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {dateBets.map((bet) => (
+                <BetTableRow
+                  key={bet.id}
+                  bet={bet}
+                  onViewReceipt={(bet) => setSelectedBet(bet)}
+                />
+              ))}
+            </TableBody>
+          </Table>
         </div>
       ))}
 
