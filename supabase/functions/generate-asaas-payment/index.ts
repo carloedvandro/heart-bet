@@ -1,140 +1,95 @@
-import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { corsHeaders } from "../_shared/cors.ts"
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS'
+interface RequestBody {
+  amount: number;
 }
 
 serve(async (req) => {
-  // Log incoming request for debugging
-  console.log('Function invoked:', {
-    method: req.method,
-    url: req.url,
-    headers: Object.fromEntries(req.headers.entries())
-  });
-
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    return new Response(null, { 
-      headers: corsHeaders,
-      status: 200
-    });
-  }
-
-  if (req.method !== 'POST') {
-    console.error('Method not allowed:', req.method);
-    return new Response(
-      JSON.stringify({ error: 'Method not allowed' }),
-      { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 405
-      }
-    );
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: corsHeaders })
   }
 
   try {
-    const { amount } = await req.json();
-    console.log('Processing payment request for amount:', amount);
+    const { amount } = await req.json() as RequestBody;
 
-    if (!amount || isNaN(amount)) {
-      console.error('Invalid amount provided:', amount);
+    if (!amount || amount <= 0) {
       return new Response(
-        JSON.stringify({ error: 'Amount is required and must be a number' }),
+        JSON.stringify({ error: "Invalid amount" }),
         { 
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 400 
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" }
         }
       );
     }
 
-    const asaasApiKey = Deno.env.get('ASAAS_API_KEY');
-    if (!asaasApiKey) {
-      console.error('Missing Asaas API key in environment variables');
-      throw new Error('Configuration error: Missing ASAAS_API_KEY');
+    const ASAAS_API_KEY = Deno.env.get("ASAAS_API_KEY");
+    if (!ASAAS_API_KEY) {
+      throw new Error("ASAAS_API_KEY not configured");
     }
 
-    console.log('Creating payment in Asaas...');
-    const paymentResponse = await fetch('https://sandbox.asaas.com/api/v3/payments', {
-      method: 'POST',
+    // Create payment in Asaas (using sandbox environment)
+    const asaasResponse = await fetch("https://sandbox.asaas.com/api/v3/payments", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
-        'access_token': asaasApiKey
+        "Content-Type": "application/json",
+        "access_token": ASAAS_API_KEY
       },
       body: JSON.stringify({
-        customer: 'cus_000005113863',
-        billingType: 'PIX',
+        customer: "cus_000005113863",
+        billingType: "PIX",
         value: amount,
-        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        description: `Recarga de R$ ${amount.toFixed(2)}`,
+        dueDate: new Date().toISOString().split('T')[0]
       })
     });
 
-    if (!paymentResponse.ok) {
-      const errorText = await paymentResponse.text();
-      console.error('Asaas payment creation failed:', {
-        status: paymentResponse.status,
-        statusText: paymentResponse.statusText,
-        body: errorText
-      });
-      throw new Error(`Failed to create payment: ${paymentResponse.statusText}`);
+    if (!asaasResponse.ok) {
+      console.error("Asaas API error:", await asaasResponse.text());
+      throw new Error("Failed to create payment");
     }
 
-    const paymentData = await paymentResponse.json();
-    console.log('Payment created successfully:', paymentData);
+    const asaasData = await asaasResponse.json();
 
-    console.log('Generating PIX QR Code...');
-    const pixResponse = await fetch(`https://sandbox.asaas.com/api/v3/payments/${paymentData.id}/pixQrCode`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'access_token': asaasApiKey
+    // Get PIX QR Code
+    const qrCodeResponse = await fetch(
+      `https://sandbox.asaas.com/api/v3/payments/${asaasData.id}/pixQrCode`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+          "access_token": ASAAS_API_KEY
+        }
       }
-    });
+    );
 
-    if (!pixResponse.ok) {
-      const errorText = await pixResponse.text();
-      console.error('PIX QR Code generation failed:', {
-        status: pixResponse.status,
-        statusText: pixResponse.statusText,
-        body: errorText
-      });
-      throw new Error('Failed to generate PIX QR Code');
+    if (!qrCodeResponse.ok) {
+      console.error("Asaas QR Code error:", await qrCodeResponse.text());
+      throw new Error("Failed to generate QR Code");
     }
 
-    const pixData = await pixResponse.json();
-    console.log('PIX QR Code generated successfully');
+    const qrCodeData = await qrCodeResponse.json();
 
     return new Response(
       JSON.stringify({
-        success: true,
         payment: {
-          id: paymentData.id,
-          value: paymentData.value,
-          status: paymentData.status,
-          dueDate: paymentData.dueDate,
-          pixQrCode: pixData.encodedImage,
-          pixKey: pixData.payload
+          id: asaasData.id,
+          pixQrCode: qrCodeData.encodedImage,
+          pixKey: qrCodeData.payload
         }
       }),
       { 
-        headers: { 
-          ...corsHeaders, 
-          'Content-Type': 'application/json'
-        }
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
       }
     );
 
   } catch (error) {
-    console.error('Error processing request:', error);
+    console.error("Error in generate-asaas-payment:", error);
     return new Response(
-      JSON.stringify({ 
-        error: 'Internal server error', 
-        details: error.message
-      }),
+      JSON.stringify({ error: error.message }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500 
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" }
       }
     );
   }
-});
+})
