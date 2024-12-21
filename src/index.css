@@ -60,9 +60,7 @@
     --ring: 216 34% 17%;
     --radius: 0.5rem;
   }
-}
 
-@layer base {
   * {
     @apply border-border;
   }
@@ -116,20 +114,40 @@
     background-color: hsl(224 71% 4% / 0.9);
   }
 
-  /* Calendar dark mode improvements */
+  /* Calendar dark mode improvements with higher contrast */
+  [data-theme='dark'] .rdp {
+    @apply bg-gray-900/50 rounded-lg p-2;
+  }
+
   [data-theme='dark'] .rdp-day {
-    @apply text-gray-100;
+    @apply text-white font-medium;
   }
 
   [data-theme='dark'] .rdp-day_selected {
-    @apply bg-purple-600 text-white;
+    @apply bg-purple-500 text-white font-bold hover:bg-purple-400;
   }
 
   [data-theme='dark'] .rdp-day_today {
-    @apply bg-purple-900/50 text-white;
+    @apply bg-purple-700 text-white font-bold;
   }
 
   [data-theme='dark'] .rdp-day:hover:not(.rdp-day_selected) {
-    @apply bg-purple-800/50 text-white;
+    @apply bg-purple-600 text-white;
+  }
+
+  [data-theme='dark'] .rdp-day_disabled {
+    @apply text-gray-500 hover:bg-transparent cursor-not-allowed;
+  }
+
+  [data-theme='dark'] .rdp-head_cell {
+    @apply text-purple-300 font-bold;
+  }
+
+  [data-theme='dark'] .rdp-nav_button {
+    @apply text-white hover:bg-purple-600;
+  }
+
+  [data-theme='dark'] .rdp-caption_label {
+    @apply text-white font-bold;
   }
 }
