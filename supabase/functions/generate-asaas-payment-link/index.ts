@@ -12,14 +12,17 @@ const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3'
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling CORS preflight request')
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    console.log('Starting payment link generation...')
+    console.log('=== Starting payment link generation ===')
+    console.log('Request method:', req.method)
+    console.log('Request headers:', Object.fromEntries(req.headers.entries()))
 
     if (!ASAAS_API_KEY) {
-      console.error('ASAAS_API_KEY is not configured')
+      console.error('❌ ASAAS_API_KEY is not configured')
       throw new Error('API configuration error')
     }
 
@@ -28,11 +31,20 @@ serve(async (req) => {
     console.log('Received amount:', amount)
 
     if (!amount || amount <= 0) {
+      console.error('❌ Invalid amount provided:', amount)
       throw new Error('Invalid amount provided')
     }
 
     // Generate payment using Asaas API
-    console.log('Making request to Asaas API...')
+    console.log('📡 Making request to Asaas API...')
+    console.log('Request payload:', {
+      customer: 'cus_000005113863',
+      billingType: 'PIX',
+      value: amount,
+      dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      description: 'Recarga no sistema'
+    })
+
     const response = await fetch(`${ASAAS_API_URL}/payments`, {
       method: 'POST',
       headers: {
@@ -49,18 +61,20 @@ serve(async (req) => {
     })
 
     const data = await response.json()
-    console.log('Asaas API response:', data)
+    console.log('✅ Asaas API response:', data)
 
     if (!response.ok) {
-      console.error('Error from Asaas API:', data)
+      console.error('❌ Error from Asaas API:', data)
       throw new Error(data.message || 'Payment creation failed')
     }
 
     if (!data.invoiceUrl) {
-      console.error('No invoice URL in response:', data)
+      console.error('❌ No invoice URL in response:', data)
       throw new Error('Invalid payment response')
     }
 
+    console.log('✅ Successfully generated payment link')
+    
     // Return the payment URL
     return new Response(
       JSON.stringify({
@@ -74,7 +88,8 @@ serve(async (req) => {
       },
     )
   } catch (error) {
-    console.error('Function error:', error)
+    console.error('❌ Function error:', error)
+    console.error('Error stack:', error.stack)
     return new Response(
       JSON.stringify({
         error: error.message,
