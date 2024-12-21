@@ -6,11 +6,12 @@ const corsHeaders = {
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
-const ASAAS_API_KEY = Deno.env.get('ASAAS_API_KEY')
 const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3'
+const ASAAS_API_KEY = Deno.env.get('ASAAS_API_KEY')
+const ASAAS_TIMEOUT = 10000 // 10 seconds timeout for Asaas API calls
 
 serve(async (req) => {
-  console.log('=== Request received ===')
+  console.log('🚀 Function started')
   console.log('Method:', req.method)
   console.log('Headers:', Object.fromEntries(req.headers.entries()))
   console.log('URL:', req.url)
@@ -25,12 +26,13 @@ serve(async (req) => {
   }
 
   try {
+    // Validate API key configuration
     if (!ASAAS_API_KEY) {
       console.error('❌ ASAAS_API_KEY is not configured')
       throw new Error('API configuration error: Missing ASAAS_API_KEY')
     }
 
-    // Parse request body
+    // Parse and validate request body
     let requestBody;
     try {
       requestBody = await req.json()
@@ -48,8 +50,8 @@ serve(async (req) => {
       throw new Error('Invalid amount provided')
     }
 
-    // Generate payment using Asaas API
-    console.log('📡 Making request to Asaas API...')
+    // Prepare payment request
+    console.log('📡 Preparing Asaas API request...')
     const payload = {
       customer: 'cus_000005113863',
       billingType: 'PIX',
@@ -59,8 +61,12 @@ serve(async (req) => {
     }
     console.log('📤 Request payload:', payload)
 
+    // Call Asaas API with timeout
     let asaasResponse;
     try {
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), ASAAS_TIMEOUT)
+
       asaasResponse = await fetch(`${ASAAS_API_URL}/payments`, {
         method: 'POST',
         headers: {
@@ -68,12 +74,19 @@ serve(async (req) => {
           'access_token': ASAAS_API_KEY,
         },
         body: JSON.stringify(payload),
+        signal: controller.signal
       })
+
+      clearTimeout(timeoutId)
     } catch (error) {
       console.error('❌ Network error calling Asaas API:', error)
+      if (error.name === 'AbortError') {
+        throw new Error('Asaas API timeout - request took too long')
+      }
       throw new Error('Failed to connect to Asaas API')
     }
 
+    // Handle Asaas API errors
     if (!asaasResponse.ok) {
       const errorText = await asaasResponse.text()
       console.error('❌ Error response from Asaas:', {
@@ -84,8 +97,15 @@ serve(async (req) => {
       throw new Error(`Asaas API error: ${asaasResponse.status} ${asaasResponse.statusText}`)
     }
 
-    const data = await asaasResponse.json()
-    console.log('✅ Asaas API response:', data)
+    // Parse and validate Asaas response
+    let data;
+    try {
+      data = await asaasResponse.json()
+      console.log('✅ Asaas API response:', data)
+    } catch (error) {
+      console.error('❌ Failed to parse Asaas response:', error)
+      throw new Error('Invalid response from Asaas API')
+    }
 
     if (!data.invoiceUrl) {
       console.error('❌ No invoice URL in response:', data)
