@@ -44,18 +44,24 @@ export function ViewResultsDialog() {
     retry: 2,
   });
 
-  const periods = ['morning', 'afternoon', 'night', 'late_night'];
+  // Define all possible periods in the correct order
+  const periods = ['morning', 'afternoon', 'evening', 'late_night'];
+  
+  // Map period codes to display names
   const periodLabels: Record<string, string> = {
     morning: 'Manhã',
     afternoon: 'Tarde',
-    night: 'Noite',
+    evening: 'Noite',
     late_night: 'Corujinha'
   };
 
   // Debug logs
-  console.log('All periods available:', periods);
-  console.log('Períodos disponíveis nos resultados:', results?.map(r => r.draw_period));
-  console.log('Todos os resultados:', results);
+  console.log('Available periods:', periods);
+  console.log('Results by period:', results?.reduce((acc: any, r: any) => {
+    if (!acc[r.draw_period]) acc[r.draw_period] = [];
+    acc[r.draw_period].push(r);
+    return acc;
+  }, {}));
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -105,7 +111,7 @@ export function ViewResultsDialog() {
             ) : (
               periods.map((period) => {
                 const periodResults = results.filter(r => r.draw_period === period);
-                console.log(`Resultados para ${period}:`, periodResults);
+                console.log(`Results for ${period}:`, periodResults);
                 
                 if (!periodResults?.length) return null;
 
