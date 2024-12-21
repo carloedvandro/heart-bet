@@ -3,6 +3,7 @@ import { Wallet2, CreditCard, QrCode } from "lucide-react";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useSession } from "@supabase/auth-helpers-react";
 
 interface PaymentMethodButtonsProps {
   onBinanceClick: () => void;
@@ -14,14 +15,30 @@ export function PaymentMethodButtons({
   onOtherMethodsClick 
 }: PaymentMethodButtonsProps) {
   const [loading, setLoading] = useState(false);
+  const session = useSession();
 
   const handleAsaasClick = async () => {
+    if (!session?.user?.id) {
+      toast.error("Você precisa estar logado para fazer uma recarga");
+      return;
+    }
+
     try {
       setLoading(true);
-      console.log('Initiating Asaas payment link generation...');
+      console.log('Initiating Asaas payment link generation...', {
+        userId: session.user.id,
+        amount: 50
+      });
       
       const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
-        body: { amount: 50 },
+        body: { 
+          userId: session.user.id,
+          amount: 50 
+        },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        }
       });
 
       console.log('Payment link response:', data);
