@@ -44,25 +44,13 @@ export function ViewResultsDialog() {
     retry: 2,
   });
 
-  // Define all possible periods in the correct order
   const periods = ['morning', 'afternoon', 'evening', 'night'];
-  
-  // Map period codes to display names
   const periodLabels: Record<string, string> = {
     morning: 'Manhã',
     afternoon: 'Tarde',
     evening: 'Noite',
     night: 'Corujinha'
   };
-
-  // Debug logs
-  console.log('Available periods:', periods);
-  console.log('Raw results:', results);
-  console.log('Results by period:', results?.reduce((acc: any, r: any) => {
-    if (!acc[r.draw_period]) acc[r.draw_period] = [];
-    acc[r.draw_period].push(r);
-    return acc;
-  }, {}));
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -72,29 +60,31 @@ export function ViewResultsDialog() {
           Resultados
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[95vw] w-full md:max-w-3xl h-[90vh] md:h-auto overflow-y-auto">
+      <DialogContent className="max-w-[95vw] w-full md:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle className="text-lg md:text-xl text-center">
+          <DialogTitle className="text-lg md:text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             Resultados do Dia {displayDate}
           </DialogTitle>
         </DialogHeader>
         
-        <div className={`grid gap-6 ${isMobile ? '' : 'md:grid-cols-[200px,1fr]'}`}>
-          <Calendar
-            mode="single"
-            selected={date}
-            onSelect={(newDate) => {
-              if (newDate) {
-                console.log('Date selected:', format(newDate, 'yyyy-MM-dd'));
-                setDate(newDate);
-              }
-            }}
-            className="rounded-md border shadow mx-auto"
-            locale={ptBR}
-            disabled={(date) => date > new Date()}
-          />
+        <div className={`flex-1 min-h-0 ${isMobile ? 'flex flex-col gap-6' : 'grid grid-cols-[auto,1fr] gap-6'}`}>
+          <div className="flex-shrink-0">
+            <Calendar
+              mode="single"
+              selected={date}
+              onSelect={(newDate) => {
+                if (newDate) {
+                  console.log('Date selected:', format(newDate, 'yyyy-MM-dd'));
+                  setDate(newDate);
+                }
+              }}
+              className="rounded-md border shadow mx-auto bg-white"
+              locale={ptBR}
+              disabled={(date) => date > new Date()}
+            />
+          </div>
 
-          <div className="space-y-4">
+          <div className="overflow-y-auto pr-2 space-y-4 min-h-0">
             {error ? (
               <div className="text-center py-4 text-red-500">
                 Erro ao carregar resultados. Tente novamente.
@@ -112,28 +102,26 @@ export function ViewResultsDialog() {
             ) : (
               periods.map((period) => {
                 const periodResults = results.filter(r => r.draw_period === period);
-                console.log(`Results for ${period}:`, periodResults);
-                
                 if (!periodResults?.length) return null;
 
                 return (
-                  <Card key={period} className="p-4 shadow-sm hover:shadow-md transition-shadow">
-                    <h3 className="font-semibold mb-3 text-lg text-center md:text-left">
+                  <Card key={period} className="p-4 shadow-sm hover:shadow-md transition-shadow bg-white/50 backdrop-blur-sm">
+                    <h3 className="font-semibold mb-3 text-lg text-center md:text-left text-purple-800">
                       {periodLabels[period]}
                     </h3>
                     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2 md:gap-4">
                       {periodResults.map((result) => (
                         <div 
                           key={result.id} 
-                          className="text-center p-2 rounded-lg bg-muted/50"
+                          className="text-center p-3 rounded-lg bg-white shadow-sm hover:shadow-md transition-all"
                         >
-                          <div className="font-medium text-sm text-muted-foreground">
+                          <div className="font-medium text-sm text-purple-600">
                             {result.position}º
                           </div>
-                          <div className="text-xl md:text-2xl font-bold my-1">
+                          <div className="text-2xl md:text-3xl font-bold my-1 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                             {result.number}
                           </div>
-                          <div className="text-xs md:text-sm text-muted-foreground">
+                          <div className="text-xs md:text-sm text-gray-600">
                             {result.game_number} - {result.animal}
                           </div>
                         </div>
