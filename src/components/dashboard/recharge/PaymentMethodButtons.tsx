@@ -25,12 +25,21 @@ export function PaymentMethodButtons({
 
     try {
       setLoading(true);
+      
+      // Create the request body object
       const requestBody = {
         userId: session.user.id,
         amount: 50
       };
       
-      console.log('Initiating Asaas payment link generation with payload:', requestBody);
+      // Log the request payload for debugging
+      console.log('Sending request to generate Asaas payment link:', {
+        body: requestBody,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        }
+      });
       
       const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
         body: requestBody,
