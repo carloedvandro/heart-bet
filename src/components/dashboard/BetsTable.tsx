@@ -1,101 +1,28 @@
-import { Bet } from "@/integrations/supabase/custom-types";
-import { useCallback, useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
-import { toast } from "sonner";
 import { BetsTableActions } from "./BetsTableActions";
-import { format } from "date-fns";
 import { BetsTableContent } from "./BetsTableContent";
-import { Button } from "../ui/button";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { BetsPagination } from "./BetsPagination";
+import { useBetsFetch } from "@/hooks/useBetsFetch";
 
 interface BetsTableProps {
   refreshTrigger?: number;
 }
 
 export function BetsTable({ refreshTrigger }: BetsTableProps) {
-  const [bets, setBets] = useState<Bet[]>([]);
-  const [allBets, setAllBets] = useState<Bet[]>([]);
-  const [loading, setLoading] = useState(true);
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [totalItems, setTotalItems] = useState(0);
   const itemsPerPage = 10;
   const session = useSession();
 
-  const fetchBets = useCallback(async () => {
-    try {
-      if (!session?.user?.id) {
-        setLoading(false);
-        return;
-      }
-
-      console.log("Fetching bets with params:", {
-        currentPage,
-        itemsPerPage,
-        date: date ? format(date, "yyyy-MM-dd") : "all"
-      });
-
-      let query = supabase
-        .from("bets")
-        .select("*", { count: 'exact' })
-        .eq("user_id", session.user.id)
-        .order("created_at", { ascending: false });
-
-      if (date) {
-        query = query.eq("draw_date", format(date, "yyyy-MM-dd"));
-      }
-
-      // First fetch all bets for PDF generation
-      const { data: allData } = await query;
-      if (allData) {
-        console.log("Fetched all bets:", allData.length);
-        setAllBets(allData);
-      }
-
-      // Then fetch paginated data for display
-      const startRow = currentPage * itemsPerPage;
-      
-      console.log("Pagination details:", {
-        page: currentPage + 1,
-        startRow,
-        itemsPerPage
-      });
-      
-      const { data, error, count } = await query
-        .range(startRow, startRow + itemsPerPage - 1);
-
-      if (error) {
-        console.error("Error fetching bets:", error);
-        throw error;
-      }
-
-      if (data) {
-        console.log("Fetched paginated bets:", {
-          page: currentPage + 1,
-          startRow,
-          endRow: startRow + itemsPerPage - 1,
-          totalCount: count,
-          fetchedCount: data.length,
-          items: data
-        });
-        
-        setBets(data);
-        
-        if (count !== null) {
-          console.log("Total items:", count);
-          setTotalItems(count);
-          setHasMore((currentPage + 1) * itemsPerPage < count);
-        }
-      }
-    } catch (error) {
-      console.error("Error fetching bets:", error);
-      toast.error("Erro ao carregar apostas");
-    } finally {
-      setLoading(false);
-    }
-  }, [session?.user?.id, date, currentPage]);
+  const {
+    bets,
+    allBets,
+    loading,
+    hasMore,
+    totalItems,
+    fetchBets
+  } = useBetsFetch(date, currentPage, itemsPerPage);
 
   // Fetch bets when page changes or when refresh is triggered
   useEffect(() => {
@@ -143,31 +70,13 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
         <>
           <BetsTableContent bets={bets} />
           
-          <div className="flex flex-col items-center gap-2">
-            <div className="text-sm text-muted-foreground">
-              Página {currentPage + 1} de {totalPages}
-            </div>
-            <div className="flex justify-center gap-4">
-              <Button
-                variant="outline"
-                onClick={handlePreviousPage}
-                disabled={currentPage === 0}
-                className="gap-2"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Anterior
-              </Button>
-              <Button
-                variant="outline"
-                onClick={handleNextPage}
-                disabled={!hasMore}
-                className="gap-2"
-              >
-                Próxima
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          <BetsPagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            hasMore={hasMore}
+            onNextPage={handleNextPage}
+            onPreviousPage={handlePreviousPage}
+          />
         </>
       )}
     </div>
