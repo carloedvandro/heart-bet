@@ -50,6 +50,48 @@ export type Database = {
           },
         ]
       }
+      asaas_payments: {
+        Row: {
+          amount: number
+          asaas_id: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          paid_at: string | null
+          qr_code: string | null
+          qr_code_text: string | null
+          status: Database["public"]["Enums"]["payment_status"] | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          asaas_id: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          paid_at?: string | null
+          qr_code?: string | null
+          qr_code_text?: string | null
+          status?: Database["public"]["Enums"]["payment_status"] | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          asaas_id?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          paid_at?: string | null
+          qr_code?: string | null
+          qr_code_text?: string | null
+          status?: Database["public"]["Enums"]["payment_status"] | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       balance_history: {
         Row: {
           admin_id: string
@@ -801,6 +843,13 @@ export type Database = {
         | "group_double"
         | "group_triple"
       draw_period: "morning" | "afternoon" | "evening" | "night"
+      payment_status:
+        | "pending"
+        | "received"
+        | "confirmed"
+        | "overdue"
+        | "refunded"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
