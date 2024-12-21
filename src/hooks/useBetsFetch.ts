@@ -5,12 +5,9 @@ import { toast } from "sonner";
 import { Bet } from "@/integrations/supabase/custom-types";
 import { format } from "date-fns";
 
-export function useBetsFetch(date: Date | undefined, currentPage: number, itemsPerPage: number) {
+export function useBetsFetch(date: Date | undefined) {
   const [bets, setBets] = useState<Bet[]>([]);
-  const [allBets, setAllBets] = useState<Bet[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasMore, setHasMore] = useState(true);
-  const [totalItems, setTotalItems] = useState(0);
   const session = useSession();
 
   const fetchBets = useCallback(async () => {
@@ -20,15 +17,11 @@ export function useBetsFetch(date: Date | undefined, currentPage: number, itemsP
         return;
       }
 
-      console.log("Fetching bets with params:", {
-        currentPage,
-        itemsPerPage,
-        date: date ? format(date, "yyyy-MM-dd") : "all"
-      });
+      console.log("Fetching all bets for date:", date ? format(date, "yyyy-MM-dd") : "all");
 
       let query = supabase
         .from("bets")
-        .select("*", { count: 'exact' })
+        .select("*")
         .eq("user_id", session.user.id)
         .order("created_at", { ascending: false });
 
@@ -36,24 +29,7 @@ export function useBetsFetch(date: Date | undefined, currentPage: number, itemsP
         query = query.eq("draw_date", format(date, "yyyy-MM-dd"));
       }
 
-      // First fetch all bets for PDF generation
-      const { data: allData } = await query;
-      if (allData) {
-        console.log("Fetched all bets:", allData.length);
-        setAllBets(allData);
-      }
-
-      // Then fetch paginated data for display
-      const startRow = currentPage * itemsPerPage;
-      
-      console.log("Pagination details:", {
-        page: currentPage + 1,
-        startRow,
-        itemsPerPage
-      });
-      
-      const { data, error, count } = await query
-        .range(startRow, startRow + itemsPerPage - 1);
+      const { data, error } = await query;
 
       if (error) {
         console.error("Error fetching bets:", error);
@@ -61,22 +37,8 @@ export function useBetsFetch(date: Date | undefined, currentPage: number, itemsP
       }
 
       if (data) {
-        console.log("Fetched paginated bets:", {
-          page: currentPage + 1,
-          startRow,
-          endRow: startRow + itemsPerPage - 1,
-          totalCount: count,
-          fetchedCount: data.length,
-          items: data
-        });
-        
+        console.log("Fetched bets:", data.length);
         setBets(data);
-        
-        if (count !== null) {
-          console.log("Total items:", count);
-          setTotalItems(count);
-          setHasMore((currentPage + 1) * itemsPerPage < count);
-        }
       }
     } catch (error) {
       console.error("Error fetching bets:", error);
@@ -84,14 +46,11 @@ export function useBetsFetch(date: Date | undefined, currentPage: number, itemsP
     } finally {
       setLoading(false);
     }
-  }, [session?.user?.id, date, currentPage, itemsPerPage]);
+  }, [session?.user?.id, date]);
 
   return {
     bets,
-    allBets,
     loading,
-    hasMore,
-    totalItems,
     fetchBets
   };
 }
