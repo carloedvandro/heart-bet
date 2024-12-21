@@ -9,8 +9,8 @@ const corsHeaders = {
 
 const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3'
 const ASAAS_API_KEY = Deno.env.get('ASAAS_API_KEY')
-const ASAAS_TIMEOUT = 10000 // 10 seconds timeout for Asaas API calls
-const DEFAULT_CUSTOMER_ID = 'cus_000012345678' // Updated to valid sandbox customer ID
+const ASAAS_TIMEOUT = 10000 // 10 seconds timeout
+const GENERIC_CUSTOMER_ID = 'cus_000012345678' // Generic customer ID for all transactions
 
 serve(async (req) => {
   console.log('🚀 Function started')
@@ -44,22 +44,29 @@ serve(async (req) => {
       throw new Error('Invalid request body')
     }
 
-    const { amount } = requestBody
+    const { userId, amount } = requestBody
     console.log('💰 Amount:', amount)
+    console.log('👤 User ID:', userId)
 
     if (!amount || amount <= 0) {
       console.error('❌ Invalid amount provided:', amount)
       throw new Error('Invalid amount provided')
     }
 
-    // Prepare payment request with valid customer ID
+    if (!userId) {
+      console.error('❌ No userId provided')
+      throw new Error('userId is required')
+    }
+
+    // Prepare payment request with generic customer
     console.log('📡 Preparing Asaas API request...')
     const payload = {
-      customer: DEFAULT_CUSTOMER_ID,
+      customer: GENERIC_CUSTOMER_ID,
       billingType: 'PIX',
       value: amount,
       dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-      description: 'Recarga no sistema'
+      description: 'Recarga no sistema',
+      externalReference: userId.toString() // Convert userId to string for consistency
     }
     console.log('📤 Request payload:', payload)
 
@@ -94,7 +101,7 @@ serve(async (req) => {
         try {
           const errorJson = JSON.parse(errorText)
           if (errorJson.errors?.[0]?.code === 'invalid_customer') {
-            throw new Error('Invalid customer configuration in Asaas integration')
+            throw new Error('Invalid generic customer configuration')
           }
           throw new Error(`Asaas API error: ${errorJson.errors?.[0]?.description || 'Unknown error'}`)
         } catch (parseError) {
