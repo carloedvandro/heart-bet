@@ -115,4 +115,21 @@
   [data-theme='dark'] .bg-white\/90 {
     background-color: hsl(224 71% 4% / 0.9);
   }
+
+  /* Calendar dark mode improvements */
+  [data-theme='dark'] .rdp-day {
+    @apply text-gray-100;
+  }
+
+  [data-theme='dark'] .rdp-day_selected {
+    @apply bg-purple-600 text-white;
+  }
+
+  [data-theme='dark'] .rdp-day_today {
+    @apply bg-purple-900/50 text-white;
+  }
+
+  [data-theme='dark'] .rdp-day:hover:not(.rdp-day_selected) {
+    @apply bg-purple-800/50 text-white;
+  }
 }
