@@ -3,7 +3,7 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS'
 }
 
 const ASAAS_API_KEY = Deno.env.get('ASAAS_API_KEY')
@@ -16,6 +16,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Starting payment link generation...')
+
     if (!ASAAS_API_KEY) {
       console.error('ASAAS_API_KEY is not configured')
       throw new Error('API configuration error')
@@ -29,8 +31,8 @@ serve(async (req) => {
       throw new Error('Invalid amount provided')
     }
 
-    // Generate payment link using Asaas API
-    console.log('Making request to Asaas API')
+    // Generate payment using Asaas API
+    console.log('Making request to Asaas API...')
     const response = await fetch(`${ASAAS_API_URL}/payments`, {
       method: 'POST',
       headers: {
@@ -54,10 +56,15 @@ serve(async (req) => {
       throw new Error(data.message || 'Payment creation failed')
     }
 
+    if (!data.invoiceUrl) {
+      console.error('No invoice URL in response:', data)
+      throw new Error('Invalid payment response')
+    }
+
     // Return the payment URL
     return new Response(
       JSON.stringify({
-        paymentUrl: data.invoiceUrl || `https://sandbox.asaas.com/i/${data.id}`,
+        paymentUrl: data.invoiceUrl,
       }),
       {
         headers: { 

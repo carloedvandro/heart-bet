@@ -24,14 +24,15 @@ export function PaymentMethodButtons({
         body: { amount: 50 },
       });
 
-      if (error) {
-        console.error('Supabase function error:', error);
-        throw new Error('Erro ao gerar link de pagamento');
-      }
-
       console.log('Payment link response:', data);
 
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw new Error(error.message || 'Erro ao gerar link de pagamento');
+      }
+
       if (!data?.paymentUrl) {
+        console.error('Invalid payment URL in response:', data);
         throw new Error('Link de pagamento inválido');
       }
 
