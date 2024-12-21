@@ -10,17 +10,20 @@ const ASAAS_API_KEY = Deno.env.get('ASAAS_API_KEY')
 const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3'
 
 serve(async (req) => {
+  console.log('=== Request received ===')
+  console.log('Method:', req.method)
+  console.log('Headers:', Object.fromEntries(req.headers.entries()))
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     console.log('Handling CORS preflight request')
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { 
+      status: 204,
+      headers: corsHeaders 
+    })
   }
 
   try {
-    console.log('=== Starting payment link generation ===')
-    console.log('Request method:', req.method)
-    console.log('Request headers:', Object.fromEntries(req.headers.entries()))
-
     if (!ASAAS_API_KEY) {
       console.error('❌ ASAAS_API_KEY is not configured')
       throw new Error('API configuration error')
@@ -37,13 +40,14 @@ serve(async (req) => {
 
     // Generate payment using Asaas API
     console.log('📡 Making request to Asaas API...')
-    console.log('Request payload:', {
+    const payload = {
       customer: 'cus_000005113863',
       billingType: 'PIX',
       value: amount,
       dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       description: 'Recarga no sistema'
-    })
+    }
+    console.log('Request payload:', payload)
 
     const response = await fetch(`${ASAAS_API_URL}/payments`, {
       method: 'POST',
@@ -51,13 +55,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
         'access_token': ASAAS_API_KEY,
       },
-      body: JSON.stringify({
-        customer: 'cus_000005113863', // Using sandbox customer ID
-        billingType: 'PIX',
-        value: amount,
-        dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Tomorrow
-        description: 'Recarga no sistema',
-      }),
+      body: JSON.stringify(payload),
     })
 
     const data = await response.json()
@@ -81,6 +79,7 @@ serve(async (req) => {
         paymentUrl: data.invoiceUrl,
       }),
       {
+        status: 200,
         headers: { 
           ...corsHeaders,
           'Content-Type': 'application/json',
@@ -90,6 +89,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('❌ Function error:', error)
     console.error('Error stack:', error.stack)
+    
     return new Response(
       JSON.stringify({
         error: error.message,
