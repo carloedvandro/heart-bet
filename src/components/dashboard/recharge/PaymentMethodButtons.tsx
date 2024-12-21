@@ -39,9 +39,9 @@ export function PaymentMethodButtons({
         accessToken: !!session?.access_token
       });
 
-      // Try using direct fetch first
+      // First try using direct fetch
       try {
-        console.log('Attempting direct fetch...');
+        console.log('Attempting direct fetch with body:', requestBody);
         const response = await fetch(
           'https://mwdaxgwuztccxfgbusuj.supabase.co/functions/v1/generate-asaas-payment-link',
           {
@@ -70,11 +70,7 @@ export function PaymentMethodButtons({
       console.log('Invoking Supabase function with body:', requestBody);
       
       const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
-        body: requestBody,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        }
+        body: requestBody
       });
 
       console.log('Supabase function response:', { data, error });
