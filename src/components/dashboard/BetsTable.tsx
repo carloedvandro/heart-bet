@@ -80,12 +80,12 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
           fetchedCount: data.length,
           items: data
         });
+        
         setBets(data);
         
         if (count !== null) {
           console.log("Total items:", count);
           setTotalItems(count);
-          // Atualiza hasMore baseado no número total de itens e página atual
           setHasMore((currentPage + 1) * itemsPerPage < count);
         }
       }
@@ -97,11 +97,16 @@ export function BetsTable({ refreshTrigger }: BetsTableProps) {
     }
   }, [session?.user?.id, date, currentPage]);
 
-  // Atualiza os dados quando a página muda
+  // Fetch bets when page changes or when refresh is triggered
   useEffect(() => {
-    console.log("Current page changed to:", currentPage + 1);
-    fetchBets();
-  }, [fetchBets, currentPage, refreshTrigger]);
+    if (session?.user?.id) {
+      console.log("Fetching bets due to page change or refresh:", {
+        currentPage: currentPage + 1,
+        refreshTrigger
+      });
+      fetchBets();
+    }
+  }, [currentPage, refreshTrigger, session?.user?.id, fetchBets]);
 
   const handleNextPage = () => {
     if (hasMore) {
