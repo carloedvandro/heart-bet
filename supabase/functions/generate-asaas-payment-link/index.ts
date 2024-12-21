@@ -10,7 +10,6 @@ const corsHeaders = {
 const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3'
 const ASAAS_API_KEY = Deno.env.get('ASAAS_API_KEY')
 const ASAAS_TIMEOUT = 10000
-const GENERIC_CUSTOMER_ID = 'cus_000012345678'
 
 serve(async (req) => {
   console.log('🚀 Function started')
@@ -57,16 +56,51 @@ serve(async (req) => {
       throw new Error('userId is required');
     }
 
-    console.log('📡 Preparing Asaas API request...');
-    const payload = {
-      customer: GENERIC_CUSTOMER_ID,
+    // First, create or get customer
+    console.log('🔍 Looking up customer for user:', userId);
+    const customerPayload = {
+      name: `User ${userId}`,
+      cpfCnpj: "00000000000", // Default CPF for testing
+      email: `user-${userId}@example.com`,
+    };
+
+    console.log('📤 Creating/updating customer with payload:', customerPayload);
+    
+    let customerId;
+    try {
+      const customerResponse = await fetch(`${ASAAS_API_URL}/customers`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'access_token': ASAAS_API_KEY,
+        },
+        body: JSON.stringify(customerPayload)
+      });
+
+      const customerData = await customerResponse.json();
+      console.log('📥 Customer API response:', customerData);
+
+      if (!customerResponse.ok) {
+        throw new Error(`Customer API error: ${JSON.stringify(customerData)}`);
+      }
+
+      customerId = customerData.id;
+    } catch (error) {
+      console.error('❌ Error creating customer:', error);
+      throw new Error(`Failed to create customer: ${error.message}`);
+    }
+
+    // Then create payment
+    console.log('📡 Preparing Asaas payment request...');
+    const paymentPayload = {
+      customer: customerId,
       billingType: 'PIX',
       value: amount,
       dueDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().split('T')[0],
       description: `Recarga no sistema - User ID: ${userId}`,
       externalReference: userId
     };
-    console.log('📤 Request payload to Asaas:', payload);
+    console.log('📤 Payment request payload:', paymentPayload);
 
     let asaasResponse;
     try {
@@ -79,7 +113,7 @@ serve(async (req) => {
           'Content-Type': 'application/json',
           'access_token': ASAAS_API_KEY,
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(paymentPayload),
         signal: controller.signal
       });
 
@@ -97,7 +131,7 @@ serve(async (req) => {
         
         try {
           const errorJson = JSON.parse(responseText);
-          throw new Error(`Asaas API error: ${errorJson.errors?.[0]?.description || 'Unknown error'}`);
+          throw new Error(`Asaas API error: ${JSON.stringify(errorJson)}`);
         } catch (parseError) {
           throw new Error(`Asaas API error: ${responseText || `${asaasResponse.status} ${asaasResponse.statusText}`}`);
         }
