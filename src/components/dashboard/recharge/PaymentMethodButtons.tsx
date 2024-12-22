@@ -34,83 +34,38 @@ export function PaymentMethodButtons({
     try {
       setLoading(true);
       
-      const body = {
+      const payload = {
         userId: session.user.id,
         amount: amount
       };
       
       console.log('Payment request details:', {
-        body,
+        payload,
         hasSession: !!session,
         accessToken: !!session?.access_token
       });
 
-      // First attempt with direct invoke
-      try {
-        console.log('Attempting function invoke with body:', JSON.stringify(body));
-        
-        const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
-          body,
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.access_token}`
-          }
-        });
-
-        console.log('Supabase function response:', { data, error });
-
-        if (error) {
-          console.error('Error generating payment link:', error);
-          throw new Error(error.message || 'Erro ao gerar link de pagamento');
+      const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
+        body: payload,
+        headers: {
+          'Content-Type': 'application/json'
         }
+      });
 
-        if (!data?.paymentUrl) {
-          console.error('Invalid payment URL in response:', data);
-          throw new Error('Link de pagamento inválido');
-        }
+      console.log('Supabase function response:', { data, error });
 
-        window.open(data.paymentUrl, '_blank');
-        toast.success("Link de pagamento gerado com sucesso!");
-
-      } catch (invokeError) {
-        console.error('Function invoke failed, attempting direct fetch...', invokeError);
-        
-        // Fallback to direct fetch if invoke fails
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/generate-asaas-payment-link`,
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.access_token}`,
-              'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-            },
-            body: JSON.stringify(body)
-          }
-        );
-
-        console.log('Direct fetch response status:', response.status);
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Direct fetch failed:', {
-            status: response.status,
-            statusText: response.statusText,
-            body: errorText
-          });
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('Direct fetch response data:', data);
-        
-        if (!data.paymentUrl) {
-          throw new Error('Invalid payment URL in response');
-        }
-
-        window.open(data.paymentUrl, '_blank');
-        toast.success("Link de pagamento gerado com sucesso!");
+      if (error) {
+        console.error('Error generating payment link:', error);
+        throw new Error(error.message || 'Erro ao gerar link de pagamento');
       }
+
+      if (!data?.paymentUrl) {
+        console.error('Invalid payment URL in response:', data);
+        throw new Error('Link de pagamento inválido');
+      }
+
+      window.open(data.paymentUrl, '_blank');
+      toast.success("Link de pagamento gerado com sucesso!");
 
     } catch (error) {
       console.error('Payment link generation error:', error);

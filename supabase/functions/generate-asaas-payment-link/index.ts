@@ -41,12 +41,6 @@ serve(async (req) => {
 
     console.log('💰 Processing payment request:', { userId, amount });
 
-    // Get user data from auth token
-    const authHeader = req.headers.get('authorization');
-    if (!authHeader) {
-      throw new Error('Authorization header is required');
-    }
-
     // Get user's financial profile for CPF
     const { data: financialProfile, error: profileError } = await supabase
       .from('financial_profiles')
@@ -58,9 +52,19 @@ serve(async (req) => {
       console.error('Error fetching financial profile:', profileError);
     }
 
-    const token = authHeader.replace('Bearer ', '');
-    const tokenData = JSON.parse(atob(token.split('.')[1]));
-    const email = tokenData.email || `user-${userId}@example.com`;
+    // Get user's email from profiles table
+    const { data: userProfile, error: userError } = await supabase
+      .from('profiles')
+      .select('email')
+      .eq('id', userId)
+      .single();
+
+    if (userError) {
+      console.error('Error fetching user profile:', userError);
+      throw new Error('User not found');
+    }
+
+    const email = userProfile.email;
     const name = financialProfile?.full_name || email.split('@')[0];
     const cpf = financialProfile?.cpf;
 
