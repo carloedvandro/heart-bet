@@ -37,10 +37,21 @@ serve(async (req) => {
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('❌ Missing environment variables:', { 
+        hasUrl: !!SUPABASE_URL, 
+        hasKey: !!SUPABASE_SERVICE_ROLE_KEY 
+      })
       throw new Error('Missing environment variables')
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+    console.log('🔑 Creating Supabase client with service role')
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false
+      }
+    })
+
     const payload = await req.json()
     console.log('📦 Received webhook payload:', payload)
 
