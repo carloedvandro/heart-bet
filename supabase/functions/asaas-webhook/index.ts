@@ -3,8 +3,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS'
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Allow-Methods': '*',
+  'Content-Type': 'application/json'
 }
 
 serve(async (req) => {
@@ -17,18 +18,6 @@ serve(async (req) => {
       status: 204,
       headers: corsHeaders 
     })
-  }
-
-  // Only allow POST requests
-  if (req.method !== 'POST') {
-    console.log('❌ Method not allowed:', req.method)
-    return new Response(
-      JSON.stringify({ error: 'Method not allowed' }),
-      { 
-        status: 405,
-        headers: corsHeaders 
-      }
-    )
   }
 
   try {
@@ -49,6 +38,17 @@ serve(async (req) => {
     if (payload.event === 'PAYMENT_RECEIVED' || payload.event === 'PAYMENT_CONFIRMED') {
       const payment = payload.payment
       console.log('💰 Processing payment:', payment)
+
+      // Extract user_id from description or externalReference
+      const userId = payment.externalReference || 
+                    payment.description?.match(/User ID: ([^\s]+)/)?.[1]
+
+      if (!userId) {
+        console.error('❌ No user ID found in payment')
+        throw new Error('No user ID found in payment')
+      }
+
+      console.log('👤 Processing payment for user:', userId)
 
       // Get the payment record from our database
       const { data: asaasPayment, error: paymentError } = await supabase
@@ -76,7 +76,7 @@ serve(async (req) => {
       // Update user balance
       const { error: balanceError } = await supabase.rpc(
         'increment_balance',
-        { amount: asaasPayment.amount }
+        { amount: payment.value / 100 } // Convert from cents to real
       )
 
       if (balanceError) {
@@ -101,7 +101,7 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         headers: corsHeaders,
-        status: 500
+        status: 200 // Return 200 even on error to acknowledge receipt
       }
     )
   }

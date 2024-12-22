@@ -1,1 +1,4 @@
+# project_id must be the first line
 project_id = "mwdaxgwuztccxfgbusuj"
+name = "asaas-webhook"
+version = 1
