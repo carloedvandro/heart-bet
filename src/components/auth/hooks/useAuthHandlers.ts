@@ -20,7 +20,7 @@ export function useAuthHandlers() {
 
     try {
       setIsLoading(true);
-      console.log(`Attempting sign-in for email: ${email}`);
+      console.log("Attempting sign-in for email:", email);
 
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
@@ -28,18 +28,23 @@ export function useAuthHandlers() {
       });
 
       if (error) {
-        console.error("Signin error details:", {
-          name: error.name,
+        console.error("Sign-in error:", {
           message: error.message,
-          status: error.status
+          status: error.status,
+          details: error
         });
         
+        if (error.message.includes("Invalid API key")) {
+          toast.error("Erro de configuração do servidor. Por favor, contate o suporte.");
+          return false;
+        }
+
         switch (error.message) {
           case "Invalid login credentials":
-            toast.error("Email ou senha incorretos. Verifique suas credenciais.");
+            toast.error("Email ou senha incorretos");
             break;
           case "Email not confirmed":
-            toast.error("Por favor, confirme seu email antes de fazer login. Verifique sua caixa de entrada.");
+            toast.error("Por favor, confirme seu email antes de fazer login");
             break;
           default:
             toast.error("Erro ao fazer login. Tente novamente.");
@@ -47,6 +52,7 @@ export function useAuthHandlers() {
         return false;
       }
 
+      console.log("Sign-in successful:", data);
       toast.success("Login realizado com sucesso!");
       return true;
     } catch (error) {

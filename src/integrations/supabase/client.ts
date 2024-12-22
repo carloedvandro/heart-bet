@@ -14,11 +14,12 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
     persistSession: true,
     detectSessionInUrl: true,
     storage: localStorage,
-    flowType: 'pkce'
+    flowType: 'pkce',
+    debug: true // Enable debug mode to help troubleshoot auth issues
   }
 });
 
 // Log auth state changes for debugging
 supabase.auth.onAuthStateChange((event, session) => {
-  console.log('Auth state changed:', event, session);
+  console.log('Auth state changed:', { event, session });
 });
