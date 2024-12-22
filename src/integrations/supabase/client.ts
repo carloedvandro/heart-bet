@@ -19,6 +19,6 @@ export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
 });
 
 // Log auth state changes for debugging
-supabase.auth.onAuthStateChange((event) => {
-  console.log('Auth state changed:', event);
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log('Auth state changed:', event, session);
 });
