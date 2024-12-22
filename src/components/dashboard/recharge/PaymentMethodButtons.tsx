@@ -34,23 +34,23 @@ export function PaymentMethodButtons({
     try {
       setLoading(true);
       
-      const requestBody = {
+      const body = {
         userId: session.user.id,
         amount: amount
       };
       
       console.log('Payment request details:', {
-        requestBody,
+        body,
         hasSession: !!session,
         accessToken: !!session?.access_token
       });
 
       // First attempt with direct invoke
       try {
-        console.log('Attempting function invoke with body:', JSON.stringify(requestBody));
+        console.log('Attempting function invoke with body:', JSON.stringify(body));
         
         const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
-          body: requestBody,
+          body,
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${session.access_token}`
@@ -85,7 +85,7 @@ export function PaymentMethodButtons({
               'Authorization': `Bearer ${session.access_token}`,
               'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify(body)
           }
         );
 
