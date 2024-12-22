@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 const supabaseUrl = "https://mwdaxgwuztccxfgbusuj.supabase.co";
-const supabaseKey = "COLE_AQUI_A_ANON_PUBLIC_KEY_DO_SUPABASE";
+const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || "YOUR_ANON_PUBLIC_KEY";
 
 if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase URL or Key');
