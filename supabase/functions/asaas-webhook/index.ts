@@ -24,9 +24,9 @@ serve(async (req) => {
   if (req.method !== 'POST') {
     console.log('❌ Invalid method:', req.method)
     return new Response(
-      JSON.stringify({ error: 'Only POST requests are allowed' }),
+      JSON.stringify({ received: true, error: 'Only POST requests are allowed' }),
       { 
-        status: 405,
+        status: 200, // Always return 200 as per Asaas docs
         headers: corsHeaders 
       }
     )
@@ -36,24 +36,29 @@ serve(async (req) => {
     // Log all headers for debugging
     console.log('📨 Received headers:', Array.from(req.headers.entries()))
 
-    // Accept token from multiple possible header names
-    const authHeader = req.headers.get('asaas-access-token') || 
-                      req.headers.get('access_token') ||
-                      req.headers.get('x-access-token') ||
-                      req.headers.get('authorization')
-    
+    // Get the access token from header
+    const accessToken = req.headers.get('asaas-access-token')
     const expectedToken = Deno.env.get('ASAAS_API_KEY')
 
     // Log token presence (but not the actual tokens)
     console.log('🔑 Auth check:', {
-      hasAuthHeader: !!authHeader,
+      hasAccessToken: !!accessToken,
       hasExpectedToken: !!expectedToken,
       headerNames: Array.from(req.headers.keys())
     })
 
-    // For testing/debugging purposes, temporarily bypass token validation
-    // Remove this in production
-    console.log('⚠️ Temporarily bypassing token validation for testing')
+    // Validate access token
+    if (!accessToken || !expectedToken || accessToken !== expectedToken) {
+      console.error('❌ Invalid or missing webhook token')
+      // Return 200 even for unauthorized requests as per Asaas docs
+      return new Response(
+        JSON.stringify({ received: true, error: 'Invalid access token' }),
+        { 
+          status: 200,
+          headers: corsHeaders 
+        }
+      )
+    }
 
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
@@ -125,7 +130,7 @@ serve(async (req) => {
 
     // Always return 200 to acknowledge receipt
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ received: true }),
       { 
         headers: corsHeaders,
         status: 200 
@@ -136,7 +141,7 @@ serve(async (req) => {
     console.error('❌ Error processing webhook:', error)
     // Still return 200 to acknowledge receipt, even on error
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ received: true, error: error.message }),
       { 
         headers: corsHeaders,
         status: 200 
