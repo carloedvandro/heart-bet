@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
 import { FinancialProfileForm, FormData } from "./FinancialProfileForm";
-import { formatCPF, validateCPFFormat } from "@/utils/cpfUtils";
+import { formatCPF, validateCPF } from "@/utils/cpfUtils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface FinancialProfileDialogProps {
@@ -37,8 +37,8 @@ export function FinancialProfileDialog({ open, onOpenChange }: FinancialProfileD
       return;
     }
 
-    if (!validateCPFFormat(formData.cpf)) {
-      toast.error("CPF inválido - deve conter 11 dígitos");
+    if (!validateCPF(formData.cpf)) {
+      toast.error("CPF inválido - por favor verifique o número");
       return;
     }
 
