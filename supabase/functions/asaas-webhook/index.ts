@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, asaas-access-token',
 }
 
 serve(async (req) => {
@@ -27,6 +27,9 @@ serve(async (req) => {
 
     // Verify if the request is coming from Asaas
     const authHeader = req.headers.get('asaas-access-token')
+    console.log('🔑 Received auth header:', authHeader)
+    console.log('🔑 Expected API key:', ASAAS_API_KEY)
+
     if (authHeader !== ASAAS_API_KEY) {
       console.error('❌ Invalid Asaas access token')
       return new Response(
