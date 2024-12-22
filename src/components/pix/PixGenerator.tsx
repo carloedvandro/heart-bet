@@ -32,59 +32,38 @@ export function PixGenerator() {
 
     setLoading(true);
     try {
-      // Criar registro de recarga pendente
-      const { data: recharge, error: rechargeError } = await supabase
-        .from('recharges')
-        .insert({
-          user_id: session.user.id,
-          amount: numericAmount,
-          status: 'pending'
-        })
-        .select()
-        .single();
+      console.log('Gerando link de pagamento para:', {
+        userId: session.user.id,
+        amount: numericAmount
+      });
 
-      if (rechargeError) {
-        console.error('Error creating recharge:', rechargeError);
-        throw new Error('Erro ao criar registro de recarga');
-      }
-
-      // Gerar PIX via Asaas
-      const { data, error } = await supabase.functions.invoke('generate-asaas-payment', {
-        body: { amount: numericAmount }
+      const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
+        body: { 
+          userId: session.user.id, 
+          amount: numericAmount 
+        }
       });
 
       if (error) {
-        console.error('Error invoking function:', error);
-        throw new Error('Erro ao gerar PIX');
+        console.error('Error generating payment link:', error);
+        throw error;
       }
 
-      if (!data?.payment?.pixQrCode || !data?.payment?.pixKey) {
-        throw new Error('Dados do PIX inválidos');
+      if (!data?.paymentUrl) {
+        throw new Error('Link de pagamento inválido');
       }
 
-      setPixData({
-        pixQrCode: data.payment.pixQrCode,
-        pixKey: data.payment.pixKey
-      });
+      // Abrir o link de pagamento em uma nova aba
+      window.open(data.paymentUrl, '_blank');
+      
+      toast.success("Link de pagamento gerado com sucesso!");
+      setAmount("");
 
-      toast.success("PIX gerado com sucesso!");
     } catch (error) {
-      console.error('Error generating PIX:', error);
-      toast.error(error instanceof Error ? error.message : "Erro ao gerar PIX. Por favor, tente novamente.");
+      console.error('Error:', error);
+      toast.error("Erro ao gerar link de pagamento. Por favor, tente novamente.");
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleCopyPixKey = async () => {
-    if (!pixData?.pixKey) return;
-    
-    try {
-      await navigator.clipboard.writeText(pixData.pixKey);
-      toast.success("Código PIX copiado!");
-    } catch (error) {
-      console.error('Error copying PIX key:', error);
-      toast.error("Erro ao copiar código PIX");
     }
   };
 
@@ -142,7 +121,10 @@ export function PixGenerator() {
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleCopyPixKey}
+                onClick={() => {
+                  navigator.clipboard.writeText(pixData.pixKey);
+                  toast.success("Código PIX copiado!");
+                }}
               >
                 Copiar
               </Button>

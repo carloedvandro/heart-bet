@@ -7,6 +7,8 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  console.log('🎯 Asaas webhook received')
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
@@ -26,7 +28,7 @@ serve(async (req) => {
     // Verify if the request is coming from Asaas
     const authHeader = req.headers.get('asaas-access-token')
     if (authHeader !== ASAAS_API_KEY) {
-      console.error('Invalid Asaas access token')
+      console.error('❌ Invalid Asaas access token')
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
         { 
@@ -37,28 +39,47 @@ serve(async (req) => {
     }
 
     const payload = await req.json()
-    console.log('Received webhook payload:', payload)
+    console.log('📦 Received webhook payload:', payload)
 
     // Handle different event types
     if (payload.event === 'PAYMENT_RECEIVED' || payload.event === 'PAYMENT_CONFIRMED') {
       const payment = payload.payment
-      console.log('Processing payment:', payment)
+      console.log('💰 Processing payment:', payment)
 
-      // Update payment status in our database
-      const { error: updateError } = await supabase
+      // Get the payment record from our database
+      const { data: asaasPayment, error: paymentError } = await supabase
         .from('asaas_payments')
         .update({
           status: 'received',
           paid_at: new Date().toISOString()
         })
         .eq('asaas_id', payment.id)
+        .select('user_id, amount')
+        .single()
 
-      if (updateError) {
-        console.error('Error updating payment:', updateError)
-        throw updateError
+      if (paymentError) {
+        console.error('❌ Error updating payment:', paymentError)
+        throw paymentError
       }
 
-      console.log('Payment updated successfully')
+      if (!asaasPayment) {
+        throw new Error('Payment not found in database')
+      }
+
+      console.log('✅ Payment found:', asaasPayment)
+
+      // Update user balance
+      const { error: balanceError } = await supabase.rpc(
+        'increment_balance',
+        { amount: asaasPayment.amount }
+      )
+
+      if (balanceError) {
+        console.error('❌ Error updating balance:', balanceError)
+        throw balanceError
+      }
+
+      console.log('✅ Balance updated successfully')
     }
 
     return new Response(
@@ -70,7 +91,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error processing webhook:', error)
+    console.error('❌ Error processing webhook:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
