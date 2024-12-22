@@ -56,18 +56,34 @@ serve(async (req) => {
       throw new Error('userId is required');
     }
 
-    // First, create or get customer
-    console.log('🔍 Creating customer for user:', userId);
-    const customerPayload = {
-      name: `User ${userId}`,
-      cpfCnpj: "12345678909",
-      email: `user-${userId}@example.com`,
-    };
+    // First, try to find existing customer
+    console.log('🔍 Looking up customer for user:', userId);
+    const searchResponse = await fetch(`${ASAAS_API_URL}/customers?email=user-${userId}@example.com`, {
+      headers: {
+        'Content-Type': 'application/json',
+        'access_token': ASAAS_API_KEY,
+      }
+    });
 
-    console.log('📤 Creating customer with payload:', customerPayload);
-    
+    const searchResult = await searchResponse.json();
+    console.log('🔍 Customer search result:', searchResult);
+
     let customerId;
-    try {
+
+    if (searchResult.data && searchResult.data.length > 0) {
+      // Use existing customer
+      customerId = searchResult.data[0].id;
+      console.log('✅ Found existing customer:', customerId);
+    } else {
+      // Create new customer
+      const customerPayload = {
+        name: `User ${userId}`,
+        cpfCnpj: "12345678909",
+        email: `user-${userId}@example.com`,
+      };
+
+      console.log('📤 Creating new customer with payload:', customerPayload);
+      
       const customerResponse = await fetch(`${ASAAS_API_URL}/customers`, {
         method: 'POST',
         headers: {
@@ -77,35 +93,20 @@ serve(async (req) => {
         body: JSON.stringify(customerPayload)
       });
 
-      console.log('Customer API Response Status:', customerResponse.status);
-      const responseText = await customerResponse.text();
-      console.log('Customer API Raw Response:', responseText);
+      const customerData = await customerResponse.json();
+      console.log('📥 Customer creation response:', customerData);
 
-      if (!customerResponse.ok) {
-        throw new Error(`Customer API error: ${responseText}`);
+      if (!customerResponse.ok || !customerData.id) {
+        console.error('❌ Failed to create customer:', customerData);
+        throw new Error(`Failed to create customer: ${JSON.stringify(customerData)}`);
       }
-
-      let customerData;
-      try {
-        customerData = JSON.parse(responseText);
-      } catch (error) {
-        console.error('Failed to parse customer response:', error);
-        throw new Error(`Invalid customer API response: ${responseText}`);
-      }
-
-      console.log('📥 Customer API response:', customerData);
 
       customerId = customerData.id;
-      if (!customerId) {
-        throw new Error('Invalid customer response: missing customer ID');
-      }
-    } catch (error) {
-      console.error('❌ Error creating customer:', error);
-      throw new Error(`Failed to create customer: ${error.message}`);
+      console.log('✅ Created new customer:', customerId);
     }
 
     // Then create payment
-    console.log('📡 Preparing Asaas payment request...');
+    console.log('💳 Creating payment for customer:', customerId);
     const paymentPayload = {
       customer: customerId,
       billingType: 'PIX',
@@ -114,14 +115,14 @@ serve(async (req) => {
       description: `Recarga no sistema - User ID: ${userId}`,
       externalReference: userId
     };
+
     console.log('📤 Payment request payload:', paymentPayload);
 
-    let asaasResponse;
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), ASAAS_TIMEOUT);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), ASAAS_TIMEOUT);
 
-      asaasResponse = await fetch(`${ASAAS_API_URL}/payments`, {
+    try {
+      const paymentResponse = await fetch(`${ASAAS_API_URL}/payments`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -132,30 +133,17 @@ serve(async (req) => {
       });
 
       clearTimeout(timeoutId);
-      
-      const responseText = await asaasResponse.text();
-      console.log('Payment API Raw Response:', responseText);
 
-      if (!asaasResponse.ok) {
-        throw new Error(`Payment API error: ${responseText}`);
-      }
+      const paymentData = await paymentResponse.json();
+      console.log('📥 Payment creation response:', paymentData);
 
-      let responseData;
-      try {
-        responseData = JSON.parse(responseText);
-      } catch (error) {
-        console.error('Failed to parse payment response:', error);
-        throw new Error(`Invalid payment API response: ${responseText}`);
-      }
-
-      console.log('✅ Parsed Asaas response:', responseData);
-
-      if (!responseData.invoiceUrl) {
-        throw new Error('Invalid payment response: missing invoiceUrl');
+      if (!paymentResponse.ok || !paymentData.invoiceUrl) {
+        console.error('❌ Failed to create payment:', paymentData);
+        throw new Error(`Failed to create payment: ${JSON.stringify(paymentData)}`);
       }
 
       return new Response(
-        JSON.stringify({ paymentUrl: responseData.invoiceUrl }),
+        JSON.stringify({ paymentUrl: paymentData.invoiceUrl }),
         {
           status: 200,
           headers: { 
@@ -166,9 +154,8 @@ serve(async (req) => {
       );
 
     } catch (error) {
-      console.error('❌ Error during Asaas API call:', error);
       if (error.name === 'AbortError') {
-        throw new Error('Asaas API timeout - request took too long');
+        throw new Error('Payment creation timeout - request took too long');
       }
       throw error;
     }
