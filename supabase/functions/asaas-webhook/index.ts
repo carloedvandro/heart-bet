@@ -1,10 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 
-// Permissive CORS headers to allow all requests
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': '*',
   'Content-Type': 'application/json'
 }
@@ -21,22 +20,30 @@ serve(async (req) => {
     })
   }
 
+  // Only accept POST requests
+  if (req.method !== 'POST') {
+    console.log('❌ Invalid method:', req.method)
+    return new Response(
+      JSON.stringify({ error: 'Only POST requests are allowed' }),
+      { 
+        status: 405,
+        headers: corsHeaders 
+      }
+    )
+  }
+
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('❌ Missing environment variables')
       throw new Error('Missing environment variables')
     }
 
-    // Use service role key for admin privileges
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
-
     const payload = await req.json()
     console.log('📦 Received webhook payload:', payload)
 
-    // Handle different event types
     if (payload.event === 'PAYMENT_RECEIVED' || payload.event === 'PAYMENT_CONFIRMED') {
       const payment = payload.payment
       console.log('💰 Processing payment:', payment)
@@ -77,7 +84,6 @@ serve(async (req) => {
 
       if (paymentError) {
         console.error('❌ Error updating payment status:', paymentError)
-        // Don't throw here, we already updated the balance
         console.log('⚠️ Payment status update failed but balance was updated')
       }
 
