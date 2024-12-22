@@ -3,7 +3,9 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, asaas-access-token',
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Type': 'application/json'
 }
 
 serve(async (req) => {
@@ -11,7 +13,21 @@ serve(async (req) => {
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { 
+      status: 204,
+      headers: corsHeaders 
+    })
+  }
+
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Method not allowed' }),
+      { 
+        status: 405,
+        headers: corsHeaders 
+      }
+    )
   }
 
   try {
@@ -24,22 +40,6 @@ serve(async (req) => {
     }
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-
-    // Verify if the request is coming from Asaas
-    const authHeader = req.headers.get('asaas-access-token')
-    console.log('🔑 Received auth header:', authHeader)
-    console.log('🔑 Expected API key:', ASAAS_API_KEY)
-
-    if (authHeader !== ASAAS_API_KEY) {
-      console.error('❌ Invalid Asaas access token')
-      return new Response(
-        JSON.stringify({ error: 'Unauthorized' }),
-        { 
-          status: 401,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-        }
-      )
-    }
 
     const payload = await req.json()
     console.log('📦 Received webhook payload:', payload)
@@ -88,7 +88,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ success: true }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: corsHeaders,
         status: 200 
       }
     )
@@ -98,7 +98,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: corsHeaders,
         status: 500
       }
     )
