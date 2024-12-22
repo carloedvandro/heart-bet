@@ -46,24 +46,71 @@ export function PaymentMethodButtons({
         accessToken: !!session?.access_token
       });
 
-      const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
-        body: requestBody
-      });
+      // First attempt with direct invoke
+      try {
+        console.log('Attempting function invoke with body:', JSON.stringify(requestBody));
+        
+        const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
+          body: requestBody,
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session.access_token}`
+          }
+        });
 
-      console.log('Supabase function response:', { data, error });
+        console.log('Supabase function response:', { data, error });
 
-      if (error) {
-        console.error('Error generating payment link:', error);
-        throw new Error(error.message || 'Erro ao gerar link de pagamento');
+        if (error) {
+          console.error('Error generating payment link:', error);
+          throw new Error(error.message || 'Erro ao gerar link de pagamento');
+        }
+
+        if (!data?.paymentUrl) {
+          console.error('Invalid payment URL in response:', data);
+          throw new Error('Link de pagamento inválido');
+        }
+
+        // Open payment URL in new tab
+        window.open(data.paymentUrl, '_blank');
+        toast.success("Link de pagamento gerado com sucesso!");
+
+      } catch (invokeError) {
+        console.error('Function invoke failed, attempting direct fetch...', invokeError);
+        
+        // Fallback to direct fetch if invoke fails
+        const response = await fetch(
+          `${process.env.SUPABASE_URL}/functions/v1/generate-asaas-payment-link`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.access_token}`,
+              'apikey': process.env.SUPABASE_ANON_KEY || ''
+            },
+            body: JSON.stringify(requestBody)
+          }
+        );
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Direct fetch failed:', {
+            status: response.status,
+            statusText: response.statusText,
+            body: errorText
+          });
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (!data.paymentUrl) {
+          throw new Error('Invalid payment URL in response');
+        }
+
+        window.open(data.paymentUrl, '_blank');
+        toast.success("Link de pagamento gerado com sucesso!");
       }
 
-      if (!data?.paymentUrl) {
-        console.error('Invalid payment URL in response:', data);
-        throw new Error('Link de pagamento inválido');
-      }
-
-      // Open payment URL in new tab
-      window.open(data.paymentUrl, '_blank');
     } catch (error) {
       console.error('Payment link generation error:', error);
       toast.error(error instanceof Error ? error.message : "Erro ao gerar link de pagamento. Por favor, tente novamente mais tarde.");
