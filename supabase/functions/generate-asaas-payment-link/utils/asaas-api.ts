@@ -30,7 +30,7 @@ export async function lookupCustomer(email: string) {
     return data;
   } catch (error) {
     console.error('❌ Customer lookup error:', error);
-    throw error;
+    throw new Error(`Failed to lookup customer: ${error.message}`);
   }
 }
 
@@ -67,7 +67,7 @@ export async function createCustomer(name: string, email: string) {
     return data;
   } catch (error) {
     console.error('❌ Customer creation error:', error);
-    throw error;
+    throw new Error(`Failed to create customer: ${error.message}`);
   }
 }
 
@@ -107,6 +107,6 @@ export async function createPayment(customerId: string, amount: number, userId: 
     return data;
   } catch (error) {
     console.error('❌ Payment creation error:', error);
-    throw error;
+    throw new Error(`Failed to create payment: ${error.message}`);
   }
 }
