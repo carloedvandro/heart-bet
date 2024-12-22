@@ -36,30 +36,6 @@ serve(async (req) => {
     // Log all headers for debugging
     console.log('📨 Received headers:', Array.from(req.headers.entries()))
 
-    // Get the access token from header - now optional
-    const accessToken = req.headers.get('asaas-access-token')
-    const expectedToken = Deno.env.get('ASAAS_WEBHOOK_TOKEN')
-
-    // Log token presence (but not the actual tokens)
-    console.log('🔑 Auth check:', {
-      hasAccessToken: !!accessToken,
-      hasExpectedToken: !!expectedToken,
-      headerNames: Array.from(req.headers.keys())
-    })
-
-    // Only validate token if both tokens are present
-    if (expectedToken && accessToken && accessToken !== expectedToken) {
-      console.error('❌ Invalid webhook token')
-      // Return 200 even for unauthorized requests as per Asaas docs
-      return new Response(
-        JSON.stringify({ received: true, error: 'Invalid access token' }),
-        { 
-          status: 200,
-          headers: corsHeaders 
-        }
-      )
-    }
-
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
