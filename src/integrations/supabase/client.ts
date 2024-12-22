@@ -8,15 +8,7 @@ if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing Supabase URL or Key');
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    storage: localStorage,
-    flowType: 'pkce'
-  }
-});
+export const supabase = createClient<Database>(supabaseUrl, supabaseKey);
 
 // Log auth state changes for debugging
 supabase.auth.onAuthStateChange((event) => {
