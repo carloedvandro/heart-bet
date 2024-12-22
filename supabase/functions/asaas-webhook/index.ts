@@ -22,14 +22,15 @@ serve(async (req) => {
 
   try {
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
-    const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')
+    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
       console.error('❌ Missing environment variables')
       throw new Error('Missing environment variables')
     }
 
-    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    // Use service role key for admin privileges
+    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
     const payload = await req.json()
     console.log('📦 Received webhook payload:', payload)
@@ -39,7 +40,7 @@ serve(async (req) => {
       const payment = payload.payment
       console.log('💰 Processing payment:', payment)
 
-      // Extract user_id from description or externalReference
+      // Extract user_id from externalReference or description
       const userId = payment.externalReference || 
                     payment.description?.match(/User ID: ([^\s]+)/)?.[1]
 
@@ -73,10 +74,13 @@ serve(async (req) => {
 
       console.log('✅ Payment found:', asaasPayment)
 
-      // Update user balance
+      // Update user balance - convert from cents to real
+      const amountInReal = payment.value / 100
+      console.log('💵 Updating balance with amount:', amountInReal)
+
       const { error: balanceError } = await supabase.rpc(
         'increment_balance',
-        { amount: payment.value / 100 } // Convert from cents to real
+        { amount: amountInReal }
       )
 
       if (balanceError) {
@@ -87,6 +91,7 @@ serve(async (req) => {
       console.log('✅ Balance updated successfully')
     }
 
+    // Always return 200 to acknowledge receipt
     return new Response(
       JSON.stringify({ success: true }),
       { 
@@ -97,11 +102,12 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('❌ Error processing webhook:', error)
+    // Still return 200 to acknowledge receipt, even on error
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
         headers: corsHeaders,
-        status: 200 // Return 200 even on error to acknowledge receipt
+        status: 200 
       }
     )
   }
