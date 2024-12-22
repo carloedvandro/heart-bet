@@ -54,7 +54,7 @@ export function PaymentMethodButtons({
           body: requestBody,
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${session.access_token}`
+            'Authorization': `Bearer ${session.access_token}`
           }
         });
 
@@ -79,13 +79,13 @@ export function PaymentMethodButtons({
         
         // Fallback to direct fetch if invoke fails
         const response = await fetch(
-          `${process.env.SUPABASE_URL}/functions/v1/generate-asaas-payment-link`,
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/generate-asaas-payment-link`,
           {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${session.access_token}`,
-              'apikey': process.env.SUPABASE_ANON_KEY || ''
+              'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
             },
             body: JSON.stringify(requestBody)
           }
