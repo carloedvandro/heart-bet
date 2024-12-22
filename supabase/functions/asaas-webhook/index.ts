@@ -33,6 +33,30 @@ serve(async (req) => {
   }
 
   try {
+    // Validate Asaas webhook token
+    const authHeader = req.headers.get('asaas-access-token') || req.headers.get('access_token')
+    const expectedToken = Deno.env.get('ASAAS_API_KEY')
+
+    console.log('🔑 Validating webhook token:', {
+      hasAuthHeader: !!authHeader,
+      hasExpectedToken: !!expectedToken,
+      headerNames: Array.from(req.headers.keys())
+    })
+
+    if (!authHeader || !expectedToken || authHeader !== expectedToken) {
+      console.error('❌ Invalid or missing webhook token:', {
+        receivedToken: authHeader,
+        expectedToken: '***' // Don't log the actual token
+      })
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { 
+          status: 401,
+          headers: corsHeaders 
+        }
+      )
+    }
+
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
