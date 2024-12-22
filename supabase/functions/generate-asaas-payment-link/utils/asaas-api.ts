@@ -5,27 +5,47 @@ if (!ASAAS_API_KEY) {
   throw new Error('ASAAS_API_KEY is not configured');
 }
 
+async function makeAsaasRequest(endpoint: string, options: RequestInit = {}) {
+  const url = `${ASAAS_API_URL}${endpoint}`;
+  console.log(`🔄 Making Asaas API request to: ${url}`);
+  
+  try {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        'access_token': ASAAS_API_KEY,
+        ...options.headers,
+      },
+    });
+
+    const responseText = await response.text();
+    console.log(`📥 Asaas API response: ${responseText}`);
+
+    if (!response.ok) {
+      throw new Error(`Asaas API error: ${responseText}`);
+    }
+
+    try {
+      return JSON.parse(responseText);
+    } catch (e) {
+      console.error('❌ Failed to parse JSON response:', e);
+      throw new Error('Invalid JSON response from Asaas API');
+    }
+  } catch (error) {
+    console.error(`❌ Request failed for ${url}:`, error);
+    throw error;
+  }
+}
+
 export async function lookupCustomer(email: string) {
   console.log('🔍 Looking up customer with email:', email);
   
   try {
-    const response = await fetch(
-      `${ASAAS_API_URL}/customers?email=${encodeURIComponent(email)}`,
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          'access_token': ASAAS_API_KEY
-        }
-      }
+    const data = await makeAsaasRequest(
+      `/customers?email=${encodeURIComponent(email)}`
     );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Customer lookup API error:', errorText);
-      throw new Error(`Asaas API error: ${errorText}`);
-    }
-
-    const data = await response.json();
+    
     console.log('✅ Customer lookup response:', data);
     return data;
   } catch (error) {
@@ -34,35 +54,24 @@ export async function lookupCustomer(email: string) {
   }
 }
 
-export async function createCustomer(name: string, email: string) {
-  console.log('📤 Creating customer:', { name, email });
+export async function createCustomer(name: string, email: string, cpf: string) {
+  console.log('📤 Creating customer:', { name, email, cpf });
   
   try {
     const customerPayload = {
       name,
       email,
-      cpfCnpj: "00000000000" // Using a valid CPF format for testing
+      cpfCnpj: cpf || "00000000000" // Using CPF if available, fallback to default
     };
 
-    const response = await fetch(
-      `${ASAAS_API_URL}/customers`,
+    const data = await makeAsaasRequest(
+      '/customers',
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'access_token': ASAAS_API_KEY
-        },
-        body: JSON.stringify(customerPayload)
+        body: JSON.stringify(customerPayload),
       }
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Customer creation failed:', errorText);
-      throw new Error(`Asaas API error: ${errorText}`);
-    }
-
-    const data = await response.json();
     console.log('✅ Customer created:', data);
     return data;
   } catch (error) {
@@ -84,25 +93,14 @@ export async function createPayment(customerId: string, amount: number, userId: 
       externalReference: userId
     };
 
-    const response = await fetch(
-      `${ASAAS_API_URL}/payments`,
+    const data = await makeAsaasRequest(
+      '/payments',
       {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'access_token': ASAAS_API_KEY
-        },
-        body: JSON.stringify(paymentPayload)
+        body: JSON.stringify(paymentPayload),
       }
     );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('❌ Payment creation failed:', errorText);
-      throw new Error(`Asaas API error: ${errorText}`);
-    }
-
-    const data = await response.json();
     console.log('✅ Payment created:', data);
     return data;
   } catch (error) {

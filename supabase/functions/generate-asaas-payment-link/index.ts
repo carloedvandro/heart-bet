@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createCustomer, createPayment, lookupCustomer } from "./utils/asaas-api.ts"
+import { supabase } from "./utils/supabaseClient.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -40,15 +41,28 @@ serve(async (req) => {
 
     console.log('💰 Processing payment request:', { userId, amount });
 
-    // Get user email from auth token
+    // Get user data from auth token
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
       throw new Error('Authorization header is required');
     }
 
+    // Get user's financial profile for CPF
+    const { data: financialProfile, error: profileError } = await supabase
+      .from('financial_profiles')
+      .select('*')
+      .eq('id', userId)
+      .single();
+
+    if (profileError) {
+      console.error('Error fetching financial profile:', profileError);
+    }
+
     const token = authHeader.replace('Bearer ', '');
     const tokenData = JSON.parse(atob(token.split('.')[1]));
     const email = tokenData.email || `user-${userId}@example.com`;
+    const name = financialProfile?.full_name || email.split('@')[0];
+    const cpf = financialProfile?.cpf;
 
     console.log('🔍 Looking up customer with email:', email);
     let customerResult = await lookupCustomer(email);
@@ -59,7 +73,7 @@ serve(async (req) => {
       console.log('✅ Using existing customer:', customerId);
     } else {
       console.log('📝 Creating new customer');
-      const customerData = await createCustomer(email.split('@')[0], email);
+      const customerData = await createCustomer(name, email, cpf);
       console.log('📥 Customer created:', customerData);
 
       if (!customerData.id) {
