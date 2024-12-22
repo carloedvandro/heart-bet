@@ -60,7 +60,7 @@ serve(async (req) => {
     console.log('🔍 Looking up customer for user:', userId);
     const customerPayload = {
       name: `User ${userId}`,
-      cpfCnpj: "12345678909", // Valid CPF format for testing
+      cpfCnpj: "12345678909",
       email: `user-${userId}@example.com`,
     };
 
@@ -77,14 +77,19 @@ serve(async (req) => {
         body: JSON.stringify(customerPayload)
       });
 
+      if (!customerResponse.ok) {
+        const errorText = await customerResponse.text();
+        console.error('❌ Customer API error response:', errorText);
+        throw new Error(`Customer API error: ${errorText}`);
+      }
+
       const customerData = await customerResponse.json();
       console.log('📥 Customer API response:', customerData);
 
-      if (!customerResponse.ok) {
-        throw new Error(`Customer API error: ${JSON.stringify(customerData)}`);
-      }
-
       customerId = customerData.id;
+      if (!customerId) {
+        throw new Error('Invalid customer response: missing customer ID');
+      }
     } catch (error) {
       console.error('❌ Error creating customer:', error);
       throw new Error(`Failed to create customer: ${error.message}`);
@@ -119,33 +124,26 @@ serve(async (req) => {
 
       clearTimeout(timeoutId);
       
-      const responseText = await asaasResponse.text();
-      console.log('📥 Raw Asaas response:', responseText);
-
       if (!asaasResponse.ok) {
+        const errorText = await asaasResponse.text();
         console.error('❌ Error response from Asaas:', {
           status: asaasResponse.status,
           statusText: asaasResponse.statusText,
-          body: responseText
+          body: errorText
         });
         
-        try {
-          const errorJson = JSON.parse(responseText);
-          throw new Error(`Asaas API error: ${JSON.stringify(errorJson)}`);
-        } catch (parseError) {
-          throw new Error(`Asaas API error: ${responseText || `${asaasResponse.status} ${asaasResponse.statusText}`}`);
-        }
+        throw new Error(`Asaas API error: ${errorText}`);
       }
 
-      const data = JSON.parse(responseText);
-      console.log('✅ Parsed Asaas response:', data);
+      const responseData = await asaasResponse.json();
+      console.log('✅ Parsed Asaas response:', responseData);
 
-      if (!data.invoiceUrl) {
+      if (!responseData.invoiceUrl) {
         throw new Error('Invalid payment response: missing invoiceUrl');
       }
 
       return new Response(
-        JSON.stringify({ paymentUrl: data.invoiceUrl }),
+        JSON.stringify({ paymentUrl: responseData.invoiceUrl }),
         {
           status: 200,
           headers: { 
