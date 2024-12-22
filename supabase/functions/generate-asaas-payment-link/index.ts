@@ -8,9 +8,7 @@ const corsHeaders = {
 
 serve(async (req) => {
   console.log('🚀 Function started');
-  console.log('Method:', req.method);
-  console.log('Headers:', Object.fromEntries(req.headers.entries()));
-
+  
   if (req.method === 'OPTIONS') {
     return new Response(null, { 
       status: 204,
@@ -42,8 +40,17 @@ serve(async (req) => {
 
     console.log('💰 Processing payment request:', { userId, amount });
 
-    // Use actual email from auth token if available, otherwise generate one
-    const email = `user-${userId}@example.com`;
+    // Get user email from auth token
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      throw new Error('Authorization header is required');
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const tokenData = JSON.parse(atob(token.split('.')[1]));
+    const email = tokenData.email || `user-${userId}@example.com`;
+
+    console.log('🔍 Looking up customer with email:', email);
     let customerResult = await lookupCustomer(email);
     let customerId;
 
@@ -51,7 +58,8 @@ serve(async (req) => {
       customerId = customerResult.data[0].id;
       console.log('✅ Using existing customer:', customerId);
     } else {
-      const customerData = await createCustomer(`User ${userId}`, email);
+      console.log('📝 Creating new customer');
+      const customerData = await createCustomer(email.split('@')[0], email);
       console.log('📥 Customer created:', customerData);
 
       if (!customerData.id) {
@@ -61,6 +69,7 @@ serve(async (req) => {
       customerId = customerData.id;
     }
 
+    console.log('💳 Creating payment for customer:', customerId);
     const paymentData = await createPayment(customerId, amount, userId);
     console.log('📥 Payment created:', paymentData);
 
