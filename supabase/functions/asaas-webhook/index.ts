@@ -1,10 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 
+// Updated CORS headers to be more permissive
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Methods': '*',
   'Content-Type': 'application/json'
 }
 
@@ -13,6 +14,7 @@ serve(async (req) => {
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('👉 Handling CORS preflight request')
     return new Response(null, { 
       status: 204,
       headers: corsHeaders 
@@ -21,6 +23,7 @@ serve(async (req) => {
 
   // Only allow POST requests
   if (req.method !== 'POST') {
+    console.log('❌ Method not allowed:', req.method)
     return new Response(
       JSON.stringify({ error: 'Method not allowed' }),
       { 
@@ -35,6 +38,7 @@ serve(async (req) => {
     const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')
 
     if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      console.error('❌ Missing environment variables')
       throw new Error('Missing environment variables')
     }
 
@@ -65,6 +69,7 @@ serve(async (req) => {
       }
 
       if (!asaasPayment) {
+        console.error('❌ Payment not found in database')
         throw new Error('Payment not found in database')
       }
 
