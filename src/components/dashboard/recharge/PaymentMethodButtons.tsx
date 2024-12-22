@@ -34,21 +34,18 @@ export function PaymentMethodButtons({
     try {
       setLoading(true);
       
-      const payload = {
+      // Log the request details before making the call
+      console.log('Preparing payment request with:', {
         userId: session.user.id,
-        amount: amount
-      };
-      
-      console.log('Payment request details:', {
-        payload,
+        amount: amount,
         hasSession: !!session,
         accessToken: !!session?.access_token
       });
 
       const { data, error } = await supabase.functions.invoke('generate-asaas-payment-link', {
-        body: payload,
-        headers: {
-          'Content-Type': 'application/json'
+        body: {
+          userId: session.user.id,
+          amount: amount
         }
       });
 
