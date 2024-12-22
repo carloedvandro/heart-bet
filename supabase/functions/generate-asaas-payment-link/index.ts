@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from "./utils/cors.ts"
-import { validateRequest } from "./utils/validation.ts"
 import { lookupCustomer, createCustomer, createPayment } from "./utils/asaas-api.ts"
 
 const TIMEOUT = 30000; // 30 second timeout
@@ -35,7 +34,11 @@ serve(async (req) => {
       throw new Error('Invalid JSON in request body');
     }
 
-    const { userId, amount } = validateRequest(requestBody);
+    const { userId, amount } = requestBody;
+    if (!userId || !amount) {
+      throw new Error('Missing required fields: userId and amount are required');
+    }
+
     console.log('💰 Processing payment request:', { userId, amount });
 
     const email = `user-${userId}@example.com`;
