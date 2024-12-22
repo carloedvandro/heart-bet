@@ -41,9 +41,8 @@ serve(async (req) => {
       const payment = payload.payment
       console.log('💰 Processing payment:', payment)
 
-      // Extract user_id from externalReference or description
-      const userId = payment.externalReference || 
-                    payment.description?.match(/User ID: ([^\s]+)/)?.[1]
+      // Extract user_id from externalReference
+      const userId = payment.externalReference
 
       if (!userId) {
         console.error('❌ No user ID found in payment')
@@ -52,33 +51,11 @@ serve(async (req) => {
 
       console.log('👤 Processing payment for user:', userId)
 
-      // Get the payment record from our database
-      const { data: asaasPayment, error: paymentError } = await supabase
-        .from('asaas_payments')
-        .update({
-          status: 'received',
-          paid_at: new Date().toISOString()
-        })
-        .eq('asaas_id', payment.id)
-        .select('user_id, amount')
-        .single()
-
-      if (paymentError) {
-        console.error('❌ Error updating payment:', paymentError)
-        throw paymentError
-      }
-
-      if (!asaasPayment) {
-        console.error('❌ Payment not found in database')
-        throw new Error('Payment not found in database')
-      }
-
-      console.log('✅ Payment found:', asaasPayment)
-
-      // Update user balance - convert from cents to real
+      // Convert payment value from cents to reais
       const amountInReal = payment.value / 100
-      console.log('💵 Updating balance with amount:', amountInReal)
+      console.log('💵 Payment amount in reais:', amountInReal)
 
+      // Update user balance
       const { error: balanceError } = await supabase.rpc(
         'increment_balance',
         { amount: amountInReal }
@@ -89,7 +66,22 @@ serve(async (req) => {
         throw balanceError
       }
 
-      console.log('✅ Balance updated successfully')
+      // Update payment status in our database
+      const { error: paymentError } = await supabase
+        .from('asaas_payments')
+        .update({
+          status: 'received',
+          paid_at: new Date().toISOString()
+        })
+        .eq('asaas_id', payment.id)
+
+      if (paymentError) {
+        console.error('❌ Error updating payment status:', paymentError)
+        // Don't throw here, we already updated the balance
+        console.log('⚠️ Payment status update failed but balance was updated')
+      }
+
+      console.log('✅ Payment processed successfully')
     }
 
     // Always return 200 to acknowledge receipt
