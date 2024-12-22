@@ -40,8 +40,7 @@ export function PaymentMethodButtons({
       };
       
       console.log('Payment request details:', {
-        userId: requestBody.userId,
-        amount: requestBody.amount,
+        requestBody,
         hasSession: !!session,
         accessToken: !!session?.access_token
       });
@@ -70,7 +69,6 @@ export function PaymentMethodButtons({
           throw new Error('Link de pagamento inválido');
         }
 
-        // Open payment URL in new tab
         window.open(data.paymentUrl, '_blank');
         toast.success("Link de pagamento gerado com sucesso!");
 
@@ -91,6 +89,8 @@ export function PaymentMethodButtons({
           }
         );
 
+        console.log('Direct fetch response status:', response.status);
+
         if (!response.ok) {
           const errorText = await response.text();
           console.error('Direct fetch failed:', {
@@ -102,6 +102,7 @@ export function PaymentMethodButtons({
         }
 
         const data = await response.json();
+        console.log('Direct fetch response data:', data);
         
         if (!data.paymentUrl) {
           throw new Error('Invalid payment URL in response');
