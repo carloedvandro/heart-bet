@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const ASAAS_API_URL = 'https://sandbox.asaas.com/api/v3'
 const ASAAS_API_KEY = Deno.env.get('ASAAS_API_KEY')
-const ASAAS_TIMEOUT = 10000
+const ASAAS_TIMEOUT = 30000 // Increased timeout to 30 seconds
 
 serve(async (req) => {
   console.log('🚀 Function started')
@@ -58,12 +58,21 @@ serve(async (req) => {
 
     // First, try to find existing customer
     console.log('🔍 Looking up customer for user:', userId);
-    const searchResponse = await fetch(`${ASAAS_API_URL}/customers?email=user-${userId}@example.com`, {
-      headers: {
-        'Content-Type': 'application/json',
-        'access_token': ASAAS_API_KEY,
+    const searchResponse = await fetch(
+      `${ASAAS_API_URL}/customers?email=user-${userId}@example.com`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'access_token': ASAAS_API_KEY,
+        }
       }
-    });
+    );
+
+    if (!searchResponse.ok) {
+      const errorText = await searchResponse.text();
+      console.error('❌ Customer search failed:', errorText);
+      throw new Error(`Customer search failed: ${errorText}`);
+    }
 
     const searchResult = await searchResponse.json();
     console.log('🔍 Customer search result:', searchResult);
@@ -71,18 +80,17 @@ serve(async (req) => {
     let customerId;
 
     if (searchResult.data && searchResult.data.length > 0) {
-      // Use existing customer
       customerId = searchResult.data[0].id;
       console.log('✅ Found existing customer:', customerId);
     } else {
-      // Create new customer
+      // Create new customer with more detailed error handling
       const customerPayload = {
         name: `User ${userId}`,
         cpfCnpj: "12345678909",
         email: `user-${userId}@example.com`,
       };
 
-      console.log('📤 Creating new customer with payload:', customerPayload);
+      console.log('📤 Creating customer with payload:', customerPayload);
       
       const customerResponse = await fetch(`${ASAAS_API_URL}/customers`, {
         method: 'POST',
@@ -93,19 +101,24 @@ serve(async (req) => {
         body: JSON.stringify(customerPayload)
       });
 
+      if (!customerResponse.ok) {
+        const errorText = await customerResponse.text();
+        console.error('❌ Customer creation failed:', errorText);
+        throw new Error(`Customer creation failed: ${errorText}`);
+      }
+
       const customerData = await customerResponse.json();
       console.log('📥 Customer creation response:', customerData);
 
-      if (!customerResponse.ok || !customerData.id) {
-        console.error('❌ Failed to create customer:', customerData);
-        throw new Error(`Failed to create customer: ${JSON.stringify(customerData)}`);
+      if (!customerData.id) {
+        throw new Error('Invalid customer creation response');
       }
 
       customerId = customerData.id;
       console.log('✅ Created new customer:', customerId);
     }
 
-    // Then create payment
+    // Create payment with enhanced error handling
     console.log('💳 Creating payment for customer:', customerId);
     const paymentPayload = {
       customer: customerId,
@@ -134,12 +147,17 @@ serve(async (req) => {
 
       clearTimeout(timeoutId);
 
+      if (!paymentResponse.ok) {
+        const errorText = await paymentResponse.text();
+        console.error('❌ Payment creation failed:', errorText);
+        throw new Error(`Payment creation failed: ${errorText}`);
+      }
+
       const paymentData = await paymentResponse.json();
       console.log('📥 Payment creation response:', paymentData);
 
-      if (!paymentResponse.ok || !paymentData.invoiceUrl) {
-        console.error('❌ Failed to create payment:', paymentData);
-        throw new Error(`Failed to create payment: ${JSON.stringify(paymentData)}`);
+      if (!paymentData.invoiceUrl) {
+        throw new Error('Invalid payment response - missing invoice URL');
       }
 
       return new Response(
