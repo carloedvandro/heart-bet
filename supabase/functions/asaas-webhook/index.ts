@@ -9,7 +9,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  console.log('🎯 Asaas webhook received:', req.method)
+  console.log('🎯 Asaas webhook received:', req.method, req.url)
   
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
