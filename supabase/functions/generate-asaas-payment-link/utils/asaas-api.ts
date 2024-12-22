@@ -21,7 +21,7 @@ export async function lookupCustomer(email: string) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('❌ Customer lookup failed:', errorText);
+      console.error('❌ Customer lookup API error:', errorText);
       throw new Error(`Asaas API error: ${errorText}`);
     }
 
@@ -30,7 +30,7 @@ export async function lookupCustomer(email: string) {
     return data;
   } catch (error) {
     console.error('❌ Customer lookup error:', error);
-    throw new Error(`Customer lookup failed: ${error.message}`);
+    throw error;
   }
 }
 
@@ -41,7 +41,7 @@ export async function createCustomer(name: string, email: string) {
     const customerPayload = {
       name,
       email,
-      cpfCnpj: "12345678909" // Valid CPF format for testing
+      cpfCnpj: "00000000000" // Using a valid CPF format for testing
     };
 
     const response = await fetch(
@@ -67,7 +67,7 @@ export async function createCustomer(name: string, email: string) {
     return data;
   } catch (error) {
     console.error('❌ Customer creation error:', error);
-    throw new Error(`Customer creation failed: ${error.message}`);
+    throw error;
   }
 }
 
@@ -107,6 +107,6 @@ export async function createPayment(customerId: string, amount: number, userId: 
     return data;
   } catch (error) {
     console.error('❌ Payment creation error:', error);
-    throw new Error(`Payment creation failed: ${error.message}`);
+    throw error;
   }
 }
