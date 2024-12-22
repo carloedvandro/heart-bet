@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { useSession } from "@supabase/auth-helpers-react";
 import { FinancialProfileForm, FormData } from "./financial-profile/FinancialProfileForm";
 import { useQueryClient } from "@tanstack/react-query";
+import { formatCPF, validateCPF } from "@/utils/cpfUtils";
 
 interface FinancialProfileDialogProps {
   open: boolean;
@@ -48,30 +49,36 @@ export function FinancialProfileDialog({ open, onOpenChange, existingProfile }: 
       return;
     }
 
+    // Validate CPF
+    const cleanCPF = formatCPF(formData.cpf);
+    if (!validateCPF(cleanCPF)) {
+      toast.error("CPF inválido - por favor verifique o número");
+      return;
+    }
+
     try {
       setLoading(true);
       
+      const dataToUpdate = {
+        ...formData,
+        cpf: cleanCPF // Always include CPF in the update
+      };
+      
       if (isEditMode) {
-        // Update existing profile
         const { error } = await supabase
           .from('financial_profiles')
-          .update({
-            ...formData,
-            // Excluir o CPF do objeto para não tentar atualizá-lo
-            cpf: undefined
-          })
+          .update(dataToUpdate)
           .eq('id', session.user.id);
 
         if (error) throw error;
         
         toast.success("Perfil financeiro atualizado com sucesso!");
       } else {
-        // Create new profile
         const { error } = await supabase
           .from('financial_profiles')
           .insert({
             id: session.user.id,
-            ...formData
+            ...dataToUpdate
           });
 
         if (error) {
@@ -85,7 +92,6 @@ export function FinancialProfileDialog({ open, onOpenChange, existingProfile }: 
         toast.success("Perfil financeiro cadastrado com sucesso!");
       }
 
-      // Invalidate the financial profile query to force a refetch
       queryClient.invalidateQueries({ queryKey: ['financial-profile'] });
       onOpenChange(false);
       if (!isEditMode) {
