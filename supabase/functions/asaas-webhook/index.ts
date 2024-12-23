@@ -72,9 +72,29 @@ serve(async (req) => {
 
       console.log('👤 Processing payment for user:', userId)
 
-      // Convert payment value from cents to reais
-      const amountInReal = payment.value / 100
+      // The amount is already in reais, no need to convert from cents
+      const amountInReal = payment.value
       console.log('💵 Payment amount in reais:', amountInReal)
+
+      // First check if this payment was already processed
+      const { data: existingPayment, error: checkError } = await supabase
+        .from('asaas_payments')
+        .select('status')
+        .eq('asaas_id', payment.id)
+        .single()
+
+      if (checkError) {
+        console.error('❌ Error checking payment status:', checkError)
+        throw checkError
+      }
+
+      if (existingPayment?.status === 'received') {
+        console.log('⚠️ Payment already processed, skipping')
+        return new Response(
+          JSON.stringify({ received: true, status: 'already_processed' }),
+          { headers: corsHeaders, status: 200 }
+        )
+      }
 
       // Update user balance
       const { error: balanceError } = await supabase.rpc(
