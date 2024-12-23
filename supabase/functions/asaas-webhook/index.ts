@@ -17,7 +17,11 @@ const supabase = createClient(
 )
 
 serve(async (req) => {
+  // Log request method and URL
+  console.log(`📥 Received ${req.method} request to ${req.url}`);
+
   if (req.method === 'OPTIONS') {
+    console.log('👌 Handling CORS preflight request');
     return new Response(null, { headers: corsHeaders })
   }
 
@@ -66,6 +70,20 @@ serve(async (req) => {
       console.log('👤 Processing payment for user:', userId)
       console.log('💵 Payment amount:', payment.value)
 
+      // Log current user balance
+      const { data: currentProfile, error: profileError } = await supabase
+        .from('profiles')
+        .select('balance')
+        .eq('id', userId)
+        .single()
+
+      if (profileError) {
+        console.error('❌ Error fetching current balance:', profileError)
+        throw profileError
+      }
+
+      console.log('💰 Current balance:', currentProfile?.balance || 0)
+
       // Verificar se o pagamento já foi processado
       const { data: existingPayment, error: checkError } = await supabase
         .from('asaas_payments')
@@ -86,54 +104,18 @@ serve(async (req) => {
         )
       }
 
-      // Atualizar saldo do usuário usando service role
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('balance')
-        .eq('id', userId)
-        .single()
-
-      if (profileError) {
-        console.error('❌ Error fetching user profile:', profileError)
-        throw profileError
-      }
-
-      const currentBalance = profile.balance || 0
-      const newBalance = currentBalance + payment.value
-
-      console.log('💰 Updating balance:', {
-        userId,
-        currentBalance,
-        paymentAmount: payment.value,
-        newBalance
-      })
-
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ balance: newBalance })
-        .eq('id', userId)
+      // Atualizar saldo do usuário usando RPC function para garantir atomicidade
+      const { data: newBalance, error: updateError } = await supabase
+        .rpc('increment_balance', {
+          amount: payment.value
+        })
 
       if (updateError) {
         console.error('❌ Error updating balance:', updateError)
         throw updateError
       }
 
-      // Registrar no histórico de saldo
-      const { error: historyError } = await supabase
-        .from('balance_history')
-        .insert({
-          admin_id: userId,
-          user_id: userId,
-          operation_type: 'asaas_payment',
-          amount: payment.value,
-          previous_balance: currentBalance,
-          new_balance: newBalance
-        })
-
-      if (historyError) {
-        console.error('❌ Error recording balance history:', historyError)
-        throw historyError
-      }
+      console.log('✅ Balance updated successfully:', newBalance)
 
       // Atualizar status do pagamento
       const { error: statusError } = await supabase
