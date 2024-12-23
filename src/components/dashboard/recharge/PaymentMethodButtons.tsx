@@ -34,7 +34,6 @@ export function PaymentMethodButtons({
     try {
       setLoading(true);
       
-      // Log the request details before making the call
       console.log('Preparing payment request with:', {
         userId: session.user.id,
         amount: amount,

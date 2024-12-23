@@ -61,7 +61,7 @@ export async function createCustomer(name: string, email: string, cpf: string) {
     const customerPayload = {
       name,
       email,
-      cpfCnpj: cpf || "00000000000" // Using CPF if available, fallback to default
+      cpfCnpj: cpf || undefined // Only send if CPF exists
     };
 
     const data = await makeAsaasRequest(

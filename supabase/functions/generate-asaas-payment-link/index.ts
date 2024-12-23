@@ -95,6 +95,24 @@ serve(async (req) => {
       throw new Error('Invalid payment response - missing invoice URL');
     }
 
+    // Save payment info in our database
+    const { error: insertError } = await supabase
+      .from('asaas_payments')
+      .insert({
+        user_id: userId,
+        asaas_id: paymentData.id,
+        amount: amount,
+        status: 'pending',
+        qr_code: paymentData.qrCode,
+        qr_code_text: paymentData.encodedImage,
+        expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      });
+
+    if (insertError) {
+      console.error('Error saving payment:', insertError);
+      // Don't throw here, we still want to return the payment URL
+    }
+
     return new Response(
       JSON.stringify({ 
         paymentUrl: paymentData.invoiceUrl,
