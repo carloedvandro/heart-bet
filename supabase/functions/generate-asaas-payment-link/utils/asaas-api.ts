@@ -20,7 +20,7 @@ async function makeAsaasRequest(endpoint: string, options: RequestInit = {}) {
     });
 
     const responseText = await response.text();
-    console.log(`📥 Asaas API response: ${responseText}`);
+    console.log(`📥 Raw Asaas API response: ${responseText}`);
 
     if (!response.ok) {
       throw new Error(`Asaas API error (${response.status}): ${responseText}`);
