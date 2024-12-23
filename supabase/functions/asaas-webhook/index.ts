@@ -1,80 +1,67 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Allow-Headers': '*',
-  'Content-Type': 'application/json'
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-serve(async (req) => {
-  console.log('🎯 Asaas webhook received:', req.method, req.url)
-  
-  // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
-    console.log('👉 Handling CORS preflight request')
-    return new Response(null, { 
-      status: 204,
-      headers: corsHeaders 
-    })
-  }
+const WEBHOOK_SECRET = Deno.env.get('ASAAS_WEBHOOK_TOKEN')
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
+const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')
 
-  // Only accept POST requests
-  if (req.method !== 'POST') {
-    console.log('❌ Invalid method:', req.method)
-    return new Response(
-      JSON.stringify({ received: true, error: 'Only POST requests are allowed' }),
-      { 
-        status: 200, // Always return 200 as per Asaas docs
-        headers: corsHeaders 
-      }
-    )
+const supabase = createClient(
+  SUPABASE_URL!,
+  SUPABASE_ANON_KEY!
+)
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    // Log all headers for debugging
-    console.log('📨 Received headers:', Array.from(req.headers.entries()))
-
-    const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
-    const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-
-    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-      console.error('❌ Missing environment variables:', { 
-        hasUrl: !!SUPABASE_URL, 
-        hasKey: !!SUPABASE_SERVICE_ROLE_KEY 
-      })
-      throw new Error('Missing environment variables')
+    const signature = req.headers.get('asaas-signature')
+    if (!signature || !WEBHOOK_SECRET) {
+      console.error('❌ Missing webhook signature or secret')
+      throw new Error('Unauthorized')
     }
 
-    console.log('🔑 Creating Supabase client with service role')
-    const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
+    // Log the raw request body for debugging
+    const rawBody = await req.text()
+    console.log('📦 Received webhook payload:', rawBody)
 
-    const payload = await req.json()
-    console.log('📦 Received webhook payload:', payload)
+    let event
+    try {
+      event = JSON.parse(rawBody)
+    } catch (error) {
+      console.error('❌ Failed to parse webhook payload:', error)
+      throw new Error('Invalid JSON payload')
+    }
 
-    if (payload.event === 'PAYMENT_RECEIVED' || payload.event === 'PAYMENT_CONFIRMED') {
-      const payment = payload.payment
-      console.log('💰 Processing payment:', payment)
+    console.log('🎯 Processing webhook event:', event)
 
-      // Extract user_id from externalReference
+    const payment = event.payment
+    if (!payment) {
+      console.error('❌ No payment data in webhook')
+      throw new Error('No payment data')
+    }
+
+    console.log('💳 Payment status:', payment.status)
+
+    // Only process RECEIVED payments
+    if (payment.status === 'RECEIVED') {
       const userId = payment.externalReference
-
       if (!userId) {
-        console.error('❌ No user ID found in payment')
-        throw new Error('No user ID found in payment')
+        console.error('❌ No user ID in payment reference')
+        throw new Error('No user ID')
       }
 
       console.log('👤 Processing payment for user:', userId)
 
-      // The amount is already in reais, no need to convert from cents
-      const amountInReal = payment.value
-      console.log('💵 Payment amount in reais:', amountInReal)
+      // Use the payment value exactly as received from Asaas
+      const amount = payment.value
+      console.log('💵 Payment amount:', amount)
 
       // First check if this payment was already processed
       const { data: existingPayment, error: checkError } = await supabase
@@ -99,7 +86,7 @@ serve(async (req) => {
       // Update user balance
       const { error: balanceError } = await supabase.rpc(
         'increment_balance',
-        { amount: amountInReal }
+        { amount: amount }
       )
 
       if (balanceError) {
@@ -107,8 +94,8 @@ serve(async (req) => {
         throw balanceError
       }
 
-      // Update payment status in our database
-      const { error: paymentError } = await supabase
+      // Update payment status
+      const { error: statusError } = await supabase
         .from('asaas_payments')
         .update({
           status: 'received',
@@ -116,32 +103,29 @@ serve(async (req) => {
         })
         .eq('asaas_id', payment.id)
 
-      if (paymentError) {
-        console.error('❌ Error updating payment status:', paymentError)
-        console.log('⚠️ Payment status update failed but balance was updated')
+      if (statusError) {
+        console.error('❌ Error updating payment status:', statusError)
+        throw statusError
       }
 
-      console.log('✅ Payment processed successfully')
+      console.log('✅ Successfully processed payment')
+      return new Response(
+        JSON.stringify({ received: true }),
+        { headers: corsHeaders }
+      )
     }
 
-    // Always return 200 to acknowledge receipt
+    // For other statuses, just acknowledge receipt
     return new Response(
       JSON.stringify({ received: true }),
-      { 
-        headers: corsHeaders,
-        status: 200 
-      }
+      { headers: corsHeaders }
     )
 
   } catch (error) {
-    console.error('❌ Error processing webhook:', error)
-    // Still return 200 to acknowledge receipt, even on error
+    console.error('❌ Webhook processing error:', error)
     return new Response(
-      JSON.stringify({ received: true, error: error.message }),
-      { 
-        headers: corsHeaders,
-        status: 200 
-      }
+      JSON.stringify({ error: error.message }),
+      { status: 400, headers: corsHeaders }
     )
   }
 })
