@@ -7,9 +7,10 @@ import { toast } from "sonner";
 interface RechargeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onRechargeCreated?: () => void; // Added this optional prop
 }
 
-export function RechargeDialog({ open, onOpenChange }: RechargeDialogProps) {
+export function RechargeDialog({ open, onOpenChange, onRechargeCreated }: RechargeDialogProps) {
   const handleBinanceClick = () => {
     window.open("https://t.me/suporte_lovable", "_blank");
   };
@@ -26,6 +27,8 @@ export function RechargeDialog({ open, onOpenChange }: RechargeDialogProps) {
       try {
         const { error } = await supabase.functions.invoke('check-asaas-payments');
         if (error) throw error;
+        // Call onRechargeCreated if the check was successful
+        onRechargeCreated?.();
       } catch (error) {
         console.error('Error checking payments:', error);
         toast.error('Erro ao verificar pagamentos');
@@ -37,7 +40,7 @@ export function RechargeDialog({ open, onOpenChange }: RechargeDialogProps) {
     const interval = setInterval(checkPayments, 30000);
 
     return () => clearInterval(interval);
-  }, [open]);
+  }, [open, onRechargeCreated]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -49,7 +52,10 @@ export function RechargeDialog({ open, onOpenChange }: RechargeDialogProps) {
           pixKey="chave-pix@exemplo.com"
           onBinanceClick={handleBinanceClick}
           onOtherMethodsClick={handleOtherMethodsClick}
-          onProofUploaded={() => onOpenChange(false)}
+          onProofUploaded={() => {
+            onRechargeCreated?.();
+            onOpenChange(false);
+          }}
         />
       </DialogContent>
     </Dialog>
