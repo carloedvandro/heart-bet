@@ -9,10 +9,12 @@ const corsHeaders = {
 const WEBHOOK_SECRET = Deno.env.get('ASAAS_WEBHOOK_TOKEN')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
+// Usar service role key para ter permissões adequadas
 const supabase = createClient(
   SUPABASE_URL!,
-  SUPABASE_ANON_KEY!
+  SUPABASE_SERVICE_ROLE_KEY!
 )
 
 serve(async (req) => {
@@ -27,9 +29,9 @@ serve(async (req) => {
       throw new Error('Unauthorized')
     }
 
-    // Log the raw request body for debugging
+    // Log do payload recebido
     const rawBody = await req.text()
-    console.log('📦 Received webhook payload:', rawBody)
+    console.log('📦 Webhook payload:', rawBody)
 
     let event
     try {
@@ -39,7 +41,12 @@ serve(async (req) => {
       throw new Error('Invalid JSON payload')
     }
 
-    console.log('🎯 Processing webhook event:', event)
+    console.log('🎯 Processing webhook event:', {
+      event_type: event.event,
+      payment_status: event.payment?.status,
+      payment_value: event.payment?.value,
+      external_reference: event.payment?.externalReference
+    })
 
     const payment = event.payment
     if (!payment) {
@@ -49,7 +56,7 @@ serve(async (req) => {
 
     console.log('💳 Payment status:', payment.status)
 
-    // Only process RECEIVED payments
+    // Processar apenas pagamentos RECEIVED
     if (payment.status === 'RECEIVED') {
       const userId = payment.externalReference
       if (!userId) {
@@ -58,12 +65,9 @@ serve(async (req) => {
       }
 
       console.log('👤 Processing payment for user:', userId)
+      console.log('💵 Payment amount:', payment.value)
 
-      // Use the payment value exactly as received from Asaas
-      const amount = payment.value
-      console.log('💵 Payment amount:', amount)
-
-      // First check if this payment was already processed
+      // Verificar se o pagamento já foi processado
       const { data: existingPayment, error: checkError } = await supabase
         .from('asaas_payments')
         .select('status')
@@ -83,18 +87,56 @@ serve(async (req) => {
         )
       }
 
-      // Update user balance
-      const { error: balanceError } = await supabase.rpc(
-        'increment_balance',
-        { amount: amount }
-      )
+      // Atualizar saldo do usuário usando service role
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('balance')
+        .eq('id', userId)
+        .single()
 
-      if (balanceError) {
-        console.error('❌ Error updating balance:', balanceError)
-        throw balanceError
+      if (profileError) {
+        console.error('❌ Error fetching user profile:', profileError)
+        throw profileError
       }
 
-      // Update payment status
+      const currentBalance = profile.balance || 0
+      const newBalance = currentBalance + payment.value
+
+      console.log('💰 Updating balance:', {
+        userId,
+        currentBalance,
+        paymentAmount: payment.value,
+        newBalance
+      })
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ balance: newBalance })
+        .eq('id', userId)
+
+      if (updateError) {
+        console.error('❌ Error updating balance:', updateError)
+        throw updateError
+      }
+
+      // Registrar no histórico de saldo
+      const { error: historyError } = await supabase
+        .from('balance_history')
+        .insert({
+          admin_id: userId,
+          user_id: userId,
+          operation_type: 'asaas_payment',
+          amount: payment.value,
+          previous_balance: currentBalance,
+          new_balance: newBalance
+        })
+
+      if (historyError) {
+        console.error('❌ Error recording balance history:', historyError)
+        throw historyError
+      }
+
+      // Atualizar status do pagamento
       const { error: statusError } = await supabase
         .from('asaas_payments')
         .update({
@@ -110,12 +152,17 @@ serve(async (req) => {
 
       console.log('✅ Successfully processed payment')
       return new Response(
-        JSON.stringify({ received: true }),
+        JSON.stringify({ 
+          received: true,
+          userId,
+          amount: payment.value,
+          newBalance
+        }),
         { headers: corsHeaders }
       )
     }
 
-    // For other statuses, just acknowledge receipt
+    // Para outros status, apenas confirmar recebimento
     return new Response(
       JSON.stringify({ received: true }),
       { headers: corsHeaders }
