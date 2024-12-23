@@ -23,14 +23,14 @@ async function makeAsaasRequest(endpoint: string, options: RequestInit = {}) {
     console.log(`📥 Asaas API response: ${responseText}`);
 
     if (!response.ok) {
-      throw new Error(`Asaas API error: ${responseText}`);
+      throw new Error(`Asaas API error (${response.status}): ${responseText}`);
     }
 
     try {
-      return JSON.parse(responseText);
+      return responseText ? JSON.parse(responseText) : null;
     } catch (e) {
       console.error('❌ Failed to parse JSON response:', e);
-      throw new Error('Invalid JSON response from Asaas API');
+      throw new Error(`Invalid JSON response from Asaas API: ${responseText}`);
     }
   } catch (error) {
     console.error(`❌ Request failed for ${url}:`, error);

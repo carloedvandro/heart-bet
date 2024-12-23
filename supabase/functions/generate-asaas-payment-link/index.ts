@@ -72,7 +72,7 @@ serve(async (req) => {
     let customerResult = await lookupCustomer(email);
     let customerId;
 
-    if (customerResult.data && customerResult.data.length > 0) {
+    if (customerResult?.data && customerResult.data.length > 0) {
       customerId = customerResult.data[0].id;
       console.log('✅ Using existing customer:', customerId);
     } else {
@@ -80,7 +80,7 @@ serve(async (req) => {
       const customerData = await createCustomer(name, email, cpf);
       console.log('📥 Customer created:', customerData);
 
-      if (!customerData.id) {
+      if (!customerData?.id) {
         throw new Error('Invalid customer creation response - missing customer ID');
       }
 
@@ -91,7 +91,7 @@ serve(async (req) => {
     const paymentData = await createPayment(customerId, amount, userId);
     console.log('📥 Payment created:', paymentData);
 
-    if (!paymentData.invoiceUrl) {
+    if (!paymentData?.invoiceUrl) {
       throw new Error('Invalid payment response - missing invoice URL');
     }
 
