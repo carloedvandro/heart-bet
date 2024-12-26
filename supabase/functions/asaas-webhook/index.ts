@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, asaas-signature',
 }
 
 const WEBHOOK_SECRET = Deno.env.get('ASAAS_WEBHOOK_TOKEN')
@@ -28,8 +28,17 @@ serve(async (req) => {
   try {
     const signature = req.headers.get('asaas-signature')
     if (!signature || !WEBHOOK_SECRET) {
-      console.error('❌ Missing webhook signature or secret')
+      console.error('❌ Missing webhook signature or secret', {
+        signature: signature || 'missing',
+        hasSecret: !!WEBHOOK_SECRET
+      });
       throw new Error('Unauthorized')
+    }
+
+    // Validate webhook signature
+    if (signature !== WEBHOOK_SECRET) {
+      console.error('❌ Invalid webhook signature');
+      throw new Error('Invalid signature')
     }
 
     // Log do payload recebido
@@ -153,7 +162,7 @@ serve(async (req) => {
     console.error('❌ Webhook processing error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 400, headers: corsHeaders }
+      { status: 401, headers: corsHeaders }
     )
   }
 })
