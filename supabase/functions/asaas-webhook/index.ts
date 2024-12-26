@@ -40,22 +40,28 @@ serve(async (req) => {
     console.log('Method:', req.method);
     console.log('Headers:', Object.fromEntries(req.headers.entries()));
 
+    // Read the raw body as text since it's form-urlencoded
     const rawBody = await req.text();
     console.log('📦 Webhook payload:', rawBody);
 
-    let event;
-    try {
-      event = JSON.parse(rawBody);
-    } catch (error) {
-      console.error('❌ Failed to parse webhook payload:', error);
+    // Parse the form data
+    const formData = new URLSearchParams(rawBody);
+    const dataEncoded = formData.get('data');
+
+    if (!dataEncoded) {
+      console.error('❌ No data field in form');
       return new Response(
-        JSON.stringify({ error: 'Invalid JSON payload' }),
+        JSON.stringify({ error: 'No data field' }),
         { 
           status: 400,
           headers: corsHeaders
         }
       );
     }
+
+    // Decode and parse the JSON data
+    const dataDecoded = decodeURIComponent(dataEncoded);
+    const event = JSON.parse(dataDecoded);
 
     console.log('🎯 Processing webhook event:', {
       event_type: event.event,
@@ -114,7 +120,7 @@ serve(async (req) => {
 
       console.log('💰 Current balance:', currentProfile?.balance || 0);
 
-      // Verificar se o pagamento já foi processado
+      // Check if payment was already processed
       const { data: existingPayment, error: checkError } = await supabase
         .from('asaas_payments')
         .select('status')
@@ -140,7 +146,7 @@ serve(async (req) => {
         );
       }
 
-      // Atualizar saldo do usuário usando RPC function
+      // Update user balance using RPC function
       const { data: newBalance, error: updateError } = await supabase
         .rpc('increment_balance', {
           amount: payment.value
@@ -159,7 +165,7 @@ serve(async (req) => {
 
       console.log('✅ Balance updated successfully:', newBalance);
 
-      // Atualizar status do pagamento
+      // Update payment status
       const { error: statusError } = await supabase
         .from('asaas_payments')
         .update({
@@ -191,7 +197,7 @@ serve(async (req) => {
       );
     }
 
-    // Para outros status, apenas confirmar recebimento
+    // For other statuses, just confirm receipt
     return new Response(
       JSON.stringify({ received: true }),
       { headers: corsHeaders }
