@@ -1,50 +1,39 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
-import { Database } from '../utils/types.ts';
-import { corsHeaders } from './cors.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
+import { corsHeaders } from "../../_shared/cors.ts"
+import { AsaasPayment } from "./types.ts"
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
-const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-export async function processPayment(payload: any) {
+export async function processPayment(payment: AsaasPayment) {
   try {
-    console.log('Processing payment:', payload);
-
-    const paymentId = payload.payment.id;
-    const userId = payload.payment.customer;
-    const amount = parseFloat(payload.payment.value);
-    const status = payload.payment.status;
+    console.log('Processing payment:', payment);
 
     // Check if payment was already processed
     const { data: existingPayment } = await supabase
       .from('payments')
       .select('*')
-      .eq('payment_id', paymentId)
-      .single();
+      .eq('payment_id', payment.id)
+      .maybeSingle();
 
     if (existingPayment) {
-      console.log('Payment already processed:', paymentId);
-      return new Response(
-        JSON.stringify({ 
-          status: 'success', 
-          message: 'Payment already processed' 
-        }),
-        {
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          status: 200,
-        }
-      );
+      console.log('Payment already processed:', payment.id);
+      return {
+        status: 'success',
+        message: 'Payment already processed'
+      };
     }
 
     // Begin transaction by inserting payment record
-    const { data: payment, error: paymentError } = await supabase
+    const { data: paymentRecord, error: paymentError } = await supabase
       .from('payments')
       .insert({
-        payment_id: paymentId,
-        user_id: userId,
-        amount: amount,
-        status: status
+        payment_id: payment.id,
+        user_id: payment.externalReference,
+        amount: payment.value,
+        status: payment.status
       })
       .select()
       .single();
@@ -54,11 +43,11 @@ export async function processPayment(payload: any) {
     }
 
     // If payment is confirmed, update user balance
-    if (status === 'CONFIRMED' || status === 'RECEIVED') {
+    if (payment.status === 'RECEIVED') {
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('balance')
-        .eq('id', userId)
+        .eq('id', payment.externalReference)
         .single();
 
       if (profileError) {
@@ -66,12 +55,12 @@ export async function processPayment(payload: any) {
       }
 
       const currentBalance = profile?.balance || 0;
-      const newBalance = currentBalance + amount;
+      const newBalance = currentBalance + payment.value;
 
       const { error: updateError } = await supabase
         .from('profiles')
         .update({ balance: newBalance })
-        .eq('id', userId);
+        .eq('id', payment.externalReference);
 
       if (updateError) {
         throw updateError;
@@ -81,10 +70,10 @@ export async function processPayment(payload: any) {
       const { error: historyError } = await supabase
         .from('balance_history')
         .insert({
-          admin_id: userId,
-          user_id: userId,
+          admin_id: payment.externalReference,
+          user_id: payment.externalReference,
           operation_type: 'asaas_payment',
-          amount: amount,
+          amount: payment.value,
           previous_balance: currentBalance,
           new_balance: newBalance
         });
@@ -94,28 +83,13 @@ export async function processPayment(payload: any) {
       }
     }
 
-    return new Response(
-      JSON.stringify({ 
-        status: 'success', 
-        message: 'Payment processed successfully' 
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 200,
-      }
-    );
+    return {
+      status: 'success',
+      message: 'Payment processed successfully'
+    };
 
   } catch (error) {
     console.error('Error processing payment:', error);
-    return new Response(
-      JSON.stringify({ 
-        status: 'error', 
-        message: error.message 
-      }),
-      {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 500,
-      }
-    );
+    throw error;
   }
 }

@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { corsHeaders } from "./utils/cors.ts"
+import { corsHeaders } from "../_shared/cors.ts"
+import { processPayment } from "./utils/payment-processor.ts"
 import { AsaasWebhookEvent } from "./utils/types.ts"
-import { checkPaymentProcessed, processPayment } from "./utils/payment-processor.ts"
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -37,30 +37,11 @@ serve(async (req) => {
       external_reference: event.payment.externalReference
     });
 
-    console.log('👤 Processing payment for user:', event.payment.externalReference);
-    console.log('💵 Payment amount:', event.payment.value);
-
-    // Check if payment was already processed
-    const isProcessed = await checkPaymentProcessed(event.payment.id);
-    if (isProcessed) {
-      console.log('⚠️ Payment already processed, skipping');
-      return new Response(
-        JSON.stringify({ received: true, status: 'already_processed' }),
-        { headers: corsHeaders }
-      );
-    }
-
     // Process the payment
-    const success = await processPayment(event.payment);
-    if (!success) {
-      return new Response(
-        JSON.stringify({ error: 'Error processing payment' }),
-        { headers: corsHeaders, status: 500 }
-      );
-    }
-
+    const result = await processPayment(event.payment);
+    
     return new Response(
-      JSON.stringify({ received: true }),
+      JSON.stringify(result),
       { headers: corsHeaders }
     );
 
