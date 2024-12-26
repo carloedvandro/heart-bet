@@ -3,7 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Content-Type': 'application/json'
 }
@@ -146,11 +146,14 @@ serve(async (req) => {
         );
       }
 
-      // Update user balance using RPC function
-      const { data: newBalance, error: updateError } = await supabase
-        .rpc('increment_balance', {
-          amount: payment.value
-        });
+      // Update user balance and record in balance history
+      const newBalance = (currentProfile?.balance || 0) + payment.value;
+      
+      // First update the user's balance
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ balance: newBalance })
+        .eq('id', userId);
 
       if (updateError) {
         console.error('❌ Error updating balance:', updateError);
@@ -161,6 +164,23 @@ serve(async (req) => {
             headers: corsHeaders
           }
         );
+      }
+
+      // Then record in balance history using the user's ID as admin_id
+      const { error: historyError } = await supabase
+        .from('balance_history')
+        .insert({
+          admin_id: userId, // Using user's ID as admin_id
+          user_id: userId,
+          operation_type: 'asaas_payment',
+          amount: payment.value,
+          previous_balance: currentProfile?.balance || 0,
+          new_balance: newBalance
+        });
+
+      if (historyError) {
+        console.error('❌ Error recording balance history:', historyError);
+        // Even if history fails, we don't want to return an error since the balance was updated
       }
 
       console.log('✅ Balance updated successfully:', newBalance);
