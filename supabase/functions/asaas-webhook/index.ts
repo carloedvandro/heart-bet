@@ -26,6 +26,15 @@ serve(async (req) => {
     });
   }
 
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    console.log('Method not allowed:', req.method);
+    return new Response('Method not allowed', { 
+      status: 405,
+      headers: corsHeaders
+    });
+  }
+
   try {
     console.log('📥 Webhook request received');
     console.log('Method:', req.method);
@@ -39,7 +48,13 @@ serve(async (req) => {
       event = JSON.parse(rawBody);
     } catch (error) {
       console.error('❌ Failed to parse webhook payload:', error);
-      throw new Error('Invalid JSON payload');
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON payload' }),
+        { 
+          status: 400,
+          headers: corsHeaders
+        }
+      );
     }
 
     console.log('🎯 Processing webhook event:', {
@@ -52,7 +67,13 @@ serve(async (req) => {
     const payment = event.payment;
     if (!payment) {
       console.error('❌ No payment data in webhook');
-      throw new Error('No payment data');
+      return new Response(
+        JSON.stringify({ error: 'No payment data' }),
+        { 
+          status: 400,
+          headers: corsHeaders
+        }
+      );
     }
 
     console.log('💳 Payment status:', payment.status);
@@ -61,7 +82,13 @@ serve(async (req) => {
       const userId = payment.externalReference;
       if (!userId) {
         console.error('❌ No user ID in payment reference');
-        throw new Error('No user ID');
+        return new Response(
+          JSON.stringify({ error: 'No user ID' }),
+          { 
+            status: 400,
+            headers: corsHeaders
+          }
+        );
       }
 
       console.log('👤 Processing payment for user:', userId);
@@ -76,7 +103,13 @@ serve(async (req) => {
 
       if (profileError) {
         console.error('❌ Error fetching current balance:', profileError);
-        throw profileError;
+        return new Response(
+          JSON.stringify({ error: 'Error fetching user balance' }),
+          { 
+            status: 500,
+            headers: corsHeaders
+          }
+        );
       }
 
       console.log('💰 Current balance:', currentProfile?.balance || 0);
@@ -88,9 +121,15 @@ serve(async (req) => {
         .eq('asaas_id', payment.id)
         .single();
 
-      if (checkError) {
+      if (checkError && !checkError.message.includes('No rows found')) {
         console.error('❌ Error checking payment status:', checkError);
-        throw checkError;
+        return new Response(
+          JSON.stringify({ error: 'Error checking payment status' }),
+          { 
+            status: 500,
+            headers: corsHeaders
+          }
+        );
       }
 
       if (existingPayment?.status === 'received') {
@@ -109,7 +148,13 @@ serve(async (req) => {
 
       if (updateError) {
         console.error('❌ Error updating balance:', updateError);
-        throw updateError;
+        return new Response(
+          JSON.stringify({ error: 'Error updating balance' }),
+          { 
+            status: 500,
+            headers: corsHeaders
+          }
+        );
       }
 
       console.log('✅ Balance updated successfully:', newBalance);
@@ -125,7 +170,13 @@ serve(async (req) => {
 
       if (statusError) {
         console.error('❌ Error updating payment status:', statusError);
-        throw statusError;
+        return new Response(
+          JSON.stringify({ error: 'Error updating payment status' }),
+          { 
+            status: 500,
+            headers: corsHeaders
+          }
+        );
       }
 
       console.log('✅ Successfully processed payment');
