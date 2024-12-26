@@ -3,55 +3,33 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, asaas-signature',
+  'Access-Control-Allow-Headers': '*',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Type': 'application/json'
 }
 
-const WEBHOOK_SECRET = Deno.env.get('ASAAS_WEBHOOK_TOKEN')
-const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
-const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
 
 const supabase = createClient(
-  SUPABASE_URL!,
-  SUPABASE_SERVICE_ROLE_KEY!
+  SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY
 )
 
 serve(async (req) => {
-  console.log('📥 Webhook request received');
-  console.log('Method:', req.method);
-  console.log('Headers:', Object.fromEntries(req.headers.entries()));
-
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    console.log('👌 Handling CORS preflight request');
+    console.log('Handling CORS preflight request');
     return new Response(null, { 
-      headers: {
-        ...corsHeaders,
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      }
+      status: 204,
+      headers: corsHeaders
     });
   }
 
   try {
-    const signature = req.headers.get('asaas-signature') || req.headers.get('Asaas-Signature');
-    console.log('Received signature:', signature);
-    console.log('Expected signature:', WEBHOOK_SECRET);
-    
-    if (!signature || !WEBHOOK_SECRET) {
-      console.error('❌ Missing webhook signature or secret', {
-        hasSignature: !!signature,
-        hasSecret: !!WEBHOOK_SECRET
-      });
-      throw new Error('Unauthorized: Missing signature or secret');
-    }
-
-    // Validação case-insensitive do token
-    if (signature.toLowerCase() !== WEBHOOK_SECRET.toLowerCase()) {
-      console.error('❌ Invalid webhook signature', {
-        receivedSignature: signature,
-        expectedSignature: WEBHOOK_SECRET
-      });
-      throw new Error('Invalid signature');
-    }
+    console.log('📥 Webhook request received');
+    console.log('Method:', req.method);
+    console.log('Headers:', Object.fromEntries(req.headers.entries()));
 
     const rawBody = await req.text();
     console.log('📦 Webhook payload:', rawBody);
@@ -119,12 +97,7 @@ serve(async (req) => {
         console.log('⚠️ Payment already processed, skipping');
         return new Response(
           JSON.stringify({ received: true, status: 'already_processed' }),
-          { 
-            headers: {
-              ...corsHeaders,
-              'Content-Type': 'application/json'
-            }
-          }
+          { headers: corsHeaders }
         );
       }
 
@@ -163,24 +136,14 @@ serve(async (req) => {
           amount: payment.value,
           newBalance
         }),
-        { 
-          headers: {
-            ...corsHeaders,
-            'Content-Type': 'application/json'
-          }
-        }
+        { headers: corsHeaders }
       );
     }
 
     // Para outros status, apenas confirmar recebimento
     return new Response(
       JSON.stringify({ received: true }),
-      { 
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
-      }
+      { headers: corsHeaders }
     );
 
   } catch (error) {
@@ -188,11 +151,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
-        status: 401, 
-        headers: {
-          ...corsHeaders,
-          'Content-Type': 'application/json'
-        }
+        status: 500, 
+        headers: corsHeaders
       }
     );
   }
