@@ -7,7 +7,7 @@ import { toast } from "sonner";
 interface RechargeDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onRechargeCreated?: () => void; // Added this optional prop
+  onRechargeCreated?: () => void;
 }
 
 export function RechargeDialog({ open, onOpenChange, onRechargeCreated }: RechargeDialogProps) {
@@ -19,7 +19,6 @@ export function RechargeDialog({ open, onOpenChange, onRechargeCreated }: Rechar
     window.open("https://t.me/suporte_lovable", "_blank");
   };
 
-  // Adicionar verificação periódica de pagamentos
   useEffect(() => {
     if (!open) return;
 
@@ -27,7 +26,6 @@ export function RechargeDialog({ open, onOpenChange, onRechargeCreated }: Rechar
       try {
         const { error } = await supabase.functions.invoke('check-asaas-payments');
         if (error) throw error;
-        // Call onRechargeCreated if the check was successful
         onRechargeCreated?.();
       } catch (error) {
         console.error('Error checking payments:', error);
@@ -35,7 +33,6 @@ export function RechargeDialog({ open, onOpenChange, onRechargeCreated }: Rechar
       }
     };
 
-    // Verificar imediatamente e depois a cada 30 segundos
     checkPayments();
     const interval = setInterval(checkPayments, 30000);
 
@@ -44,19 +41,21 @@ export function RechargeDialog({ open, onOpenChange, onRechargeCreated }: Rechar
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle>Recarga</DialogTitle>
         </DialogHeader>
-        <RechargeContent
-          pixKey="chave-pix@exemplo.com"
-          onBinanceClick={handleBinanceClick}
-          onOtherMethodsClick={handleOtherMethodsClick}
-          onProofUploaded={() => {
-            onRechargeCreated?.();
-            onOpenChange(false);
-          }}
-        />
+        <div className="flex-1 overflow-y-auto">
+          <RechargeContent
+            pixKey="chave-pix@exemplo.com"
+            onBinanceClick={handleBinanceClick}
+            onOtherMethodsClick={handleOtherMethodsClick}
+            onProofUploaded={() => {
+              onRechargeCreated?.();
+              onOpenChange(false);
+            }}
+          />
+        </div>
       </DialogContent>
     </Dialog>
   );
