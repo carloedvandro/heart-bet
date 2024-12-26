@@ -37,6 +37,9 @@ serve(async (req) => {
       external_reference: event.payment.externalReference
     });
 
+    console.log('👤 Processing payment for user:', event.payment.externalReference);
+    console.log('💵 Payment amount:', event.payment.value);
+
     // Check if payment was already processed
     const isProcessed = await checkPaymentProcessed(event.payment.id);
     if (isProcessed) {
