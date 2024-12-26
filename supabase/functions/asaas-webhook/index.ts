@@ -10,47 +10,58 @@ const WEBHOOK_SECRET = Deno.env.get('ASAAS_WEBHOOK_TOKEN')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-// Usar service role key para ter permissões adequadas
 const supabase = createClient(
   SUPABASE_URL!,
   SUPABASE_SERVICE_ROLE_KEY!
 )
 
 serve(async (req) => {
-  // Log request method and URL
-  console.log(`📥 Received ${req.method} request to ${req.url}`);
+  console.log('📥 Webhook request received');
+  console.log('Method:', req.method);
+  console.log('Headers:', Object.fromEntries(req.headers.entries()));
 
+  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     console.log('👌 Handling CORS preflight request');
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { 
+      headers: {
+        ...corsHeaders,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      }
+    });
   }
 
   try {
-    const signature = req.headers.get('asaas-signature')
+    const signature = req.headers.get('asaas-signature') || req.headers.get('Asaas-Signature');
+    console.log('Received signature:', signature);
+    console.log('Expected signature:', WEBHOOK_SECRET);
+    
     if (!signature || !WEBHOOK_SECRET) {
       console.error('❌ Missing webhook signature or secret', {
-        signature: signature || 'missing',
+        hasSignature: !!signature,
         hasSecret: !!WEBHOOK_SECRET
       });
-      throw new Error('Unauthorized')
+      throw new Error('Unauthorized: Missing signature or secret');
     }
 
-    // Validate webhook signature
-    if (signature !== WEBHOOK_SECRET) {
-      console.error('❌ Invalid webhook signature');
-      throw new Error('Invalid signature')
+    // Validação case-insensitive do token
+    if (signature.toLowerCase() !== WEBHOOK_SECRET.toLowerCase()) {
+      console.error('❌ Invalid webhook signature', {
+        receivedSignature: signature,
+        expectedSignature: WEBHOOK_SECRET
+      });
+      throw new Error('Invalid signature');
     }
 
-    // Log do payload recebido
-    const rawBody = await req.text()
-    console.log('📦 Webhook payload:', rawBody)
+    const rawBody = await req.text();
+    console.log('📦 Webhook payload:', rawBody);
 
-    let event
+    let event;
     try {
-      event = JSON.parse(rawBody)
+      event = JSON.parse(rawBody);
     } catch (error) {
-      console.error('❌ Failed to parse webhook payload:', error)
-      throw new Error('Invalid JSON payload')
+      console.error('❌ Failed to parse webhook payload:', error);
+      throw new Error('Invalid JSON payload');
     }
 
     console.log('🎯 Processing webhook event:', {
@@ -58,73 +69,77 @@ serve(async (req) => {
       payment_status: event.payment?.status,
       payment_value: event.payment?.value,
       external_reference: event.payment?.externalReference
-    })
+    });
 
-    const payment = event.payment
+    const payment = event.payment;
     if (!payment) {
-      console.error('❌ No payment data in webhook')
-      throw new Error('No payment data')
+      console.error('❌ No payment data in webhook');
+      throw new Error('No payment data');
     }
 
-    console.log('💳 Payment status:', payment.status)
+    console.log('💳 Payment status:', payment.status);
 
-    // Processar apenas pagamentos RECEIVED
-    if (payment.status === 'RECEIVED') {
-      const userId = payment.externalReference
+    if (payment.status === 'RECEIVED' || payment.status === 'CONFIRMED') {
+      const userId = payment.externalReference;
       if (!userId) {
-        console.error('❌ No user ID in payment reference')
-        throw new Error('No user ID')
+        console.error('❌ No user ID in payment reference');
+        throw new Error('No user ID');
       }
 
-      console.log('👤 Processing payment for user:', userId)
-      console.log('💵 Payment amount:', payment.value)
+      console.log('👤 Processing payment for user:', userId);
+      console.log('💵 Payment amount:', payment.value);
 
       // Log current user balance
       const { data: currentProfile, error: profileError } = await supabase
         .from('profiles')
         .select('balance')
         .eq('id', userId)
-        .single()
+        .single();
 
       if (profileError) {
-        console.error('❌ Error fetching current balance:', profileError)
-        throw profileError
+        console.error('❌ Error fetching current balance:', profileError);
+        throw profileError;
       }
 
-      console.log('💰 Current balance:', currentProfile?.balance || 0)
+      console.log('💰 Current balance:', currentProfile?.balance || 0);
 
       // Verificar se o pagamento já foi processado
       const { data: existingPayment, error: checkError } = await supabase
         .from('asaas_payments')
         .select('status')
         .eq('asaas_id', payment.id)
-        .single()
+        .single();
 
       if (checkError) {
-        console.error('❌ Error checking payment status:', checkError)
-        throw checkError
+        console.error('❌ Error checking payment status:', checkError);
+        throw checkError;
       }
 
       if (existingPayment?.status === 'received') {
-        console.log('⚠️ Payment already processed, skipping')
+        console.log('⚠️ Payment already processed, skipping');
         return new Response(
           JSON.stringify({ received: true, status: 'already_processed' }),
-          { headers: corsHeaders, status: 200 }
-        )
+          { 
+            headers: {
+              ...corsHeaders,
+              'Content-Type': 'application/json'
+            }
+          }
+        );
       }
 
-      // Atualizar saldo do usuário usando RPC function para garantir atomicidade
+      // Atualizar saldo do usuário usando RPC function
       const { data: newBalance, error: updateError } = await supabase
         .rpc('increment_balance', {
           amount: payment.value
-        })
+        });
 
       if (updateError) {
-        console.error('❌ Error updating balance:', updateError)
-        throw updateError
+        console.error('❌ Error updating balance:', updateError);
+        throw updateError;
       }
 
-      console.log('✅ Balance updated successfully:', newBalance)
+      console.log('✅ Balance updated successfully:', newBalance);
 
       // Atualizar status do pagamento
       const { error: statusError } = await supabase
@@ -133,14 +148,14 @@ serve(async (req) => {
           status: 'received',
           paid_at: new Date().toISOString()
         })
-        .eq('asaas_id', payment.id)
+        .eq('asaas_id', payment.id);
 
       if (statusError) {
-        console.error('❌ Error updating payment status:', statusError)
-        throw statusError
+        console.error('❌ Error updating payment status:', statusError);
+        throw statusError;
       }
 
-      console.log('✅ Successfully processed payment')
+      console.log('✅ Successfully processed payment');
       return new Response(
         JSON.stringify({ 
           received: true,
@@ -148,21 +163,37 @@ serve(async (req) => {
           amount: payment.value,
           newBalance
         }),
-        { headers: corsHeaders }
-      )
+        { 
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
     }
 
     // Para outros status, apenas confirmar recebimento
     return new Response(
       JSON.stringify({ received: true }),
-      { headers: corsHeaders }
-    )
+      { 
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
 
   } catch (error) {
-    console.error('❌ Webhook processing error:', error)
+    console.error('❌ Webhook processing error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 401, headers: corsHeaders }
-    )
+      { 
+        status: 401, 
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
   }
 })
