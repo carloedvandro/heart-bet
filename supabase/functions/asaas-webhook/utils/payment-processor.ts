@@ -1,84 +1,121 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4';
-import { AsaasPayment } from './types.ts';
+import { Database } from '../utils/types.ts';
+import { corsHeaders } from './cors.ts';
 
-const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 
-export async function checkPaymentProcessed(paymentId: string): Promise<boolean> {
-  const { data } = await supabase
-    .from('payments')
-    .select('id')
-    .eq('payment_id', paymentId)
-    .single();
+const supabase = createClient<Database>(supabaseUrl, supabaseServiceKey);
 
-  return !!data;
-}
-
-export async function processPayment(payment: AsaasPayment): Promise<boolean> {
-  const { id: paymentId, externalReference: userId, value: amount } = payment;
-
+export async function processPayment(payload: any) {
   try {
-    // Start transaction by inserting payment record
-    const { error: paymentError } = await supabase
+    console.log('Processing payment:', payload);
+
+    const paymentId = payload.payment.id;
+    const userId = payload.payment.customer;
+    const amount = parseFloat(payload.payment.value);
+    const status = payload.payment.status;
+
+    // Check if payment was already processed
+    const { data: existingPayment } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('payment_id', paymentId)
+      .single();
+
+    if (existingPayment) {
+      console.log('Payment already processed:', paymentId);
+      return new Response(
+        JSON.stringify({ 
+          status: 'success', 
+          message: 'Payment already processed' 
+        }),
+        {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200,
+        }
+      );
+    }
+
+    // Begin transaction by inserting payment record
+    const { data: payment, error: paymentError } = await supabase
       .from('payments')
       .insert({
         payment_id: paymentId,
         user_id: userId,
         amount: amount,
-        status: 'completed'
-      });
+        status: status
+      })
+      .select()
+      .single();
 
     if (paymentError) {
-      if (paymentError.code === '23505') { // Unique violation
-        console.log('Payment already processed (unique constraint)');
-        return false;
-      }
       throw paymentError;
     }
 
-    // Get current balance
-    const { data: profile, error: profileError } = await supabase
-      .from('profiles')
-      .select('balance')
-      .eq('id', userId)
-      .single();
+    // If payment is confirmed, update user balance
+    if (status === 'CONFIRMED' || status === 'RECEIVED') {
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('balance')
+        .eq('id', userId)
+        .single();
 
-    if (profileError) throw profileError;
-    if (!profile) throw new Error('User profile not found');
+      if (profileError) {
+        throw profileError;
+      }
 
-    console.log('💰 Current balance:', profile.balance);
+      const currentBalance = profile?.balance || 0;
+      const newBalance = currentBalance + amount;
 
-    // Update user balance
-    const { error: updateError } = await supabase
-      .from('profiles')
-      .update({ balance: profile.balance + amount })
-      .eq('id', userId);
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ balance: newBalance })
+        .eq('id', userId);
 
-    if (updateError) throw updateError;
+      if (updateError) {
+        throw updateError;
+      }
 
-    // Record in balance history
-    const { error: historyError } = await supabase
-      .from('balance_history')
-      .insert({
-        admin_id: userId,
-        user_id: userId,
-        operation_type: 'asaas_payment',
-        amount: amount,
-        previous_balance: profile.balance,
-        new_balance: profile.balance + amount
-      });
+      // Record the balance update in history
+      const { error: historyError } = await supabase
+        .from('balance_history')
+        .insert({
+          admin_id: userId,
+          user_id: userId,
+          operation_type: 'asaas_payment',
+          amount: amount,
+          previous_balance: currentBalance,
+          new_balance: newBalance
+        });
 
-    if (historyError) throw historyError;
+      if (historyError) {
+        throw historyError;
+      }
+    }
 
-    return true;
+    return new Response(
+      JSON.stringify({ 
+        status: 'success', 
+        message: 'Payment processed successfully' 
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 200,
+      }
+    );
+
   } catch (error) {
     console.error('Error processing payment:', error);
-    // Try to rollback payment record if possible
-    await supabase
-      .from('payments')
-      .delete()
-      .eq('payment_id', paymentId);
-    return false;
+    return new Response(
+      JSON.stringify({ 
+        status: 'error', 
+        message: error.message 
+      }),
+      {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      }
+    );
   }
 }
