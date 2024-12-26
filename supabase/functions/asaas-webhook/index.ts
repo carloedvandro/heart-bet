@@ -16,19 +16,93 @@ const supabase = createClient(
   SUPABASE_SERVICE_ROLE_KEY
 )
 
+async function checkPaymentProcessed(asaasId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('asaas_payments')
+    .select('status, paid_at')
+    .eq('asaas_id', asaasId)
+    .single();
+
+  if (error) {
+    console.error('Error checking payment status:', error);
+    return false;
+  }
+
+  return data?.paid_at !== null;
+}
+
+async function processPayment(userId: string, amount: number, asaasId: string) {
+  // Start a transaction
+  const { data: payment, error: updateError } = await supabase
+    .from('asaas_payments')
+    .update({ 
+      status: 'received',
+      paid_at: new Date().toISOString()
+    })
+    .eq('asaas_id', asaasId)
+    .eq('status', 'pending')
+    .select()
+    .single();
+
+  if (updateError || !payment) {
+    console.error('Error updating payment status:', updateError);
+    return false;
+  }
+
+  // Update user balance
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('balance')
+    .eq('id', userId)
+    .single();
+
+  if (profileError) {
+    console.error('Error fetching profile:', profileError);
+    return false;
+  }
+
+  const newBalance = (profile?.balance || 0) + amount;
+
+  const { error: balanceError } = await supabase
+    .from('profiles')
+    .update({ balance: newBalance })
+    .eq('id', userId);
+
+  if (balanceError) {
+    console.error('Error updating balance:', balanceError);
+    return false;
+  }
+
+  // Record in balance history
+  const { error: historyError } = await supabase
+    .from('balance_history')
+    .insert({
+      admin_id: userId,
+      user_id: userId,
+      operation_type: 'asaas_payment',
+      amount: amount,
+      previous_balance: profile?.balance || 0,
+      new_balance: newBalance
+    });
+
+  if (historyError) {
+    console.error('Error recording balance history:', historyError);
+    return false;
+  }
+
+  return true;
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    console.log('Handling CORS preflight request');
     return new Response(null, { 
       status: 204,
       headers: corsHeaders
     });
   }
 
-  // Only allow POST requests
   if (req.method !== 'POST') {
-    console.log('Method not allowed:', req.method);
     return new Response('Method not allowed', { 
       status: 405,
       headers: corsHeaders
@@ -40,11 +114,9 @@ serve(async (req) => {
     console.log('Method:', req.method);
     console.log('Headers:', Object.fromEntries(req.headers.entries()));
 
-    // Read the raw body as text since it's form-urlencoded
     const rawBody = await req.text();
     console.log('📦 Webhook payload:', rawBody);
 
-    // Parse the form data
     const formData = new URLSearchParams(rawBody);
     const dataEncoded = formData.get('data');
 
@@ -52,93 +124,45 @@ serve(async (req) => {
       console.error('❌ No data field in form');
       return new Response(
         JSON.stringify({ error: 'No data field' }),
-        { 
-          status: 400,
-          headers: corsHeaders
-        }
+        { headers: corsHeaders, status: 400 }
       );
     }
 
-    // Decode and parse the JSON data
     const dataDecoded = decodeURIComponent(dataEncoded);
     const event = JSON.parse(dataDecoded);
-
-    console.log('🎯 Processing webhook event:', {
-      event_type: event.event,
-      payment_status: event.payment?.status,
-      payment_value: event.payment?.value,
-      external_reference: event.payment?.externalReference
-    });
-
     const payment = event.payment;
+
     if (!payment) {
       console.error('❌ No payment data in webhook');
       return new Response(
         JSON.stringify({ error: 'No payment data' }),
-        { 
-          status: 400,
-          headers: corsHeaders
-        }
+        { headers: corsHeaders, status: 400 }
       );
     }
 
-    console.log('💳 Payment status:', payment.status);
+    console.log('🎯 Processing webhook event:', {
+      event_type: event.event,
+      payment_status: payment.status,
+      payment_value: payment.value,
+      external_reference: payment.externalReference
+    });
 
-    if (payment.status === 'RECEIVED' || payment.status === 'CONFIRMED') {
+    if (payment.status === 'RECEIVED') {
       const userId = payment.externalReference;
       if (!userId) {
         console.error('❌ No user ID in payment reference');
         return new Response(
           JSON.stringify({ error: 'No user ID' }),
-          { 
-            status: 400,
-            headers: corsHeaders
-          }
+          { headers: corsHeaders, status: 400 }
         );
       }
 
       console.log('👤 Processing payment for user:', userId);
       console.log('💵 Payment amount:', payment.value);
 
-      // Log current user balance
-      const { data: currentProfile, error: profileError } = await supabase
-        .from('profiles')
-        .select('balance')
-        .eq('id', userId)
-        .single();
-
-      if (profileError) {
-        console.error('❌ Error fetching current balance:', profileError);
-        return new Response(
-          JSON.stringify({ error: 'Error fetching user balance' }),
-          { 
-            status: 500,
-            headers: corsHeaders
-          }
-        );
-      }
-
-      console.log('💰 Current balance:', currentProfile?.balance || 0);
-
       // Check if payment was already processed
-      const { data: existingPayment, error: checkError } = await supabase
-        .from('asaas_payments')
-        .select('status')
-        .eq('asaas_id', payment.id)
-        .single();
-
-      if (checkError && !checkError.message.includes('No rows found')) {
-        console.error('❌ Error checking payment status:', checkError);
-        return new Response(
-          JSON.stringify({ error: 'Error checking payment status' }),
-          { 
-            status: 500,
-            headers: corsHeaders
-          }
-        );
-      }
-
-      if (existingPayment?.status === 'received') {
+      const isProcessed = await checkPaymentProcessed(payment.id);
+      if (isProcessed) {
         console.log('⚠️ Payment already processed, skipping');
         return new Response(
           JSON.stringify({ received: true, status: 'already_processed' }),
@@ -146,73 +170,17 @@ serve(async (req) => {
         );
       }
 
-      // Update user balance and record in balance history
-      const newBalance = (currentProfile?.balance || 0) + payment.value;
-      
-      // First update the user's balance
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ balance: newBalance })
-        .eq('id', userId);
-
-      if (updateError) {
-        console.error('❌ Error updating balance:', updateError);
+      // Process the payment
+      const success = await processPayment(userId, payment.value, payment.id);
+      if (!success) {
         return new Response(
-          JSON.stringify({ error: 'Error updating balance' }),
-          { 
-            status: 500,
-            headers: corsHeaders
-          }
+          JSON.stringify({ error: 'Error processing payment' }),
+          { headers: corsHeaders, status: 500 }
         );
       }
 
-      // Then record in balance history using the user's ID as admin_id
-      const { error: historyError } = await supabase
-        .from('balance_history')
-        .insert({
-          admin_id: userId, // Using user's ID as admin_id
-          user_id: userId,
-          operation_type: 'asaas_payment',
-          amount: payment.value,
-          previous_balance: currentProfile?.balance || 0,
-          new_balance: newBalance
-        });
-
-      if (historyError) {
-        console.error('❌ Error recording balance history:', historyError);
-        // Even if history fails, we don't want to return an error since the balance was updated
-      }
-
-      console.log('✅ Balance updated successfully:', newBalance);
-
-      // Update payment status
-      const { error: statusError } = await supabase
-        .from('asaas_payments')
-        .update({
-          status: 'received',
-          paid_at: new Date().toISOString()
-        })
-        .eq('asaas_id', payment.id);
-
-      if (statusError) {
-        console.error('❌ Error updating payment status:', statusError);
-        return new Response(
-          JSON.stringify({ error: 'Error updating payment status' }),
-          { 
-            status: 500,
-            headers: corsHeaders
-          }
-        );
-      }
-
-      console.log('✅ Successfully processed payment');
       return new Response(
-        JSON.stringify({ 
-          received: true,
-          userId,
-          amount: payment.value,
-          newBalance
-        }),
+        JSON.stringify({ received: true }),
         { headers: corsHeaders }
       );
     }
@@ -227,10 +195,7 @@ serve(async (req) => {
     console.error('❌ Webhook processing error:', error);
     return new Response(
       JSON.stringify({ error: error.message }),
-      { 
-        status: 500, 
-        headers: corsHeaders
-      }
+      { headers: corsHeaders, status: 500 }
     );
   }
 })
