@@ -99,7 +99,7 @@ export type Database = {
           created_at: string
           id: string
           new_balance: number
-          operation_type: string
+          operation_type: Database["public"]["Enums"]["balance_operation_type"]
           previous_balance: number
           user_id: string
         }
@@ -109,7 +109,7 @@ export type Database = {
           created_at?: string
           id?: string
           new_balance: number
-          operation_type: string
+          operation_type?: Database["public"]["Enums"]["balance_operation_type"]
           previous_balance: number
           user_id: string
         }
@@ -119,7 +119,7 @@ export type Database = {
           created_at?: string
           id?: string
           new_balance?: number
-          operation_type?: string
+          operation_type?: Database["public"]["Enums"]["balance_operation_type"]
           previous_balance?: number
           user_id?: string
         }
@@ -865,6 +865,24 @@ export type Database = {
       }
     }
     Enums: {
+      balance_operation_type:
+        | "credit"
+        | "debit"
+        | "recharge"
+        | "bet"
+        | "bet_win"
+        | "bet_refund"
+        | "trade_investment"
+        | "trade_earning"
+        | "trade_withdrawal"
+        | "trade_refund"
+        | "manual_credit"
+        | "manual_debit"
+        | "asaas_payment"
+        | "investment_withdrawal"
+        | "investment_deletion"
+        | "investment_release"
+        | "investment_cancellation"
       bet_type:
         | "simple_group"
         | "dozen"
