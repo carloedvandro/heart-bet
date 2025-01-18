@@ -10,6 +10,12 @@ export default function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Redirecionar para o novo URL
+    window.location.href = "https://ebook-heart.lovable.app/login";
+    return;
+  }, []);
+
+  useEffect(() => {
     const checkSession = async () => {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
